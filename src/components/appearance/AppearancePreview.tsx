@@ -15,11 +15,13 @@ export function AppearancePreview({
   view,
   pageWidth,
   sidebar,
+  autoCover,
   flash,
 }: {
   view: PreviewView
   pageWidth: Appearance['pageWidth']
   sidebar: Appearance['sidebar']
+  autoCover: boolean
   flash: PreviewFlash
 }) {
   // A fresh element per change restarts the animation
@@ -62,7 +64,7 @@ export function AppearancePreview({
             className={cn('mx-auto transition-[width] duration-200', pageWidth === 'wide' ? 'w-[94%]' : 'w-[68%]')}
             data-preview-page
           >
-            <div className="h-7 rounded-md bg-linear-to-br from-sky-400 to-teal-300" />
+            {autoCover && <div className="h-7 rounded-md bg-linear-to-br from-sky-400 to-teal-300" />}
             <p
               className="mt-2 truncate font-page leading-tight font-bold"
               style={{ fontSize: 'calc(var(--page-text-size) * 0.85)' }}

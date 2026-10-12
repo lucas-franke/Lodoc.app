@@ -1,5 +1,5 @@
-import { NodeResizer, type NodeProps } from '@xyflow/react'
-import { Check, ExternalLink, FileText, MoreHorizontal, Pencil, X } from 'lucide-react'
+import { NodeResizer, useStore, type NodeProps } from '@xyflow/react'
+import { Check, ExternalLink, FileText, MoreHorizontal, Pencil, Spline, X } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { RowDropdownMenu, type MenuEntry } from '@/components/ItemMenu'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { NOTE_CARD_VIEWS, type BoardNode } from '@/db/schema'
 import { openNote } from '@/hooks/useRoute'
 import { cn } from '@/lib/utils'
 import { useBoard } from '../board-context'
+import { ConnectHandles } from '../ConnectHandles'
 import { cardView, TITLE_HEIGHT, type BoardFlowNode } from '../flow'
 
 // The editor is the heaviest part of the app; it is only loaded once a card is edited (or a note is opened)
@@ -23,6 +24,8 @@ type NoteItem = Extract<BoardNode, { type: 'note' }>
  * every other view of it (sidebar, folder cards, other boards) updates at once.
  */
 export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
+  // The details line is unreadable when zoomed far out, so it is left out there (like labels on a map)
+  const zoomedOut = useStore((s) => s.transform[2] < 0.6)
   const { noteId } = data as NoteItem
   const board = useBoard()
   const note = board.notes.get(noteId)
@@ -41,6 +44,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
           onSelect: () => board.setCardView(id, v),
         }))
       : []),
+    { type: 'item', label: 'Connect to…', icon: Spline, onSelect: () => board.connectFrom(id) },
     { type: 'separator' },
     { type: 'item', label: 'Remove from board', icon: X, onSelect: () => board.removeNodes([id]) },
   ]
@@ -55,6 +59,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
         onResizeStart={board.beginInteraction}
         onResizeEnd={(_, box) => board.resizeEnd(id, box)}
       />
+      {!editing && <ConnectHandles />}
       <div
         data-testid="board-note"
         data-editing={editing}
@@ -122,7 +127,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
             </Suspense>
           </div>
         ) : note ? (
-          <NoteCardBody note={note} view={view} fill />
+          <NoteCardBody note={note} view={view} fill hideMeta={zoomedOut} />
         ) : (
           <p className="min-h-0 flex-1 overflow-hidden p-3 text-sm text-muted-foreground">This note was deleted.</p>
         )}

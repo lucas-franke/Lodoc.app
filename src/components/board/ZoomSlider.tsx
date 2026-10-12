@@ -1,5 +1,5 @@
 import { Panel, useReactFlow, useStore } from '@xyflow/react'
-import { Maximize, Minus, Plus } from 'lucide-react'
+import { Map as MapIcon, Maximize, Minus, Plus } from 'lucide-react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 
@@ -9,8 +9,8 @@ const MAX_ZOOM = 2
 const toSlider = (zoom: number) => Math.log(zoom)
 const fromSlider = (value: number) => Math.exp(value)
 
-/** Zoom out / slider / zoom in, the zoom level (click for 100%) and "fit all", in the bottom-left corner. */
-export function ZoomSlider() {
+/** Zoom out / slider / zoom in, the zoom level (click for 100%), "fit all" and the minimap switch, in the bottom-left corner. */
+export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onMinimapChange: (on: boolean) => void }) {
   const { zoomTo, zoomIn, zoomOut, fitView } = useReactFlow()
   const zoom = useStore((s) => s.transform[2])
   const percent = Math.round(zoom * 100)
@@ -61,6 +61,18 @@ export function ZoomSlider() {
           onClick={() => void fitView({ duration: 250, padding: 0.2, maxZoom: 1 })}
         >
           <Maximize />
+        </Button>
+      </Tip>
+      <Tip label={minimap ? 'Hide minimap' : 'Show minimap'}>
+        <Button
+          variant={minimap ? 'secondary' : 'ghost'}
+          size="icon-xs"
+          className="size-8"
+          aria-label="Minimap"
+          aria-pressed={minimap}
+          onClick={() => onMinimapChange(!minimap)}
+        >
+          <MapIcon />
         </Button>
       </Tip>
     </Panel>

@@ -25,8 +25,8 @@ export function renameBoard(id: string, title: string) {
  * Saves layout changes. Only a change to the items counts as an edit (`updatedAt`);
  * panning and zooming just remember where you were.
  */
-export function updateBoard(id: string, changes: Partial<Pick<Board, 'nodes' | 'viewport' | 'noteView'>>) {
-  return db.boards.update(id, 'nodes' in changes ? { ...changes, updatedAt: Date.now() } : changes)
+export function updateBoard(id: string, changes: Partial<Pick<Board, 'nodes' | 'edges' | 'viewport' | 'noteView'>>) {
+  return db.boards.update(id, 'nodes' in changes || 'edges' in changes ? { ...changes, updatedAt: Date.now() } : changes)
 }
 
 /** Deletes a board and the images only it uses. Notes are never touched. */

@@ -69,7 +69,17 @@ export type BoardNode = BoardNodeBase &
       }
     | { type: 'text'; text: string; size: 's' | 'm' | 'l' }
     | { type: 'image'; assetId: string; alt?: string }
+    /** An area that groups the items on top of it; moving it moves them along */
+    | { type: 'frame'; title: string }
   )
+
+/** An arrow from one item on a board to another */
+export interface BoardEdge {
+  id: string
+  source: string
+  target: string
+  label?: string
+}
 
 /** A topic board: free-form canvas with references to notes, text annotations and images. */
 export interface Board {
@@ -80,8 +90,10 @@ export interface Board {
   viewport: Viewport
   /** The view new note cards start with (and the toolbar last applied); missing means 'full' */
   noteView?: NoteCardView
-  /** Array order is the z-order (last = on top) */
+  /** Array order is the z-order (last = on top); frames always stay behind the other items */
   nodes: BoardNode[]
+  /** Arrows between items; missing in boards from before arrows existed */
+  edges?: BoardEdge[]
 }
 
 /** Image bytes, kept out of the board document so boards stay small. */
@@ -108,6 +120,6 @@ export interface TrashEntry {
   notes: Note[]
   folders: Folder[]
   boards: Board[]
-  /** Note cards removed from boards that were not deleted themselves */
-  cards: { boardId: string; node: BoardNode }[]
+  /** Note cards removed from boards that were not deleted themselves, with their arrows */
+  cards: { boardId: string; node: BoardNode; edges?: BoardEdge[] }[]
 }

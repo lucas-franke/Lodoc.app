@@ -35,11 +35,21 @@ export function useIsTrash(): boolean {
   return useSyncExternalStore(subscribe, isTrashHash)
 }
 
+/** The tag whose notes are shown (#/tag/<name>), or null */
+const tagOfHash = () => {
+  const m = /^#\/tag\/(.+)$/.exec(window.location.hash)
+  return m ? decodeURIComponent(m[1]) : null
+}
+export function useTagRoute(): string | null {
+  return useSyncExternalStore(subscribe, tagOfHash)
+}
+
 /** True on the overview (no page open). */
 export function useIsHome(): boolean {
   const route = useRoute()
   const trash = useIsTrash()
-  return route === null && !trash
+  const tag = useTagRoute()
+  return route === null && !trash && tag === null
 }
 
 export function useActiveNoteId(): string | null {
@@ -63,6 +73,10 @@ export function openNote(id: string | null) {
 
 export function openFolder(id: string) {
   window.location.hash = `#/folder/${encodeURIComponent(id)}`
+}
+
+export function openTag(tag: string) {
+  window.location.hash = '#/tag/' + encodeURIComponent(tag)
 }
 
 export function openTrash() {

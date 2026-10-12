@@ -431,6 +431,42 @@ html .react-flow__attribution a {
   color: var(--muted-foreground);
 }
 
+/* Drawing arrows (ConnectHandles): a dot on each side, shown on hover or while the item is selected */
+html .react-flow__handle.board-connect {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--background);
+  background: var(--ring);
+  opacity: 0;
+  transition: opacity 120ms;
+}
+html .react-flow__node:hover > .board-connect,
+html .react-flow__node.selected > .board-connect {
+  opacity: 1;
+}
+/* While an arrow is being drawn, the whole item is where it can be dropped */
+html .react-flow__handle.board-drop {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  transform: none;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  z-index: 1;
+}
+html .react-flow__handle.board-drop.connectingto {
+  background: color-mix(in oklch, var(--ring) 8%, transparent);
+  outline: 2px solid var(--ring);
+  border-radius: 0.5rem;
+}
+html .react-flow__connection-path {
+  stroke: var(--ring);
+  stroke-width: 1.5;
+}
+
 /* The note editor inside a board card: no room for BlockNote's 54px page margins */
 .bn-embedded .bn-editor {
   padding-inline: 12px;

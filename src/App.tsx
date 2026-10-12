@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { FilePlus, PanelLeftOpen } from 'lucide-react'
+import { BookOpen, FilePlus, PanelLeftOpen } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { BoardBreadcrumb } from '@/components/board/BoardBreadcrumb'
 import { CommandPalette } from '@/components/CommandPalette'
@@ -9,7 +9,10 @@ import { FolderView } from '@/components/folder/FolderView'
 import { BoardPageActions, FolderPageActions, NotePageActions } from '@/components/PageActions'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { HomeView } from '@/components/home/HomeView'
+import { openGuideNote } from '@/lib/guide'
+import { rememberLastNote } from '@/lib/last-note'
 import { TrashView } from '@/components/trash/TrashView'
+import { TagView } from '@/components/tags/TagView'
 import { ShortcutsDialog } from '@/components/ShortcutsDialog'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 import { Tip } from '@/components/Tip'
@@ -18,7 +21,7 @@ import { boardTitle } from '@/db/boards'
 import { db } from '@/db/db'
 import { createNote, noteTitle } from '@/db/notes'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
-import { openNote, useIsTrash, useRoute, type RouteType } from '@/hooks/useRoute'
+import { openNote, useIsTrash, useRoute, useTagRoute, type RouteType } from '@/hooks/useRoute'
 import { useAppEvent } from '@/lib/app-events'
 import { cn } from '@/lib/utils'
 
@@ -39,6 +42,7 @@ const LOADING = Symbol('loading')
 export default function App() {
   const route = useRoute()
   const onTrash = useIsTrash()
+  const tagRoute = useTagRoute()
   // A new note that was left untouched isn't kept when you move on
   useDiscardUntouchedNote(route?.type === 'note' ? route.id : null)
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow())
@@ -72,6 +76,11 @@ export default function App() {
         : board
           ? { type: 'board' as const, board }
           : undefined
+
+  // The overview offers to continue with the note you had open last
+  useEffect(() => {
+    if (route?.type === 'note') rememberLastNote(route.id)
+  }, [route])
 
   // On small screens the sidebar is an overlay; close it once a page is opened
   useEffect(() => {
@@ -171,7 +180,7 @@ export default function App() {
           </header>
 
           {/* Boards are full-bleed and pan/zoom themselves, so the page itself must not scroll */}
-          <div className={onBoard ? 'min-h-0 flex-1 overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto'}>
+          <div className={onBoard ? 'min-h-0 flex-1 overflow-hidden' : '@container min-h-0 flex-1 overflow-y-auto'}>
             {loading ? null : current?.type === 'note' ? (
               <Suspense fallback={null}>
                 <NoteEditor key={current.note.id} note={current.note} />
@@ -184,6 +193,8 @@ export default function App() {
               </Suspense>
             ) : onTrash ? (
               <TrashView />
+            ) : tagRoute !== null ? (
+              <TagView key={tagRoute} tag={tagRoute} />
             ) : route ? (
               <EmptyState missing={route.type} />
             ) : (
@@ -205,9 +216,16 @@ function EmptyState({ missing }: { missing: RouteType | null }) {
       <p className="text-sm text-muted-foreground">
         {missing ? `This ${missing} no longer exists.` : 'Select a note or create a new one.'}
       </p>
-      <Button variant="outline" onClick={async () => openNote(await createNote())}>
-        <FilePlus /> New note
-      </Button>
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button variant="outline" onClick={async () => openNote(await createNote())}>
+          <FilePlus /> New note
+        </Button>
+        {!missing && (
+          <Button variant="ghost" onClick={async () => openNote(await openGuideNote())}>
+            <BookOpen /> Getting started guide
+          </Button>
+        )}
+      </div>
       <p className="text-xs text-muted-foreground">
         Shortcut: <kbd className="font-sans">Ctrl</kbd> + <kbd className="font-sans">Alt</kbd> +{' '}
         <kbd className="font-sans">N</kbd> · Type <kbd className="font-sans">/</kbd> in a note for blocks

@@ -12,7 +12,7 @@ export interface Box {
 export interface BoardContextValue {
   /** Notes referenced on this board, by id (a missing entry means the note was deleted) */
   notes: Map<string, Note>
-  /** The one item being edited in place (text now, note editor in a later phase) */
+  /** The one item being edited in place: a text, a note card, a frame name or an arrow label */
   editingId: string | null
   setEditingId: (id: string | null) => void
   /** Open the note editor inside a card (zooms in first if the view is too small to type comfortably) */
@@ -27,6 +27,14 @@ export interface BoardContextValue {
   /** Text item: save the text (an empty text removes the item) */
   commitText: (id: string, text: string) => void
   setTextSize: (id: string, size: 's' | 'm' | 'l') => void
+  /** Frame: save the name (ends editing) */
+  renameFrame: (id: string, title: string) => void
+  /** Open the "Connect to…" picker for an arrow starting at this item */
+  connectFrom: (id: string) => void
+  /** Arrow: save the label (ends editing; empty removes it) */
+  setEdgeLabel: (id: string, label: string) => void
+  reverseEdge: (id: string) => void
+  removeEdges: (ids: string[]) => void
   /** Called when a resize starts, so outside database changes don't fight the interaction */
   beginInteraction: () => void
 }

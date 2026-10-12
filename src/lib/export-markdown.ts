@@ -1,4 +1,5 @@
-import { BlockNoteEditor, type PartialBlock } from '@blocknote/core'
+import { BlockNoteEditor } from '@blocknote/core'
+import { editorSchema } from '@/components/editor/schema'
 import { zipSync, strToU8 } from 'fflate'
 import { db } from '@/db/db'
 import { descendantIds } from '@/db/folders'
@@ -10,12 +11,13 @@ import { safeFileName, saveFile } from './save-file'
 // Loaded only when a download starts (import('./export-markdown')), so BlockNote's converter and the zip
 // library stay out of the main bundle.
 
-let converter: BlockNoteEditor | null = null
+// Same schema as the editor, so note links come out as [[Title]]
+let converter: BlockNoteEditor<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema> | null = null
 
 /** A note as Markdown: its title as a heading, then the content (lossy: e.g. colors are dropped). */
 export function noteToMarkdown(note: Note): string {
-  converter ??= BlockNoteEditor.create()
-  const body = note.content.length ? converter.blocksToMarkdownLossy(note.content as PartialBlock[]) : ''
+  converter ??= BlockNoteEditor.create({ schema: editorSchema })
+  const body = note.content.length ? converter.blocksToMarkdownLossy(note.content as never) : ''
   return `# ${noteTitle(note)}\n\n${body}`.trimEnd() + '\n'
 }
 

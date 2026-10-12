@@ -136,7 +136,7 @@ export function AppearancePanel({
         </SheetHeader>
 
         <div className="space-y-2 border-b px-4 pb-4">
-          <AppearancePreview view={view} pageWidth={a.pageWidth} sidebar={a.sidebar} flash={flash} />
+          <AppearancePreview view={view} pageWidth={a.pageWidth} sidebar={a.sidebar} autoCover={a.autoCover} flash={flash} />
           <ToggleGroup
             type="single"
             variant="outline"
@@ -268,6 +268,13 @@ export function AppearancePanel({
                 ]}
               />
             </Row>
+            <SwitchRow
+              id="ap-auto-cover"
+              label="Automatic covers"
+              hint="Notes without a chosen cover get a color gradient"
+              checked={a.autoCover}
+              onChange={(autoCover) => change({ autoCover }, 'page')}
+            />
             <Row label="Texture">
               <Tiles
                 label="Page texture"

@@ -1,12 +1,19 @@
 import type { PartialBlock } from '@blocknote/core'
-import { useCreateBlockNote } from '@blocknote/react'
+import { SuggestionMenuController, useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/shadcn'
 import '@blocknote/shadcn/style.css'
 import { useTheme } from 'next-themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { updateNote } from '@/db/notes'
+import { isFreshNote, noteWordCount, updateNote } from '@/db/notes'
+import { formatDateTime, formatRelative, plural } from '@/lib/format'
 import { registerFlush } from '@/lib/pending-saves'
 import { AddCoverButton, CoverBanner } from './CoverBanner'
+import { noteLinkItems } from './note-link-items'
+import { NoteBacklinks } from './NoteLinks'
+import { NoteOutline } from './NoteOutline'
+import { outlineOf, type OutlineItem } from '@/lib/outline'
+import { editorSchema } from './schema'
+import { NoteTags } from '@/components/note/NoteTags'
 import type { Note, StoredBlock } from '@/db/schema'
 
 const SAVE_DELAY = 400
@@ -76,11 +83,19 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   }, [note.title, isPending])
 
   const editor = useCreateBlockNote({
-    initialContent: note.content.length ? (note.content as PartialBlock[]) : undefined,
+    schema: editorSchema,
+    initialContent: note.content.length ? (note.content as PartialBlock<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema>[]) : undefined,
     uploadFile: fileToDataUrl,
     // Accessible name for the editable area (screen readers otherwise announce just "edit text")
     domAttributes: { editor: { 'aria-label': 'Note content' } },
   })
+
+  // The headings for the outline, kept in step with the editor (only re-rendered when they change)
+  const [outline, setOutline] = useState<OutlineItem[]>(() => outlineOf(editor.document as never))
+  const updateOutline = () => {
+    const next = outlineOf(editor.document as never)
+    setOutline((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
+  }
 
   // In a card, start typing right away: cursor at the end (an untitled note starts in its title field instead)
   useEffect(() => {
@@ -116,13 +131,47 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
               : 'mb-4 w-full bg-transparent px-[54px] font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground'
           }
         />
+        {!embedded && <PageInfo note={note} title={title} />}
+        {!embedded && <NoteTags note={note} />}
       </div>
       <BlockNoteView
         editor={editor}
         sideMenu={!embedded}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
-        onChange={() => save({ content: editor.document as unknown as StoredBlock[] })}
-      />
+        onChange={() => {
+          save({ content: editor.document as unknown as StoredBlock[] })
+          if (!embedded) updateOutline()
+        }}
+      >
+        {/* "@" links to another note (or creates one with the typed name) */}
+        <SuggestionMenuController
+          triggerCharacter="@"
+          getItems={(query) =>
+            noteLinkItems(query, note.id, (noteId, linkTitle) =>
+              editor.insertInlineContent([{ type: 'noteLink', props: { noteId, title: linkTitle } }, ' ']),
+            )
+          }
+        />
+      </BlockNoteView>
+      {!embedded && <NoteBacklinks noteId={note.id} />}
+      {!embedded && <NoteOutline items={outline} />}
     </div>
+  )
+}
+
+/** A quiet line under the title: when it was edited and how long it is; for a brand-new empty note, that it isn't kept. */
+function PageInfo({ note, title }: { note: Note; title: string }) {
+  const empty = !title.trim() && note.content.length === 0
+  return (
+    <p className="-mt-3 mb-3 px-[54px] text-xs text-muted-foreground" data-page-info>
+      {empty && note.updatedAt === note.createdAt && isFreshNote(note.id) ? (
+        "Empty notes aren't kept when you leave them."
+      ) : (
+        <>
+          <span title={formatDateTime(note.updatedAt)}>Edited {formatRelative(note.updatedAt)}</span> ·{' '}
+          {plural(noteWordCount(note), 'word')}
+        </>
+      )}
+    </p>
   )
 }

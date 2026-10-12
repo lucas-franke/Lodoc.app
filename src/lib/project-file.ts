@@ -50,7 +50,15 @@ const boardNodeSchema = z.discriminatedUnion('type', [
   }),
   z.object({ ...nodeBase, type: z.literal('text'), text: z.string(), size: z.enum(['s', 'm', 'l']) }),
   z.object({ ...nodeBase, type: z.literal('image'), assetId: z.string(), alt: z.string().optional() }),
+  z.object({ ...nodeBase, type: z.literal('frame'), title: z.string() }),
 ])
+
+const boardEdgeSchema = z.object({
+  id: z.string().min(1),
+  source: z.string(),
+  target: z.string(),
+  label: z.string().optional(),
+})
 
 const boardSchema = z.object({
   id: z.string().min(1),
@@ -60,6 +68,7 @@ const boardSchema = z.object({
   viewport: z.object({ x: z.number(), y: z.number(), zoom: z.number() }),
   noteView: cardViewSchema.optional(),
   nodes: z.array(boardNodeSchema),
+  edges: z.array(boardEdgeSchema).optional(),
 })
 
 /** An image in the file: the bytes as base64 text. */

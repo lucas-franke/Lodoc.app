@@ -1,5 +1,6 @@
 import { notePreview } from '@/db/notes'
 import type { Note, NoteCardView } from '@/db/schema'
+import { useAppearance } from '@/hooks/useAppearance'
 import { resolveCover } from '@/lib/cover'
 import { cn } from '@/lib/utils'
 import { NoteCardMeta } from './NoteCardMeta'
@@ -11,9 +12,21 @@ import { NoteCover } from './NoteCover'
  * The same body is used by folder cards and board cards.
  * `fill`: the card has a fixed height (board), so the cover and text take the free space.
  */
-export function NoteCardBody({ note, view, fill = false }: { note: Note; view: NoteCardView; fill?: boolean }) {
+export function NoteCardBody({
+  note,
+  view,
+  fill = false,
+  hideMeta = false,
+}: {
+  note: Note
+  view: NoteCardView
+  fill?: boolean
+  /** Leave out the details line (board cards when zoomed far out, where it would be unreadable) */
+  hideMeta?: boolean
+}) {
+  const { autoCover } = useAppearance()
   if (view === 'title') return null
-  const cover = resolveCover(note)
+  const cover = resolveCover(note, autoCover)
   const preview = notePreview(note, 600)
   const emptyText = <span className="italic">Empty note</span>
 
@@ -36,7 +49,7 @@ export function NoteCardBody({ note, view, fill = false }: { note: Note; view: N
         <p className={cn('min-h-0 flex-1 overflow-hidden font-page text-sm text-muted-foreground', !fill && 'line-clamp-3')}>
           {preview || emptyText}
         </p>
-        <NoteCardMeta note={note} />
+        {!hideMeta && <NoteCardMeta note={note} />}
       </div>
     </>
   )

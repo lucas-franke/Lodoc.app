@@ -1,9 +1,11 @@
 import { NodeResizer, NodeToolbar, Position, type NodeProps } from '@xyflow/react'
+import { Spline } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import type { BoardNode } from '@/db/schema'
 import { cn } from '@/lib/utils'
 import { useBoard } from '../board-context'
+import { ConnectHandles } from '../ConnectHandles'
 import type { BoardFlowNode } from '../flow'
 
 type TextItem = Extract<BoardNode, { type: 'text' }>
@@ -50,7 +52,7 @@ export function TextNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
         onResizeEnd={(_, box) => board.resizeEnd(id, box)}
       />
       <NodeToolbar isVisible={selected && !editing} position={Position.Top}>
-        <div role="toolbar" aria-label="Text size" className="nodrag flex gap-0.5 rounded-lg border bg-popover p-1 shadow-md">
+        <div role="toolbar" aria-label="Text" className="nodrag flex gap-0.5 rounded-lg border bg-popover p-1 shadow-md">
           {SIZES.map((s) => (
             <Button
               key={s.size}
@@ -63,8 +65,13 @@ export function TextNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
               {s.glyph}
             </Button>
           ))}
+          <div className="mx-0.5 w-px self-stretch bg-border" />
+          <Button variant="ghost" size="icon-xs" aria-label="Connect to…" onClick={() => board.connectFrom(id)}>
+            <Spline />
+          </Button>
         </div>
       </NodeToolbar>
+      {!editing && <ConnectHandles />}
       <div
         data-testid="board-text"
         className={cn(

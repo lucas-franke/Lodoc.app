@@ -1,11 +1,11 @@
 import { Panel } from '@xyflow/react'
-import { FileText, Type } from 'lucide-react'
+import { FileText, SquareDashed, Type } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { noteText, noteTitle } from '@/db/notes'
 import type { Note } from '@/db/schema'
-import type { BoardFlowNode } from './flow'
+import { frameTitle, type BoardFlowNode } from './flow'
 
 const MAX_RESULTS = 8
 
@@ -13,12 +13,12 @@ interface Result {
   id: string
   title: string
   detail: string
-  type: 'note' | 'text'
+  type: 'note' | 'text' | 'frame'
   haystack: string
 }
 
 /**
- * "Find on board": type to filter the notes and texts on this board by title or content; picking one
+ * "Find on board": type to filter the notes, texts and frames on this board by title or content; picking one
  * selects it and zooms to it (also when it is far off screen).
  */
 export function NodeSearch({
@@ -47,6 +47,9 @@ export function NodeSearch({
         if (d.type === 'text') {
           const line = d.text.trim().split('\n')[0]
           return [{ id: n.id, type: 'text', title: line, detail: 'Text', haystack: d.text.toLowerCase() }]
+        }
+        if (d.type === 'frame' && d.title.trim()) {
+          return [{ id: n.id, type: 'frame', title: frameTitle(d.title), detail: 'Frame', haystack: d.title.toLowerCase() }]
         }
         return []
       }),
@@ -97,6 +100,8 @@ export function NodeSearch({
               <CommandItem key={item.id} value={item.id} onSelect={() => pick(item.id)} className="min-h-9">
                 {item.type === 'note' ? (
                   <FileText className="text-muted-foreground" />
+                ) : item.type === 'frame' ? (
+                  <SquareDashed className="text-muted-foreground" />
                 ) : (
                   <Type className="text-muted-foreground" />
                 )}

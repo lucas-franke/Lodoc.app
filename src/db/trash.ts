@@ -17,7 +17,11 @@ async function cardsOf(noteIds: Set<string>, exceptBoard?: string): Promise<Tras
   const cards: TrashEntry['cards'] = []
   for (const board of await db.boards.toArray()) {
     if (board.id === exceptBoard) continue
-    for (const node of board.nodes) if (node.type === 'note' && noteIds.has(node.noteId)) cards.push({ boardId: board.id, node })
+    for (const node of board.nodes) {
+      if (node.type !== 'note' || !noteIds.has(node.noteId)) continue
+      const edges = board.edges?.filter((e) => e.source === node.id || e.target === node.id)
+      cards.push({ boardId: board.id, node, ...(edges?.length ? { edges } : {}) })
+    }
   }
   return cards
 }
@@ -106,8 +110,15 @@ export function restoreTrash(entryId: string) {
       const board = await db.boards.get(boardId)
       if (!board) continue
       const present = new Set(board.nodes.map((n) => n.id))
-      const back = entry.cards.filter((c) => c.boardId === boardId && !present.has(c.node.id)).map((c) => c.node)
-      if (back.length) await db.boards.update(boardId, { nodes: [...board.nodes, ...back], updatedAt: Date.now() })
+      const back = entry.cards.filter((c) => c.boardId === boardId && !present.has(c.node.id))
+      if (!back.length) continue
+      const nodes = [...board.nodes, ...back.map((c) => c.node)]
+      // Arrows come back when both of their ends are on the board again (and they aren't there already)
+      const ids = new Set(nodes.map((n) => n.id))
+      const edges = board.edges ?? []
+      const known = new Set(edges.map((e) => e.id))
+      const arrows = back.flatMap((c) => c.edges ?? []).filter((e) => !known.has(e.id) && ids.has(e.source) && ids.has(e.target))
+      await db.boards.update(boardId, { nodes, edges: [...edges, ...new Map(arrows.map((e) => [e.id, e])).values()], updatedAt: Date.now() })
     }
     await db.trash.delete(entryId)
     return entry

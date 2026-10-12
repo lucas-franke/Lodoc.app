@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { FolderPlus, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, Trash2, X } from 'lucide-react'
+import { ChevronRight, FolderPlus, Hash, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -8,9 +8,9 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { db } from '@/db/db'
 import { createBoard, sortBoards } from '@/db/boards'
 import { createFolder } from '@/db/folders'
-import { createNote, noteText, sortNotes, sortNotesManual } from '@/db/notes'
+import { createNote, noteText, sortNotes, sortNotesManual, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useIsHome, useIsTrash } from '@/hooks/useRoute'
+import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useIsHome, useIsTrash, useTagRoute } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
 import { AppearanceMenu } from './AppearanceMenu'
 import { BackupMenu } from './BackupMenu'
@@ -34,6 +34,9 @@ function loadExpanded(): Set<string> {
     return new Set()
   }
 }
+
+/** How many recently edited notes the (collapsible) Recent section lists */
+const RECENT_COUNT = 5
 
 export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], NOT_LOADED)
@@ -107,6 +110,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const sidebarWidth = useSidebarWidth()
   const isHome = useIsHome()
   const isTrash = useIsTrash()
+  const activeTag = useTagRoute()
   const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
   // Like Ctrl+Alt+N: a new note goes into the folder you're in (the open folder, or the open note's folder)
   const targetFolderId = activeFolderId ?? notes.find((n) => n.id === activeNoteId)?.folderId ?? null
@@ -130,6 +134,8 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const q = query.trim().toLowerCase()
   const results = q ? sortNotes(notes.filter((n) => noteText(n).toLowerCase().includes(q))) : []
   const favorites = sortNotes(notes.filter((n) => n.favorite))
+  const tags = tagCounts(notes)
+  const recent = [...notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, RECENT_COUNT)
   const unfiled = notesByFolder.get(null) ?? []
   const folderName = (id: string | null) => folders.find((f) => f.id === id)?.name
 
@@ -213,8 +219,15 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
               </Section>
             ) : (
               <>
+                {recent.length > 0 && (
+                  <Section title="Recent" collapsible="recent" defaultCollapsed>
+                    {recent.map((note) => (
+                      <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="recent" />
+                    ))}
+                  </Section>
+                )}
                 {favorites.length > 0 && (
-                  <Section title="Favorites">
+                  <Section title="Favorites" collapsible="favorites">
                     {favorites.map((note) => (
                       <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="favorites" />
                     ))}
@@ -222,6 +235,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                 )}
                 <Section
                   title="Folders"
+                  collapsible="folders"
                   drop="folders"
                   action={
                     <Tip label="New folder">
@@ -240,6 +254,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                 </Section>
                 <Section
                   title="Boards"
+                  collapsible="boards"
                   action={
                     <Tip label="New board">
                       <Button
@@ -261,6 +276,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                 </Section>
                 <Section
                   title="Unfiled"
+                  collapsible="unfiled"
                   drop="notes"
                   action={
                     <Tip label="New unfiled note">
@@ -276,6 +292,24 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                     <EmptyHint>Notes outside folders appear here</EmptyHint>
                   )}
                 </Section>
+                {tags.length > 0 && (
+                  <Section title="Tags" collapsible="tags">
+                    {tags.map(({ tag, count }) => (
+                      <div key={tag} className={rowClass(activeTag === tag)}>
+                        <a
+                          href={`#/tag/${encodeURIComponent(tag)}`}
+                          aria-current={activeTag === tag ? 'page' : undefined}
+                          className={rowLinkClass}
+                          style={{ paddingLeft: '0.5rem' }}
+                        >
+                          <Hash className="size-4 shrink-0 text-muted-foreground" />
+                          <span className="min-w-0 flex-1 truncate">{tag}</span>
+                          <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
+                        </a>
+                      </div>
+                    ))}
+                  </Section>
+                )}
               </>
             )}
           </nav>
@@ -295,27 +329,80 @@ function Section({
   title,
   action,
   drop,
+  collapsible,
+  defaultCollapsed = false,
   children,
 }: {
   title: string
   action?: ReactNode
   /** Makes the section a drop zone for moving items to the top level */
   drop?: 'folders' | 'notes'
+  /** Key under which the collapsed state is remembered; without it the section can't be collapsed */
+  collapsible?: string
+  defaultCollapsed?: boolean
   children: ReactNode
 }) {
   const id = dndId('section', drop ?? title)
   const { setNodeRef } = useDroppable({ id, data: { type: 'section', section: drop }, disabled: !drop })
   const highlighted = useDropIndicator(id) === 'inside'
+  const [collapsed, setCollapsed] = useCollapsedSection(collapsible, defaultCollapsed)
   return (
     <section ref={setNodeRef} className={cn('mt-4 rounded-md', highlighted && 'bg-sidebar-accent/60 ring-2 ring-primary/50')}>
       <div className="flex h-7 items-center justify-between pr-1 pl-2">
-        <h2 className="text-xs font-medium text-muted-foreground">{title}</h2>
+        <h2 className="text-xs font-medium text-muted-foreground">
+          {collapsible ? (
+            <button
+              type="button"
+              aria-expanded={!collapsed}
+              onClick={() => setCollapsed(!collapsed)}
+              className="group/collapse -ml-1 flex items-center gap-0.5 rounded px-1 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+            >
+              {title}
+              <ChevronRight
+                aria-hidden
+                className={cn(
+                  'size-3 opacity-0 transition-transform group-hover/collapse:opacity-100 group-focus-visible/collapse:opacity-100 pointer-coarse:opacity-100',
+                  !collapsed && 'rotate-90',
+                  collapsed && 'opacity-100',
+                )}
+              />
+            </button>
+          ) : (
+            title
+          )}
+        </h2>
         {action}
       </div>
       {/* Some empty space at the end, so there's always room to drop at the top level */}
-      <div className={cn('space-y-px', drop && 'pb-2')}>{children}</div>
+      {!collapsed && <div className={cn('space-y-px', drop && 'pb-2')}>{children}</div>}
     </section>
   )
+}
+
+const COLLAPSED_KEY = 'localnotes:collapsedSections'
+
+/** Remembered per section in this browser */
+function useCollapsedSection(key: string | undefined, fallback: boolean): [boolean, (collapsed: boolean) => void] {
+  const [all, setAll] = useState<Record<string, boolean>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(COLLAPSED_KEY) ?? '{}') as Record<string, boolean>
+    } catch {
+      return {}
+    }
+  })
+  const collapsed = key ? (all[key] ?? fallback) : false
+  const set = (value: boolean) => {
+    if (!key) return
+    let next = all
+    try {
+      next = { ...(JSON.parse(localStorage.getItem(COLLAPSED_KEY) ?? '{}') as Record<string, boolean>), [key]: value }
+      localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next))
+    } catch {
+      next = { ...all, [key]: value }
+    }
+    setAll(next)
+  }
+  return [collapsed, set]
 }
 
 function EmptyHint({ children }: { children: ReactNode }) {

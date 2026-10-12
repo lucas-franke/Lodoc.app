@@ -7,16 +7,19 @@ import {
   MoreHorizontal,
   Pin,
   Plus,
+  Search,
   Star,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { RowContextMenu, RowDropdownMenu, type MenuEntry } from '@/components/ItemMenu'
 import { RenameInput } from '@/components/sidebar/RenameInput'
+import { TemplateMenu } from '@/components/TemplateMenu'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { db } from '@/db/db'
 import { createFolder, renameFolder } from '@/db/folders'
-import { createNote, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
+import { createNote, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
 import type { Folder, Note, NoteCardView } from '@/db/schema'
 import { useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
@@ -35,19 +38,24 @@ export function FolderView({ folder }: { folder: Folder }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], [] as Folder[])
   const notes = useLiveQuery(() => db.notes.toArray(), [], [] as Note[])
 
-  const subfolders = sortFolders(folders.filter((f) => f.parentId === folder.id))
+  const allSubfolders = sortFolders(folders.filter((f) => f.parentId === folder.id))
   const [sort, setSort] = useNoteSort()
   const [cardView, setCardView] = useNoteCardView()
-  const folderNotes = sortNotesBy(
+  const allNotes = sortNotesBy(
     notes.filter((n) => n.folderId === folder.id),
     sort.key,
     sort.direction,
   )
+  // The filter field narrows this folder's cards (title and text)
+  const [filter, setFilter] = useState('')
+  const q = filter.trim().toLowerCase()
+  const subfolders = q ? allSubfolders.filter((f) => f.name.toLowerCase().includes(q)) : allSubfolders
+  const folderNotes = q ? allNotes.filter((n) => noteText(n).toLowerCase().includes(q)) : allNotes
   const counts = (id: string) => ({
     notes: notes.filter((n) => n.folderId === id).length,
     folders: folders.filter((f) => f.parentId === id).length,
   })
-  const empty = subfolders.length === 0 && folderNotes.length === 0
+  const empty = allSubfolders.length === 0 && allNotes.length === 0
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
@@ -56,25 +64,47 @@ export function FolderView({ folder }: { folder: Folder }) {
         <FolderTitle folder={folder} />
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
-        {plural(folderNotes.length, 'note')}
-        {subfolders.length > 0 && ` · ${plural(subfolders.length, 'folder')}`}
+        {plural(allNotes.length, 'note')}
+        {allSubfolders.length > 0 && ` · ${plural(allSubfolders.length, 'folder')}`}
         {' · '}
         <span title={formatDateTime(folder.createdAt)}>Created {formatDate(folder.createdAt)}</span>
       </p>
 
-      <div className="mt-6 flex gap-2">
+      <div className="mt-6 flex flex-wrap items-center gap-2">
         <Button onClick={async () => openNote(await createNote(folder.id))}>
           <Plus /> New note
         </Button>
+        <TemplateMenu folderId={folder.id} />
         <Button
           variant="outline"
           onClick={async () => openFolder(await createFolder('New folder', folder.id))}
         >
           <FolderPlus /> New folder
         </Button>
+        {!empty && (
+          <div className="relative ml-auto w-full sm:w-56">
+            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              onKeyDown={(e) => e.key === 'Escape' && setFilter('')}
+              placeholder="Filter this folder"
+              aria-label="Filter this folder"
+              className="pl-8"
+            />
+          </div>
+        )}
       </div>
 
-      {empty && <p className="mt-10 text-sm text-muted-foreground">This folder is empty.</p>}
+      {empty && (
+        <p className="mt-10 text-sm text-muted-foreground">
+          This folder is empty. Create a note here, or move notes in from the sidebar (drag them onto this folder).
+        </p>
+      )}
+      {!empty && q && subfolders.length === 0 && folderNotes.length === 0 && (
+        <p className="mt-10 text-sm text-muted-foreground">Nothing in this folder matches "{filter.trim()}".</p>
+      )}
 
       {subfolders.length > 0 && (
         <CardSection title="Folders">

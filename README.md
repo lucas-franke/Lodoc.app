@@ -18,12 +18,22 @@ This Project and its content are written by Claude Code.
 - Nested folders, favorites, pinned notes (pinned notes stay at the top of their list); notes outside folders are listed under **Unfiled**. The pencil at the top of the sidebar (and `Ctrl+Alt+N`) creates the note in the folder you are in; its tooltip says where
 - Drag and drop in the sidebar to reorder notes and folders or move them into other folders (or use **Move up / down** in the row menu)
 - **Boards**: an infinite canvas per topic (pan and zoom) with note cards, text annotations and images
-  - Add items with the round **+** button (centered while a board is empty, bottom-right otherwise): pick an existing note, add text, or add images (file picker, paste with `Ctrl+V`, or drop files onto the canvas)
-  - Zoom slider (with zoom out/in, the current level as a reset-to-100% button, and fit-all) and **Find on board** (search the cards and texts on the board by title or content and jump to the match)
+  - Add items with the round **+** button (centered while a board is empty, bottom-right otherwise): pick an existing note, add text or a frame, or add images (file picker, paste with `Ctrl+V`, or drop files onto the canvas)
+  - Zoom slider (with zoom out/in, the current level as a reset-to-100% button, fit-all and a **minimap** switch; the minimap setting is remembered in this browser) and **Find on board** (search the cards, texts and frames on the board by title or content and jump to the match)
+  - **Arrows**: drag from one of the dots that appear on an item's sides to another item (or use **Connect to…** in a card's menu or an item's toolbar). Arrows attach to the nearest side by themselves. Select one to add a label (or double-click it), reverse it or delete it; removing an item removes its arrows
+  - **Frames** (**+** → **Frame**): a named area behind the cards, for groups like "To do" or "Ideas". With items selected, the frame is drawn around them. Dragging a frame takes everything that lies completely inside it along; removing it keeps the items
   - Drag a note from the sidebar onto the board to add it as a card at that spot
   - Cards are live views of your notes (renaming or editing a note updates every board); moving, resizing and deleting items is saved automatically; removing a card never deletes the note
   - Double-click a card (or use its pencil button) to edit the note right there, with the full editor and slash commands; one card is edited at a time, `Escape` or the check button finishes
 - **Trash**: deleting a note, folder or board moves it to the Trash (no confirmation; the notification offers **Undo**). The Trash page (sidebar, under Overview) restores items with their cards on boards, or deletes them for good; items older than 30 days are removed automatically. Images stay as long as a trashed item uses them
+- Small helpers: an info line under the note title (last edit, word count); **Continue where you left off** on the Overview (the note you had open last); a filter field in folders; sidebar sections can be collapsed, and a **Recent** section lists the last edited notes; with two or more notifications open, one offers **Clear all**; board cards hide their details when zoomed far out
+- Covers can be switched to "only the ones I picked" (Appearance → Pages → Automatic covers)
+- **Outline**: notes with three or more headings show an "On this page" list at the right edge of wide windows; click a heading to jump to it
+- **Getting started guide**: a note that shows the basics by example (welcome screen or command palette)
+- **Install as an app / offline**: Lodoc can be installed from the browser (it has a web app manifest) and keeps working without a connection once it has been opened (a service worker caches the built files; a new version replaces the cache)
+- **Tags**: add tags under a note title ("Add tag", suggestions from tags you already use); each tag has a page with its notes, the sidebar lists them under **Tags**, and the command palette finds them (`#name`)
+- **Links between notes**: type `@` in a note to link to another note (or to create one with that name). Links show the current title and open the note; every note lists the notes that link to it under **Linked from**. In Markdown exports a link becomes `[[Title]]`
+- **Templates**: **From template** next to "New note" (overview, folders) or the command palette: meeting notes, daily journal, project plan, to-do list
 - A new note you never touch (no title, no text, not pinned, favorited or moved) is not kept when you move on to something else
 - Full-text search across titles and note content
 - Backup: export everything (notes, folders, boards and their images, including note covers) as `lodoc-YYYY-MM-DD.json`; import with **Merge** (the more recently edited note or board wins) or **Replace**
@@ -62,5 +72,5 @@ Backup files from earlier versions (notes and folders only) still import. Note t
 src/db/          Dexie schema and CRUD for notes, folders, boards and image assets
 src/lib/         project file export/import (format version 3)
 src/components/  sidebar, editor, board canvas (board/), drag and drop (dnd/), dialogs; ui/ has the shadcn components
-src/hooks/       hash-based routing (#/note/<id>, #/folder/<id>, #/board/<id>)
+src/hooks/       hash-based routing (#/note/<id>, #/folder/<id>, #/board/<id>, #/tag/<name>, #/trash)
 ```

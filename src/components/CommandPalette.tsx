@@ -1,10 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   ArchiveRestore,
+  BookOpen,
   FilePlus,
   FileText,
   Folder as FolderIcon,
   FolderPlus,
+  Hash,
   Keyboard,
   LayoutGrid,
   Moon,
@@ -28,10 +30,12 @@ import {
 import { boardTitle, createBoard } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
-import { createNote, noteText, noteTitle, sortNotes } from '@/db/notes'
+import { createNote, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openFolder, openNote, openTrash } from '@/hooks/useRoute'
+import { openBoard, openFolder, openNote, openTag, openTrash } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
+import { openGuideNote } from '@/lib/guide'
+import { createFromTemplate, TEMPLATES } from '@/lib/templates'
 import { exportProject } from '@/lib/project-file'
 
 type Action = { id: string; label: string; icon: LucideIcon; keywords?: string; shortcut?: string; run: () => void }
@@ -69,6 +73,7 @@ export function CommandPalette({
   const dark = resolvedTheme === 'dark'
   const actions: Action[] = [
     { id: 'new-note', label: 'New note', icon: FilePlus, shortcut: 'Ctrl Alt N', run: async () => openNote(await createNote(newNoteFolderId)) },
+    ...TEMPLATES.map((t) => ({ id: 'template-' + t.id, label: 'New ' + t.name.toLowerCase(), icon: t.icon, keywords: 'template ' + t.name, run: async () => openNote(await createFromTemplate(t.id, newNoteFolderId)) })),
     { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder')) },
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },
@@ -76,6 +81,7 @@ export function CommandPalette({
     { id: 'export', label: 'Export backup (.json)', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
     { id: 'overview', label: 'Go to Overview', icon: LayoutGrid, keywords: 'home start', run: () => openNote(null) },
     { id: 'trash', label: 'Open Trash', icon: Trash2, keywords: 'deleted restore', run: openTrash },
+    { id: 'guide', label: 'Getting started guide', icon: BookOpen, keywords: 'help tutorial welcome', run: async () => openNote(await openGuideNote()) },
     { id: 'shortcuts', label: 'Keyboard shortcuts', icon: Keyboard, keywords: 'help keys', shortcut: '?', run: () => emitAppEvent('open-shortcuts') },
   ]
 
@@ -86,10 +92,13 @@ export function CommandPalette({
   let notes: Note[] = []
   let folders: Folder[] = []
   let boards: Board[] = []
+  let tags: { tag: string; count: number }[] = []
   if (data && q) {
     notes = sortNotes(data.notes.filter((n) => noteText(n).toLowerCase().includes(q))).slice(0, 8)
     folders = data.folders.filter((f) => f.name.toLowerCase().includes(q)).slice(0, 5)
     boards = data.boards.filter((b) => boardTitle(b).toLowerCase().includes(q)).slice(0, 5)
+    const tq = q.replace(/^#/, '')
+    tags = tagCounts(data.notes).filter((t) => t.tag.includes(tq)).slice(0, 5)
   }
   // Without a query: the most recently edited notes and boards
   const recent = data && !q
@@ -147,6 +156,15 @@ export function CommandPalette({
               {boards.map((b) => (
                 <Item key={b.id} value={'board:' + b.id} icon={LayoutGrid} onSelect={run(() => openBoard(b.id))}>
                   {boardTitle(b)}
+                </Item>
+              ))}
+            </CommandGroup>
+          )}
+          {tags.length > 0 && (
+            <CommandGroup heading="Tags">
+              {tags.map((t) => (
+                <Item key={t.tag} value={'tag:' + t.tag} icon={Hash} onSelect={run(() => openTag(t.tag))} hint={String(t.count)}>
+                  {t.tag}
                 </Item>
               ))}
             </CommandGroup>

@@ -1,4 +1,5 @@
-import { FileText, ImagePlus, Plus, Type } from 'lucide-react'
+import { useStore } from '@xyflow/react'
+import { FileText, ImagePlus, Plus, SquareDashed, Type } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,13 +22,16 @@ export function BoardFab({
   onPickNote,
   onAddText,
   onAddImages,
+  onAddFrame,
 }: {
   empty: boolean
   excludeNoteIds: Set<string>
   onPickNote: (noteId: string) => void
   onAddText: () => void
   onAddImages: (files: File[]) => void
+  onAddFrame: () => void
 }) {
+  const hasSelection = useStore((s) => s.nodes.some((n) => n.selected))
   const [pickerOpen, setPickerOpen] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   // A menu hands focus back to its button when it closes; skip that when the chosen action
@@ -42,7 +46,7 @@ export function BoardFab({
           className="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-[calc(100%+2.5rem)] text-center"
         >
           <p className="text-sm text-muted-foreground">This board is empty.</p>
-          <p className="text-xs text-muted-foreground">Add a note, some text or an image, or drag a note here from the sidebar.</p>
+          <p className="text-xs text-muted-foreground">Add a note, some text, an image or a frame, or drag a note here from the sidebar.</p>
         </div>
       )}
 
@@ -92,6 +96,14 @@ export function BoardFab({
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => fileInput.current?.click()}>
             <ImagePlus /> Image…
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => {
+              focusMoved.current = true
+              onAddFrame()
+            }}
+          >
+            <SquareDashed /> {hasSelection ? 'Frame around selection' : 'Frame'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

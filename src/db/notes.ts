@@ -86,7 +86,7 @@ export function deleteNote(id: string) {
   return deleteNotes([id])
 }
 
-/** Deletes notes, their cards on every board and their cover images. */
+/** Deletes notes, their cards (and the arrows to them) on every board and their cover images. */
 export async function deleteNotes(ids: string[]) {
   await db.transaction('rw', [db.notes, db.boards, db.assets, db.trash], async () => {
     const gone = new Set(ids)
@@ -94,7 +94,10 @@ export async function deleteNotes(ids: string[]) {
     await db.notes.bulkDelete(ids)
     for (const board of await db.boards.toArray()) {
       const nodes = board.nodes.filter((n) => !(n.type === 'note' && gone.has(n.noteId)))
-      if (nodes.length !== board.nodes.length) await db.boards.update(board.id, { nodes, updatedAt: Date.now() })
+      if (nodes.length === board.nodes.length) continue
+      const kept = new Set(nodes.map((n) => n.id))
+      const edges = board.edges?.filter((e) => kept.has(e.source) && kept.has(e.target))
+      await db.boards.update(board.id, { nodes, edges, updatedAt: Date.now() })
     }
     await pruneAssets(covers)
   })
@@ -167,6 +170,11 @@ export function sortNotesBy(notes: Note[], key: NoteSortKey, direction: SortDire
   })
 }
 
+/** A note created in this session that is still exactly as it was created (it is discarded when left). */
+export function isFreshNote(id: string) {
+  return freshNotes.has(id)
+}
+
 /** Number of words in the note body (title excluded). */
 export function noteWordCount(note: Note): number {
   return bodyParts(note).reduce((sum, part) => sum + (part.match(/\S+/g)?.length ?? 0), 0)
@@ -178,7 +186,7 @@ export function noteTitle(note: Pick<Note, 'title'>) {
 
 /** Plain text of a note (title + body), used for search. */
 export function noteText(note: Note): string {
-  return [note.title, ...bodyParts(note)].join(' ')
+  return [note.title, ...bodyParts(note), ...note.tags.map((t) => '#' + t)].join(' ')
 }
 
 /** The start of a note's body as one line of plain text, for preview cards. */
@@ -215,8 +223,47 @@ function collectInline(content: unknown, parts: string[], blockParts: string[]) 
     )
     return
   }
-  for (const item of content as { text?: string; content?: unknown }[]) {
+  for (const item of content as { type?: string; text?: string; content?: unknown; props?: { title?: string } }[]) {
     if (typeof item.text === 'string') parts.push(item.text)
+    else if (item.type === 'noteLink' && item.props?.title) parts.push(item.props.title) // a link to another note
     else if (item.content) collectInline(item.content, parts, blockParts) // e.g. link text
   }
+}
+
+// ---- tags: lowercase words without spaces ("#project-x"), at most 40 characters
+
+export function normalizeTag(tag: string) {
+  return tag.trim().replace(/^#+/, '').replace(/\s+/g, '-').toLowerCase().slice(0, 40)
+}
+
+// Read and write in one step (modify), so quick successive changes can't overwrite each other
+export async function addNoteTag(id: string, tag: string) {
+  const t = normalizeTag(tag)
+  if (!t) return
+  await db.notes
+    .where('id')
+    .equals(id)
+    .modify((note) => {
+      if (note.tags.includes(t)) return
+      note.tags = [...note.tags, t]
+      note.updatedAt = Date.now()
+    })
+}
+
+export async function removeNoteTag(id: string, tag: string) {
+  await db.notes
+    .where('id')
+    .equals(id)
+    .modify((note) => {
+      if (!note.tags.includes(tag)) return
+      note.tags = note.tags.filter((x) => x !== tag)
+      note.updatedAt = Date.now()
+    })
+}
+
+/** Every tag in use with how many notes have it, A–Z */
+export function tagCounts(notes: Note[]): { tag: string; count: number }[] {
+  const counts = new Map<string, number>()
+  for (const n of notes) for (const t of n.tags) counts.set(t, (counts.get(t) ?? 0) + 1)
+  return [...counts].map(([tag, count]) => ({ tag, count })).sort((a, b) => a.tag.localeCompare(b.tag))
 }

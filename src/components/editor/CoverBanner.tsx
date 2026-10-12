@@ -14,6 +14,7 @@ import {
 import { isImageFile } from '@/db/assets'
 import { removeNoteCover, setNoteCover, setNoteGradient } from '@/db/notes'
 import type { Note } from '@/db/schema'
+import { useAppearance } from '@/hooks/useAppearance'
 import { resolveCover } from '@/lib/cover'
 import { COVER_GRADIENTS, gradientCss } from '@/lib/gradients'
 import { cn } from '@/lib/utils'
@@ -33,7 +34,8 @@ async function chooseImage(noteId: string, file: File | undefined) {
  */
 function CoverMenu({ note, children }: { note: Note; children: ReactNode }) {
   const input = useRef<HTMLInputElement>(null)
-  const current = resolveCover(note)
+  const { autoCover } = useAppearance()
+  const current = resolveCover(note, autoCover)
   const currentGradient = current?.kind === 'gradient' ? current.id : null
   return (
     <>
@@ -85,7 +87,8 @@ function CoverMenu({ note, children }: { note: Note; children: ReactNode }) {
 /** The cover above a note's title; click it to change it (gradient, image or remove). Image files can be dropped on it. */
 export function CoverBanner({ note }: { note: Note }) {
   const [over, setOver] = useState(false)
-  const cover = resolveCover(note)
+  const { autoCover } = useAppearance()
+  const cover = resolveCover(note, autoCover)
   if (!cover) return null
   return (
     <div
@@ -133,7 +136,8 @@ export function CoverBanner({ note }: { note: Note }) {
 
 /** "Add cover" for a note whose cover was removed; sits just above the title and shows on hover or focus. */
 export function AddCoverButton({ note }: { note: Note }) {
-  if (resolveCover(note)) return null
+  const { autoCover } = useAppearance()
+  if (resolveCover(note, autoCover)) return null
   return (
     <CoverMenu note={note}>
       <Button

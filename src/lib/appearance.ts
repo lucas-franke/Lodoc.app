@@ -47,6 +47,8 @@ const schema = z.object({
   pageFont: z.enum(['sans', 'serif']).catch('sans'),
   textSize: z.enum(['s', 'm', 'l']).catch('m'),
   pageWidth: z.enum(['normal', 'wide']).catch('normal'),
+  /** Notes without a chosen cover show a generated gradient (off: only covers the user picked) */
+  autoCover: z.boolean().catch(true),
   sidebar: z.enum(['connected', 'floating']).catch('connected'),
   corners: z.enum(['sharp', 'rounded', 'round']).catch('rounded'),
   texture: z.enum(['none', 'grain', 'paper', 'linen']).catch('none'),
@@ -73,7 +75,7 @@ export const DEFAULT_APPEARANCE: Appearance = schema.parse({})
 /** Which settings each panel section owns (for "Reset" per section) */
 export const APPEARANCE_SECTIONS = {
   theme: ['tint', 'gradient'],
-  pages: ['pageFont', 'textSize', 'pageWidth', 'texture', 'textureStrength'],
+  pages: ['pageFont', 'textSize', 'pageWidth', 'autoCover', 'texture', 'textureStrength'],
   interface: ['sidebar', 'corners', 'uiGrain', 'uiGrainStrength'],
 } as const satisfies Record<string, readonly (keyof Appearance)[]>
 
