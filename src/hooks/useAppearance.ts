@@ -14,6 +14,10 @@ function set(next: Appearance) {
 
 export const updateAppearance = (patch: Partial<Appearance>) => set({ ...current, ...patch })
 export const resetAppearance = () => set(DEFAULT_APPEARANCE)
+/** Back to the defaults for some settings only (one panel section) */
+export const resetAppearanceKeys = (keys: readonly (keyof Appearance)[]) =>
+  set({ ...current, ...Object.fromEntries(keys.map((k) => [k, DEFAULT_APPEARANCE[k]])) })
+export const getAppearance = () => current
 
 /** Applies the saved settings to <html>; called before the first render so nothing jumps. */
 export const applySavedAppearance = () => applyAppearance(current)

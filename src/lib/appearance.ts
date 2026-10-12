@@ -70,6 +70,13 @@ function migrate(saved: Record<string, unknown>): Record<string, unknown> {
 export type Appearance = z.infer<typeof schema>
 export const DEFAULT_APPEARANCE: Appearance = schema.parse({})
 
+/** Which settings each panel section owns (for "Reset" per section) */
+export const APPEARANCE_SECTIONS = {
+  theme: ['tint', 'gradient'],
+  pages: ['pageFont', 'textSize', 'pageWidth', 'texture', 'textureStrength'],
+  interface: ['sidebar', 'corners', 'uiGrain', 'uiGrainStrength'],
+} as const satisfies Record<string, readonly (keyof Appearance)[]>
+
 const KEY = 'localnotes:appearance'
 /** The page font used to live in its own key (with a "mono" option that no longer exists) */
 const OLD_FONT_KEY = 'localnotes:pageFont'

@@ -1,5 +1,5 @@
 import { Palette } from 'lucide-react'
-import { lazy, Suspense, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useAppearance } from '@/hooks/useAppearance'
 
 // The panel (and its slider/switch/toggle components) is only loaded once it is opened
@@ -14,6 +14,12 @@ export function AppearanceMenu() {
   const trigger = useRef<HTMLButtonElement>(null)
   const { pageFont } = useAppearance()
   const status = pageFont === 'serif' ? 'Serif' : 'Sans serif'
+
+  // Lets the page make room for the panel on wide screens (index.css)
+  useEffect(() => {
+    document.documentElement.toggleAttribute('data-appearance-open', open)
+    return () => document.documentElement.removeAttribute('data-appearance-open')
+  }, [open])
 
   return (
     <>
