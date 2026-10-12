@@ -78,13 +78,21 @@ export async function addImageAsset(file: File): Promise<Asset> {
 export async function pruneAssets(assetIds: Iterable<string | undefined>) {
   const candidates = new Set([...assetIds].filter((id): id is string => !!id))
   if (!candidates.size) return
-  await db.transaction('rw', db.boards, db.notes, db.assets, async () => {
+  await db.transaction('rw', [db.boards, db.notes, db.assets, db.trash], async () => {
     for (const board of await db.boards.toArray()) {
       for (const n of board.nodes) if (n.type === 'image') candidates.delete(n.assetId)
     }
     await db.notes.each((note) => {
       const id = coverAssetId(note)
       if (id) candidates.delete(id)
+    })
+    // Deleted items in the trash keep their images until the trash entry is gone
+    await db.trash.each((entry) => {
+      for (const note of entry.notes) {
+        const id = coverAssetId(note)
+        if (id) candidates.delete(id)
+      }
+      for (const board of entry.boards) for (const n of board.nodes) if (n.type === 'image') candidates.delete(n.assetId)
     })
     await db.assets.bulkDelete([...candidates])
   })

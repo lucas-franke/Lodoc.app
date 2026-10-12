@@ -7,9 +7,12 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import './index.css'
 import App from './App.tsx'
 import { applySavedAppearance } from '@/hooks/useAppearance'
+import { purgeOldTrash } from '@/db/trash'
 
 // Appearance settings (font, corners, …) are applied before the first render, so nothing jumps
 applySavedAppearance()
+// Deleted items older than the trash period are removed for good
+void purgeOldTrash()
 
 // Ask the browser not to evict IndexedDB under storage pressure
 void navigator.storage?.persist?.()

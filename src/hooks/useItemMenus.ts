@@ -20,19 +20,31 @@ import {
 import { toast } from 'sonner'
 import type { MenuEntry } from '@/components/ItemMenu'
 import { db } from '@/db/db'
-import { boardTitle, deleteBoard } from '@/db/boards'
+import { boardTitle } from '@/db/boards'
 import { duplicateFolder, duplicateNote } from '@/db/duplicate'
-import { createFolder, deleteFolder, descendantIds, moveFolder } from '@/db/folders'
-import { createNote, deleteNote, moveNote, noteTitle, toggleFavorite, togglePinned } from '@/db/notes'
+import { createFolder, descendantIds, moveFolder } from '@/db/folders'
+import { createNote, moveNote, noteTitle, toggleFavorite, togglePinned } from '@/db/notes'
 import { shiftFolder, shiftNote } from '@/db/order'
+import { restoreTrash, trashBoard, trashFolder, trashNote } from '@/db/trash'
 import type { Board, Folder, Note } from '@/db/schema'
-import { useConfirm } from '@/hooks/useConfirm'
-import { openFolder, openNote, useRoute } from '@/hooks/useRoute'
+import { openBoard, openFolder, openNote, useRoute } from '@/hooks/useRoute'
 import { flattenFolders } from '@/lib/folder-tree'
 import { downloadFolderAsZip, downloadNoteAsMarkdown } from '@/lib/downloads'
 import type { CanReorder } from '@/lib/reorder'
 
 // Shared by sidebar rows and folder-view cards so both offer the same actions.
+
+/** Deleting moves to the trash, so there is no confirmation: the toast offers Undo instead. */
+function announceTrash(entryId: string, title: string, reopen: () => void) {
+  toast(`Moved "${title}" to Trash`, {
+    action: {
+      label: 'Undo',
+      onClick: async () => {
+        if (await restoreTrash(entryId)) reopen()
+      },
+    },
+  })
+}
 
 function useAllFolders() {
   return useLiveQuery(() => db.folders.toArray(), [], [] as Folder[])
@@ -87,7 +99,6 @@ export function useNoteMenuEntries(
   },
 ): MenuEntry[] {
   const folders = useAllFolders()
-  const confirm = useConfirm()
   const route = useRoute()
 
   return [
@@ -124,16 +135,12 @@ export function useNoteMenuEntries(
       label: 'Delete',
       icon: Trash2,
       destructive: true,
-      onSelect: () =>
-        confirm({
-          title: `Delete "${noteTitle(note)}"?`,
-          description: 'This note will be permanently deleted.',
-          action: 'Delete',
-          onConfirm: async () => {
-            await deleteNote(note.id)
-            if (route?.type === 'note' && route.id === note.id) openNote(null)
-          },
-        }),
+      onSelect: async () => {
+        const wasOpen = route?.type === 'note' && route.id === note.id
+        const entry = await trashNote(note.id)
+        if (wasOpen) openNote(null)
+        if (entry) announceTrash(entry, noteTitle(note), () => wasOpen && openNote(note.id))
+      },
     },
   ]
 }
@@ -164,7 +171,6 @@ export function useFolderMenuEntries(
     const ids = new Set(withNotes as string[])
     return [...descendantIds(folders, folder.id)].some((id) => ids.has(id))
   }, [withNotes, folders, folder.id])
-  const confirm = useConfirm()
   const route = useRoute()
 
   const alreadyOpen = route?.type === 'folder' && route.id === folder.id
@@ -220,27 +226,22 @@ export function useFolderMenuEntries(
       label: 'Delete',
       icon: Trash2,
       destructive: true,
-      onSelect: () =>
-        confirm({
-          title: `Delete folder "${folder.name}"?`,
-          description: 'The folder, its subfolders and all notes inside will be permanently deleted.',
-          action: 'Delete folder',
-          onConfirm: async () => {
-            const removed = descendantIds(await db.folders.toArray(), folder.id)
-            const activeNote = route?.type === 'note' ? await db.notes.get(route.id) : undefined
-            await deleteFolder(folder.id)
-            // Leave the page if it was inside what we just deleted
-            const insideFolder = route?.type === 'folder' && removed.has(route.id)
-            const insideNote = activeNote?.folderId != null && removed.has(activeNote.folderId)
-            if (insideFolder || insideNote) openNote(null)
-          },
-        }),
+      onSelect: async () => {
+        const removed = descendantIds(await db.folders.toArray(), folder.id)
+        const activeNote = route?.type === 'note' ? await db.notes.get(route.id) : undefined
+        const entry = await trashFolder(folder.id)
+        // Leave the page if it was inside what we just deleted (and come back to it on Undo)
+        const insideFolder = route?.type === 'folder' && removed.has(route.id)
+        const insideNote = activeNote?.folderId != null && removed.has(activeNote.folderId)
+        const back = route ? `#/${route.type}/${encodeURIComponent(route.id)}` : ''
+        if (insideFolder || insideNote) openNote(null)
+        if (entry) announceTrash(entry, folder.name, () => (insideFolder || insideNote) && (window.location.hash = back))
+      },
     },
   ]
 }
 
 export function useBoardMenuEntries(board: Board, { onRename }: { onRename: () => void }): MenuEntry[] {
-  const confirm = useConfirm()
   const route = useRoute()
 
   return [
@@ -251,16 +252,12 @@ export function useBoardMenuEntries(board: Board, { onRename }: { onRename: () =
       label: 'Delete',
       icon: Trash2,
       destructive: true,
-      onSelect: () =>
-        confirm({
-          title: `Delete board "${boardTitle(board)}"?`,
-          description: 'The board and its layout will be permanently deleted. Your notes are not affected.',
-          action: 'Delete board',
-          onConfirm: async () => {
-            await deleteBoard(board.id)
-            if (route?.type === 'board' && route.id === board.id) openNote(null)
-          },
-        }),
+      onSelect: async () => {
+        const wasOpen = route?.type === 'board' && route.id === board.id
+        const entry = await trashBoard(board.id)
+        if (wasOpen) openNote(null)
+        if (entry) announceTrash(entry, boardTitle(board), () => wasOpen && openBoard(board.id))
+      },
     },
   ]
 }

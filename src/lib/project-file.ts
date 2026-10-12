@@ -179,9 +179,9 @@ export function describeProject(project: ProjectFile) {
 export type ImportMode = 'replace' | 'merge'
 
 export async function importProject(project: ProjectFile, mode: ImportMode) {
-  await db.transaction('rw', [db.folders, db.notes, db.boards, db.assets], async () => {
+  await db.transaction('rw', [db.folders, db.notes, db.boards, db.assets, db.trash], async () => {
     if (mode === 'replace') {
-      await Promise.all([db.folders.clear(), db.notes.clear(), db.boards.clear(), db.assets.clear()])
+      await Promise.all([db.folders.clear(), db.notes.clear(), db.boards.clear(), db.assets.clear(), db.trash.clear()])
       await db.folders.bulkAdd(project.folders)
       await db.notes.bulkAdd(project.notes)
       await db.boards.bulkAdd(project.boards)

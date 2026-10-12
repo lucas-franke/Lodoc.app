@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { FolderPlus, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, X } from 'lucide-react'
+import { FolderPlus, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { createBoard, sortBoards } from '@/db/boards'
 import { createFolder } from '@/db/folders'
 import { createNote, noteText, sortNotes, sortNotesManual } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useIsHome } from '@/hooks/useRoute'
+import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useIsHome, useIsTrash } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
 import { AppearanceMenu } from './AppearanceMenu'
 import { BackupMenu } from './BackupMenu'
@@ -35,14 +35,7 @@ function loadExpanded(): Set<string> {
   }
 }
 
-export function Sidebar({
-  onCollapse,
-  focusSearch,
-}: {
-  onCollapse: () => void
-  /** Changes whenever the search field should receive focus (Ctrl+K) */
-  focusSearch: number
-}) {
+export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], NOT_LOADED)
   const foldersLoaded = folders !== NOT_LOADED
   const notes = useLiveQuery(() => db.notes.toArray(), [], [] as Note[])
@@ -55,10 +48,6 @@ export function Sidebar({
   const [expanded, setExpanded] = useState(loadExpanded)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const searchInput = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (focusSearch) searchInput.current?.select()
-  }, [focusSearch])
 
   const toggleExpanded = useCallback((id: string, open?: boolean) => {
     setExpanded((prev) => {
@@ -117,7 +106,14 @@ export function Sidebar({
 
   const sidebarWidth = useSidebarWidth()
   const isHome = useIsHome()
-  const newNote = async () => openNote(await createNote())
+  const isTrash = useIsTrash()
+  const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
+  // Like Ctrl+Alt+N: a new note goes into the folder you're in (the open folder, or the open note's folder)
+  const targetFolderId = activeFolderId ?? notes.find((n) => n.id === activeNoteId)?.folderId ?? null
+  const targetFolder = targetFolderId ? folders.find((f) => f.id === targetFolderId) : undefined
+  const newNoteLabel = targetFolder ? `New note in "${targetFolder.name}"` : 'New unfiled note'
+  const newNote = async () => openNote(await createNote(targetFolder?.id ?? null))
+  const newUnfiledNote = async () => openNote(await createNote())
 
   const ctx: SidebarContextValue = {
     folders,
@@ -153,8 +149,8 @@ export function Sidebar({
             </Button>
           </Tip>
           <span className="flex-1 truncate px-1 text-sm font-semibold tracking-tight">Lodoc</span>
-          <Tip label="New note" shortcut="Ctrl Alt N">
-            <Button variant="ghost" size="icon-sm" onClick={newNote} aria-label="New note">
+          <Tip label={newNoteLabel} shortcut="Ctrl Alt N">
+            <Button variant="ghost" size="icon-sm" onClick={newNote} aria-label="New note" aria-description={newNoteLabel}>
               <SquarePen />
             </Button>
           </Tip>
@@ -185,19 +181,23 @@ export function Sidebar({
               >
                 <X className="size-4" />
               </button>
-            ) : (
-              <kbd
-                aria-hidden
-                className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border bg-sidebar px-1.5 font-sans text-[11px] text-muted-foreground pointer-coarse:hidden"
-              >
-                Ctrl K
-              </kbd>
-            )}
+            ) : null}
           </div>
           <div className={rowClass(isHome)}>
             <a href="#/" aria-current={isHome ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
               <LayoutGrid className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">Overview</span>
+            </a>
+          </div>
+          <div className={rowClass(isTrash)}>
+            <a href="#/trash" aria-current={isTrash ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
+              <Trash2 className="size-4 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 truncate">Trash</span>
+              {trashCount > 0 && (
+                <span className="pr-1.5 text-xs text-muted-foreground tabular-nums" aria-label={`${trashCount} items`}>
+                  {trashCount}
+                </span>
+              )}
             </a>
           </div>
         </div>
@@ -260,11 +260,11 @@ export function Sidebar({
                   )}
                 </Section>
                 <Section
-                  title="Notes"
+                  title="Unfiled"
                   drop="notes"
                   action={
-                    <Tip label="New note">
-                      <Button variant="ghost" size="icon-xs" onClick={newNote} aria-label="New note outside folders">
+                    <Tip label="New unfiled note">
+                      <Button variant="ghost" size="icon-xs" onClick={newUnfiledNote} aria-label="New unfiled note">
                         <Plus />
                       </Button>
                     </Tip>
@@ -273,7 +273,7 @@ export function Sidebar({
                   {unfiled.length ? (
                     unfiled.map((note) => <NoteItem key={note.id} note={note} />)
                   ) : (
-                    <EmptyHint>No notes outside folders</EmptyHint>
+                    <EmptyHint>Notes outside folders appear here</EmptyHint>
                   )}
                 </Section>
               </>

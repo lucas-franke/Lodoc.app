@@ -88,7 +88,7 @@ export function deleteNote(id: string) {
 
 /** Deletes notes, their cards on every board and their cover images. */
 export async function deleteNotes(ids: string[]) {
-  await db.transaction('rw', db.notes, db.boards, db.assets, async () => {
+  await db.transaction('rw', [db.notes, db.boards, db.assets, db.trash], async () => {
     const gone = new Set(ids)
     const covers = (await db.notes.bulkGet(ids)).map((n) => coverAssetId(n))
     await db.notes.bulkDelete(ids)

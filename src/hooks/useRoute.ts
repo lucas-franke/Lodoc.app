@@ -27,9 +27,19 @@ export function useRoute(): Route {
   return useSyncExternalStore(subscribe, getRoute)
 }
 
+const TRASH_HASH = '#/trash'
+const isTrashHash = () => window.location.hash === TRASH_HASH
+
+/** True on the trash page (#/trash). */
+export function useIsTrash(): boolean {
+  return useSyncExternalStore(subscribe, isTrashHash)
+}
+
 /** True on the overview (no page open). */
 export function useIsHome(): boolean {
-  return useRoute() === null
+  const route = useRoute()
+  const trash = useIsTrash()
+  return route === null && !trash
 }
 
 export function useActiveNoteId(): string | null {
@@ -53,6 +63,10 @@ export function openNote(id: string | null) {
 
 export function openFolder(id: string) {
   window.location.hash = `#/folder/${encodeURIComponent(id)}`
+}
+
+export function openTrash() {
+  window.location.hash = TRASH_HASH
 }
 
 export function openBoard(id: string) {

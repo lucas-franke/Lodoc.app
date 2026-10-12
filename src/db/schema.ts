@@ -94,3 +94,20 @@ export interface Asset {
   height: number
   createdAt: number
 }
+
+/**
+ * Something deleted, kept for a while so it can be restored: the deleted items themselves plus the cards their
+ * notes had on other boards (those are put back too). Images stay in `assets` while an entry still uses them.
+ */
+export interface TrashEntry {
+  id: string
+  kind: 'note' | 'folder' | 'board'
+  /** Title of the deleted item at the time, for the trash list */
+  title: string
+  deletedAt: number
+  notes: Note[]
+  folders: Folder[]
+  boards: Board[]
+  /** Note cards removed from boards that were not deleted themselves */
+  cards: { boardId: string; node: BoardNode }[]
+}

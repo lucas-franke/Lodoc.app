@@ -1,5 +1,5 @@
-import { ArchiveRestore, Download, Upload } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { ArchiveRestore, Download, ShieldCheck, Upload } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ImportDialog } from '@/components/ImportDialog'
 import {
@@ -10,9 +10,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { exportProject, getLastExport, readProjectFile, type ProjectFile } from '@/lib/project-file'
+import { useAppEvent } from '@/lib/app-events'
 import { formatRelative } from '@/lib/format'
+import { cn } from '@/lib/utils'
 
 const EXPORT_REMINDER_DAYS = 7
+/** After this long (or never, once there are notes) the status line itself turns amber */
+const EXPORT_WARNING_DAYS = 30
 const DAY = 24 * 60 * 60 * 1000
 
 /**
@@ -25,9 +29,19 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
   // "Now" for the status text; refreshed when the menu opens and after an export
   const [now, setNow] = useState(Date.now)
   const fileInput = useRef<HTMLInputElement>(null)
+  // An export from the command palette updates the status line too
+  useAppEvent(
+    'backup-exported',
+    useCallback(() => {
+      setLastExport(getLastExport())
+      setNow(Date.now())
+    }, []),
+  )
 
   const status = lastExport ? `Last backup ${formatRelative(lastExport, now)}` : 'Never backed up'
   const overdue = hasNotes && (!lastExport || now - lastExport > EXPORT_REMINDER_DAYS * DAY)
+  const urgent = hasNotes && (!lastExport || now - lastExport > EXPORT_WARNING_DAYS * DAY)
+  const persisted = usePersistedStorage()
 
   const onFile = async (file: File | undefined) => {
     if (!file) return
@@ -53,7 +67,9 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
                 Backup
                 {overdue && <span className="size-2 rounded-full bg-amber-500" aria-hidden />}
               </span>
-              <span className="block truncate text-xs text-muted-foreground">{status}</span>
+              <span className={cn('block truncate text-xs', urgent ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground')}>
+                {status}
+              </span>
             </span>
           </button>
         </DropdownMenuTrigger>
@@ -73,8 +89,18 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             <Upload /> Import from file…
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          {persisted.supported && !persisted.value && (
+            <DropdownMenuItem onSelect={() => void persisted.request()}>
+              <ShieldCheck />
+              <span className="flex flex-col">
+                <span>Keep data safe in this browser</span>
+                <span className="text-xs text-muted-foreground">Asks the browser not to clear it when space runs low</span>
+              </span>
+            </DropdownMenuItem>
+          )}
           <p className="px-2 py-1.5 text-xs leading-relaxed text-muted-foreground">
-            Notes, boards and images are stored only in this browser. Export regularly to keep a copy.
+            Notes, boards and images are stored only in this browser
+            {persisted.value ? ', which keeps them even when space runs low' : ''}. Export regularly to keep a copy.
           </p>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -93,4 +119,20 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
       <ImportDialog project={importing} onClose={() => setImporting(null)} />
     </>
   )
+}
+
+/** Whether the browser keeps this site's data when storage runs low (navigator.storage.persist). */
+function usePersistedStorage() {
+  const supported = typeof navigator !== 'undefined' && !!navigator.storage?.persist
+  const [value, setValue] = useState(false)
+  useEffect(() => {
+    if (supported) void navigator.storage.persisted().then(setValue)
+  }, [supported])
+  const request = async () => {
+    const granted = await navigator.storage.persist()
+    setValue(granted)
+    if (granted) toast.success('Your notes are now kept safe in this browser')
+    else toast("The browser didn't allow it. Regular backups keep your notes safe.")
+  }
+  return { supported, value, request }
 }

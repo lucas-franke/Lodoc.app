@@ -20,7 +20,7 @@ import type { DndData } from '@/components/sidebar/tree-dnd'
 import { addImageAsset, isImageFile } from '@/db/assets'
 import { updateBoard } from '@/db/boards'
 import { db } from '@/db/db'
-import { CardViewToggle } from '@/components/note/CardViewToggle'
+import { CardViewMenu } from './CardViewMenu'
 import type { Board, BoardNode, Note, NoteCardView } from '@/db/schema'
 import { cn } from '@/lib/utils'
 import { BoardContext, type Box } from './board-context'
@@ -389,7 +389,7 @@ function Canvas({ board }: { board: Board }) {
           <ZoomSlider />
           {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
           <Panel position="top-right">
-            <CardViewToggle value={noteView} onChange={setAllCardViews} label="View of all note cards" />
+            <CardViewMenu value={noteView} onChange={setAllCardViews} />
           </Panel>
         </ReactFlow>
         <BoardFab

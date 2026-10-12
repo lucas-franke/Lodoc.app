@@ -31,7 +31,7 @@ export function updateBoard(id: string, changes: Partial<Pick<Board, 'nodes' | '
 
 /** Deletes a board and the images only it uses. Notes are never touched. */
 export async function deleteBoard(id: string) {
-  await db.transaction('rw', db.boards, db.notes, db.assets, async () => {
+  await db.transaction('rw', [db.boards, db.notes, db.assets, db.trash], async () => {
     const board = await db.boards.get(id)
     if (!board) return
     await db.boards.delete(id)

@@ -13,9 +13,9 @@ This Project and its content are written by Claude Code.
 - Block editor ([BlockNote](https://www.blocknotejs.org/)) with slash commands (`/`) for headings, lists, checklists, quotes, code, tables, images and more, plus markdown shortcuts (`#`, `-`, `[]`, …)
 - Overview: opening the app (or **Overview** in the sidebar) shows favorites, recently edited notes, folders and boards as cards; new users see a short welcome instead
 - Covers: every note gets a colored gradient from a fixed palette by default (a note always keeps the same one). Click the cover to pick another gradient, upload an image (or drop an image file on it), or remove it; **Add cover** brings it back. Note cards show the cover too
-- Card views (**Full** / **Cover** / **Title**): the folder view has one switch for all cards; on a board every card has its own view (card menu) and the toolbar in the top-right corner sets all of them at once (new cards start in that view)
+- Card views (**Full** / **Cover** / **Title**): the folder view has one switch for all cards; on a board every card has its own view (card menu) and the **Cards** menu in the top-right corner sets all of them at once (new cards start in that view)
 - Resizable sidebar: drag its right edge (or focus it and use the arrow keys, double-click to reset) to read long titles; the buttons to create things always stay in view
-- Nested folders, favorites, pinned notes (pinned notes stay at the top of their list)
+- Nested folders, favorites, pinned notes (pinned notes stay at the top of their list); notes outside folders are listed under **Unfiled**. The pencil at the top of the sidebar (and `Ctrl+Alt+N`) creates the note in the folder you are in; its tooltip says where
 - Drag and drop in the sidebar to reorder notes and folders or move them into other folders (or use **Move up / down** in the row menu)
 - **Boards**: an infinite canvas per topic (pan and zoom) with note cards, text annotations and images
   - Add items with the round **+** button (centered while a board is empty, bottom-right otherwise): pick an existing note, add text, or add images (file picker, paste with `Ctrl+V`, or drop files onto the canvas)
@@ -23,6 +23,7 @@ This Project and its content are written by Claude Code.
   - Drag a note from the sidebar onto the board to add it as a card at that spot
   - Cards are live views of your notes (renaming or editing a note updates every board); moving, resizing and deleting items is saved automatically; removing a card never deletes the note
   - Double-click a card (or use its pencil button) to edit the note right there, with the full editor and slash commands; one card is edited at a time, `Escape` or the check button finishes
+- **Trash**: deleting a note, folder or board moves it to the Trash (no confirmation; the notification offers **Undo**). The Trash page (sidebar, under Overview) restores items with their cards on boards, or deletes them for good; items older than 30 days are removed automatically. Images stay as long as a trashed item uses them
 - A new note you never touch (no title, no text, not pinned, favorited or moved) is not kept when you move on to something else
 - Full-text search across titles and note content
 - Backup: export everything (notes, folders, boards and their images, including note covers) as `lodoc-YYYY-MM-DD.json`; import with **Merge** (the more recently edited note or board wins) or **Replace**
@@ -30,9 +31,11 @@ This Project and its content are written by Claude Code.
 - **Appearance** panel (bottom of the sidebar): light or dark mode, a soft color tint (pastel in light mode, tinted darks in dark mode), an optional diagonal gradient, page font (sans serif or serif, bundled, nothing loaded from the internet), text size, page width, a connected or floating sidebar, corner roundness and a paper-like grain; every change shows right away
 - Notifications stay until you close them
 - Download a note as Markdown (`.md`) or a folder with everything in it as a `.zip` of Markdown files: from the button at the top right of the page, or from the right-click menu
-- Right-click (or the `…` button) on a note, folder or board for all actions, including **Duplicate** (a note, or a folder with all its subfolders and notes)
+- Right-click (or the `…` button) on a note, folder or board for all actions (on touch screens: long press). The open page has the same `…` menu at the top right, plus a star to add a note to favorites. Actions include **Duplicate** (a note, or a folder with all its subfolders and notes)
 
-Shortcuts: `Ctrl+Alt+N` new note · `Ctrl+K` search · `Ctrl+\` toggle sidebar
+- **Command palette** (`Ctrl+K`): find any note (title and text, with the match highlighted), folder or board, see what you edited last, and run commands (new note/folder/board, light/dark, Appearance, export backup, Trash, shortcuts)
+
+Shortcuts: `Ctrl+K` command palette · `Ctrl+Alt+N` new note · `Ctrl+\` toggle sidebar · `?` list of all shortcuts
 
 ## Development
 
@@ -47,7 +50,7 @@ Stack: Vite, React, TypeScript, Tailwind CSS v4, shadcn/ui, BlockNote, [React Fl
 
 ## Where data lives
 
-Notes, boards and images live only in the browser (and browser profile) you use. Clearing site data deletes them, so export regularly. The sidebar shows when you last exported.
+Notes, boards and images live only in the browser (and browser profile) you use. Clearing site data deletes them, so export regularly. The sidebar shows when you last exported (in amber once it is more than 30 days ago). The Backup menu can also ask the browser to keep the data even when storage runs low. The Trash is not part of the backup, and **Replace** empties it.
 
 The backup file is plain JSON. Images from boards (and images inside notes) are stored inside it as text, so a backup with many large photos gets big; images added to a board are scaled down to at most 2048 px on the long side.
 

@@ -42,7 +42,7 @@ export function BoardFab({
           className="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-[calc(100%+2.5rem)] text-center"
         >
           <p className="text-sm text-muted-foreground">This board is empty.</p>
-          <p className="text-xs text-muted-foreground">Add a note, some text or an image.</p>
+          <p className="text-xs text-muted-foreground">Add a note, some text or an image, or drag a note here from the sidebar.</p>
         </div>
       )}
 

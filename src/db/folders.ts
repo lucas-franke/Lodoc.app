@@ -50,7 +50,7 @@ export async function moveFolder(id: string, parentId: string | null) {
 
 /** Deletes the folder, its subfolders and all notes inside them. */
 export async function deleteFolder(id: string) {
-  await db.transaction('rw', [db.folders, db.notes, db.boards, db.assets], async () => {
+  await db.transaction('rw', [db.folders, db.notes, db.boards, db.assets, db.trash], async () => {
     const ids = [...descendantIds(await db.folders.toArray(), id)]
     await deleteNotes(await db.notes.where('folderId').anyOf(ids).primaryKeys())
     await db.folders.bulkDelete(ids)

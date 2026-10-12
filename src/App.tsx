@@ -1,13 +1,16 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { FilePlus, PanelLeftOpen } from 'lucide-react'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { BoardBreadcrumb } from '@/components/board/BoardBreadcrumb'
+import { CommandPalette } from '@/components/CommandPalette'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { AppDnd } from '@/components/dnd/AppDnd'
 import { FolderView } from '@/components/folder/FolderView'
-import { PageActions } from '@/components/PageActions'
+import { BoardPageActions, FolderPageActions, NotePageActions } from '@/components/PageActions'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { HomeView } from '@/components/home/HomeView'
+import { TrashView } from '@/components/trash/TrashView'
+import { ShortcutsDialog } from '@/components/ShortcutsDialog'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -15,7 +18,8 @@ import { boardTitle } from '@/db/boards'
 import { db } from '@/db/db'
 import { createNote, noteTitle } from '@/db/notes'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
-import { openNote, useRoute, type RouteType } from '@/hooks/useRoute'
+import { openNote, useIsTrash, useRoute, type RouteType } from '@/hooks/useRoute'
+import { useAppEvent } from '@/lib/app-events'
 import { cn } from '@/lib/utils'
 
 // The editor is the bulk of the bundle; load it separately so the shell appears fast
@@ -27,15 +31,20 @@ const NoteEditor = lazy(() =>
 const BoardPage = lazy(() => import('@/components/board/BoardPage'))
 
 const isNarrow = () => window.matchMedia('(max-width: 767px)').matches
+/** Typing "?" in a field or the editor must not open the shortcut list */
+const isTyping = (target: EventTarget | null) =>
+  target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
 const LOADING = Symbol('loading')
 
 export default function App() {
   const route = useRoute()
+  const onTrash = useIsTrash()
   // A new note that was left untouched isn't kept when you move on
   useDiscardUntouchedNote(route?.type === 'note' ? route.id : null)
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow())
-  // Bumped by Ctrl+K; the sidebar focuses its search field whenever this changes
-  const [focusSearch, setFocusSearch] = useState(0)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  useAppEvent('open-shortcuts', useCallback(() => setShortcutsOpen(true), []))
   // useLiveQuery keeps returning the previous result while a new route's query runs, so each
   // result carries the route it belongs to. Otherwise the old note's editor would briefly stay
   // on screen under the new URL, and anything typed in that moment would land in the wrong note.
@@ -89,8 +98,10 @@ export default function App() {
         const inEditor = (e.target as HTMLElement | null)?.closest?.('.bn-editor')
         if (inEditor && !window.getSelection()?.isCollapsed) return
         e.preventDefault()
-        setSidebarOpen(true)
-        setFocusSearch((n) => n + 1)
+        setPaletteOpen((open) => !open)
+      } else if (e.key === '?' && !mod && !isTyping(e.target)) {
+        e.preventDefault()
+        setShortcutsOpen(true)
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -108,7 +119,7 @@ export default function App() {
               // the gap around a floating sidebar is part of the page, so it gets the page texture (not on boards)
               data-texture-surface={current?.type === 'board' ? undefined : 'frame'}
             >
-              <Sidebar onCollapse={() => setSidebarOpen(false)} focusSearch={focusSearch} />
+              <Sidebar onCollapse={() => setSidebarOpen(false)} />
             </div>
             <div className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
           </>
@@ -152,8 +163,9 @@ export default function App() {
             )}
             {current?.type === 'board' && <BoardBreadcrumb board={current.board} />}
             <div className="ml-auto flex shrink-0 items-center gap-1">
-              {current?.type === 'note' && <PageActions type="note" id={current.note.id} />}
-              {current?.type === 'folder' && <PageActions type="folder" id={current.folder.id} />}
+              {current?.type === 'note' && <NotePageActions note={current.note} />}
+              {current?.type === 'folder' && <FolderPageActions folder={current.folder} />}
+              {current?.type === 'board' && <BoardPageActions board={current.board} />}
               <ThemeToggle />
             </div>
           </header>
@@ -170,6 +182,8 @@ export default function App() {
               <Suspense fallback={null}>
                 <BoardPage key={current.board.id} board={current.board} />
               </Suspense>
+            ) : onTrash ? (
+              <TrashView />
             ) : route ? (
               <EmptyState missing={route.type} />
             ) : (
@@ -179,6 +193,8 @@ export default function App() {
           </div>
         </main>
       </div>
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} newNoteFolderId={newNoteFolderId} />
+      <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </AppDnd>
   )
 }

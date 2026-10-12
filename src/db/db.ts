@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Asset, Board, Folder, Note } from './schema'
+import type { Asset, Board, Folder, Note, TrashEntry } from './schema'
 
 // The database keeps its original name (from before the app was called Lodoc), or existing notes would vanish
 export const db = new Dexie('localnotes') as Dexie & {
@@ -7,6 +7,7 @@ export const db = new Dexie('localnotes') as Dexie & {
   folders: EntityTable<Folder, 'id'>
   boards: EntityTable<Board, 'id'>
   assets: EntityTable<Asset, 'id'>
+  trash: EntityTable<TrashEntry, 'id'>
 }
 
 db.version(1).stores({
@@ -33,4 +34,9 @@ db.version(2)
 db.version(3).stores({
   boards: 'id, createdAt',
   assets: 'id',
+})
+
+// v4: a trash for deleted notes, folders and boards (restorable for a while). Purely additive.
+db.version(4).stores({
+  trash: 'id, deletedAt',
 })

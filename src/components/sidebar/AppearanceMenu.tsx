@@ -1,6 +1,7 @@
 import { Palette } from 'lucide-react'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useAppearance } from '@/hooks/useAppearance'
+import { useAppEvent } from '@/lib/app-events'
 
 // The panel (and its slider/switch/toggle components) is only loaded once it is opened
 const AppearancePanel = lazy(() =>
@@ -14,6 +15,15 @@ export function AppearanceMenu() {
   const trigger = useRef<HTMLButtonElement>(null)
   const { pageFont } = useAppearance()
   const status = pageFont === 'serif' ? 'Serif' : 'Sans serif'
+
+  // The command palette can open the panel too
+  useAppEvent(
+    'open-appearance',
+    useCallback(() => {
+      setLoaded(true)
+      setOpen(true)
+    }, []),
+  )
 
   // Lets the page make room for the panel on wide screens (index.css)
   useEffect(() => {
