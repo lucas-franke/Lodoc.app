@@ -92,7 +92,8 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
+/* :root only: React Flow also puts a "dark" class on the canvas, which must not reset the tinted colors */
+:root.dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
@@ -180,11 +181,17 @@
     --xy-background-color-default: transparent;
 }
 
-/* Textures (Appearance panel): one fixed noise layer over everything that never takes clicks. Each texture sets
+/* Textures (Appearance panel): a noise layer that never takes clicks. The page texture is drawn over each
+   [data-texture-surface] (the page; never on a board, which keeps just its dots); the
+   interface grain over the sidebar, menus, panels and dialogs. Each texture sets
    its image, tile size, strength and blend; the preview tiles in the panel use the same variables. */
+:root {
+    /* Shared by the page texture "Grain" and the interface grain */
+    --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 :root[data-texture='grain'],
 [data-texture-sample='grain'] {
-    --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture: var(--grain-image);
     --texture-size: 160px;
     --texture-opacity: 0.06;
 }
@@ -218,7 +225,7 @@
     --texture-opacity: 0.22;
 }
 /* Paper is mostly light: in dark mode invert it and add only its highlights, so the page does not wash out */
-:root.dark[data-texture='paper'] body::after,
+:root.dark[data-texture='paper'] [data-texture-surface]::after,
 .dark [data-texture-sample='paper']::after {
     filter: invert(1);
     mix-blend-mode: screen;
@@ -227,25 +234,71 @@
 .dark [data-texture-sample='linen'] {
     --texture-opacity: 0.14;
 }
-:root[data-texture]:not([data-texture='none']) body::after,
+[data-texture-surface] {
+    isolation: isolate;
+}
+:root[data-texture]:not([data-texture='none']) [data-texture-surface]::after,
 [data-texture-sample]::after {
     content: '';
-    position: fixed;
+    position: absolute;
     inset: 0;
-    z-index: 60;
+    z-index: 30;
+    border-radius: inherit;
     pointer-events: none;
     background-image: var(--texture);
     background-size: var(--texture-size);
-    opacity: var(--texture-opacity);
+    opacity: calc(var(--texture-opacity) * var(--texture-strength, 1));
     mix-blend-mode: var(--texture-blend);
 }
+/* The gap around a floating sidebar is part of the page: the page texture runs underneath the sidebar, which
+   becomes opaque there (no see-through gradient) so it stays plain itself */
+:root:not([data-sidebar='floating'])[data-texture]:not([data-texture='none']) [data-texture-surface='frame']::after {
+    content: none;
+}
+[data-texture-surface='frame']::after {
+    z-index: 0;
+}
+:root[data-sidebar='floating'][data-texture]:not([data-texture='none']) [data-texture-surface='frame'] > aside {
+    z-index: 1;
+    background-color: var(--sidebar);
+}
+
+/* Interface grain: the existing shadcn slots, so no component needs a marker. Sheets and dialogs are fixed
+   and the sidebar is relative already; menu contents become relative so the layer stays inside them. */
+:root {
+    --ui-grain-opacity: 0.06;
+}
+:root.dark {
+    --ui-grain-opacity: 0.1;
+}
+:root[data-ui-grain='true']
+    :is([data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-sub-content'], [data-slot='context-menu-content'], [data-slot='context-menu-sub-content']) {
+    position: relative;
+}
+:root[data-ui-grain='true']
+    :is(aside[data-sidebar-panel], [data-slot='sheet-content'], [data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-sub-content'], [data-slot='context-menu-content'], [data-slot='context-menu-sub-content']) {
+    isolation: isolate;
+}
+:root[data-ui-grain='true']
+    :is(aside[data-sidebar-panel], [data-slot='sheet-content'], [data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-sub-content'], [data-slot='context-menu-content'], [data-slot='context-menu-sub-content'])::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: var(--grain-image);
+    background-size: 160px;
+    opacity: calc(var(--ui-grain-opacity) * var(--ui-grain-strength, 1));
+    mix-blend-mode: var(--texture-blend);
+}
+
 /* The preview tiles show the texture a few times stronger */
 [data-texture-sample] {
     position: relative;
     overflow: hidden;
 }
 [data-texture-sample]::after {
-    position: absolute;
     z-index: auto;
     opacity: min(1, calc(var(--texture-opacity, 0) * 4));
 }
@@ -259,6 +312,10 @@
     }
   html {
     @apply font-sans;
+    }
+  /* Native scrollbars: just the thumb, no track or arrow buttons, in every theme and tint */
+  * {
+    scrollbar-color: color-mix(in oklch, var(--muted-foreground) 40%, transparent) transparent;
     }
 }
 
@@ -325,6 +382,16 @@ html .react-flow.light {
   --xy-resize-background-color-default: var(--ring);
   --xy-selection-background-color-default: color-mix(in oklch, var(--ring) 10%, transparent);
   --xy-selection-border-default: 1px solid var(--ring);
+}
+
+/* The canvas runs behind the page header (App.tsx), so the top panels start below it */
+html [data-board] .react-flow__panel.top {
+  margin-top: calc(3rem + 15px);
+}
+@media (min-width: 48rem) {
+  :root[data-sidebar='floating'] [data-board] .react-flow__panel.top {
+    margin-top: calc(3.5rem + 15px);
+  }
 }
 
 html .react-flow__attribution a {

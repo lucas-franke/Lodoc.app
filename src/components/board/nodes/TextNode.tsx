@@ -8,10 +8,11 @@ import type { BoardFlowNode } from '../flow'
 
 type TextItem = Extract<BoardNode, { type: 'text' }>
 
+// Relative to the page text size from the Appearance panel (1rem by default: 16 / 24 / 36 px)
 const SIZES = [
-  { size: 's', label: 'Small text', glyph: 'S', className: 'text-base' },
-  { size: 'm', label: 'Medium text', glyph: 'M', className: 'text-2xl font-semibold tracking-tight' },
-  { size: 'l', label: 'Large text', glyph: 'L', className: 'text-4xl font-bold tracking-tight' },
+  { size: 's', label: 'Small text', glyph: 'S', className: 'text-[length:var(--page-text-size)]' },
+  { size: 'm', label: 'Medium text', glyph: 'M', className: 'text-[length:calc(var(--page-text-size)*1.5)] leading-tight font-semibold tracking-tight' },
+  { size: 'l', label: 'Large text', glyph: 'L', className: 'text-[length:calc(var(--page-text-size)*2.25)] leading-tight font-bold tracking-tight' },
 ] as const
 
 /** A loose annotation that exists only on the canvas: plain text in three sizes. */
@@ -79,13 +80,13 @@ export function TextNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
             aria-label="Text"
             placeholder="Type something…"
             defaultValue={text}
-            className={cn('nodrag nowheel nopan h-full w-full resize-none bg-transparent outline-none', sizeClass)}
+            className={cn('nodrag nowheel nopan h-full w-full resize-none bg-transparent font-page outline-none', sizeClass)}
             onChange={(e) => board.growText(id, e.currentTarget)}
             onBlur={(e) => board.commitText(id, e.currentTarget.value)}
             onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
           />
         ) : (
-          <p className={cn('break-words whitespace-pre-wrap', sizeClass)}>{text}</p>
+          <p className={cn('font-page break-words whitespace-pre-wrap', sizeClass)}>{text}</p>
         )}
       </div>
     </>

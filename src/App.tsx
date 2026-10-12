@@ -16,6 +16,7 @@ import { db } from '@/db/db'
 import { createNote, noteTitle } from '@/db/notes'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
 import { openNote, useRoute, type RouteType } from '@/hooks/useRoute'
+import { cn } from '@/lib/utils'
 
 // The editor is the bulk of the bundle; load it separately so the shell appears fast
 const NoteEditor = lazy(() =>
@@ -68,6 +69,8 @@ export default function App() {
     if (route && isNarrow()) setSidebarOpen(false)
   }, [route])
 
+  const onBoard = current?.type === 'board'
+
   // New notes go into the folder you're looking at (or the current note's folder)
   const newNoteFolderId =
     current?.type === 'note' ? current.note.folderId : current?.type === 'folder' ? current.folder.id : null
@@ -100,14 +103,23 @@ export default function App() {
       <div data-app-shell className="flex h-dvh overflow-hidden bg-background text-foreground">
         {sidebarOpen && (
           <>
-            <div className="fixed inset-y-0 left-0 z-40 floating:p-2 md:static md:z-auto md:floating:pr-0">
+            <div
+              className="fixed inset-y-0 left-0 z-40 floating:p-2 md:relative md:z-auto md:floating:pr-0"
+              // the gap around a floating sidebar is part of the page, so it gets the page texture (not on boards)
+              data-texture-surface={current?.type === 'board' ? undefined : 'frame'}
+            >
               <Sidebar onCollapse={() => setSidebarOpen(false)} focusSearch={focusSearch} />
             </div>
             <div className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
           </>
         )}
 
-        <main className="flex min-w-0 flex-1 flex-col md:floating:pt-2">
+        <main
+          className={cn('relative flex min-w-0 flex-1 flex-col', !onBoard && 'md:floating:pt-2')}
+          data-board={onBoard ? '' : undefined}
+          // the texture covers the page; a board (header included) stays plain so it reads as one canvas with dots
+          data-texture-surface={onBoard ? undefined : ''}
+        >
           {/* The visible titles are editable inputs, so give the page a real heading for screen readers */}
           <h1 className="sr-only">
             {current?.type === 'note'
@@ -118,7 +130,13 @@ export default function App() {
                   ? boardTitle(current.board)
                   : 'Lodoc'}
           </h1>
-          <header className="flex h-12 shrink-0 items-center gap-1 px-3 text-sm">
+          <header
+            className={cn(
+              'flex h-12 shrink-0 items-center gap-1 px-3 text-sm',
+              // On a board the canvas runs behind the header: it floats on top and only its controls take clicks
+              onBoard && 'pointer-events-none absolute inset-x-0 top-0 z-10 *:pointer-events-auto md:floating:top-2',
+            )}
+          >
             {!sidebarOpen && (
               <Tip label="Show sidebar" shortcut="Ctrl \">
                 <Button variant="ghost" size="icon-sm" onClick={() => setSidebarOpen(true)} aria-label="Show sidebar">
@@ -141,7 +159,7 @@ export default function App() {
           </header>
 
           {/* Boards are full-bleed and pan/zoom themselves, so the page itself must not scroll */}
-          <div className={current?.type === 'board' ? 'min-h-0 flex-1 overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto'}>
+          <div className={onBoard ? 'min-h-0 flex-1 overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto'}>
             {loading ? null : current?.type === 'note' ? (
               <Suspense fallback={null}>
                 <NoteEditor key={current.note.id} note={current.note} />

@@ -39,7 +39,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
-      <h2 className="text-4xl font-bold tracking-tight">Overview</h2>
+      <h2 className="font-page text-4xl font-bold tracking-tight">Overview</h2>
       <p className="mt-2 text-sm text-muted-foreground">
         {plural(notes.length, 'note')} · {plural(folders.length, 'folder')} · {plural(boards.length, 'board')}
       </p>

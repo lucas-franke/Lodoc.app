@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { resetAppearance, updateAppearance, useAppearance } from '@/hooks/useAppearance'
-import { RADIUS_PRESETS, TEXTURES, TINTS, tintColor, type Appearance } from '@/lib/appearance'
+import { RADIUS_PRESETS, TEXTURE_STRENGTH_DEFAULT, TEXTURES, TINTS, tintColor, type Appearance } from '@/lib/appearance'
 import { cn } from '@/lib/utils'
 
 const TEXT_SIZE_OPTIONS = [
@@ -199,13 +200,13 @@ export function AppearancePanel({
           </Section>
 
           <Section title="Texture" last>
-            <Row label="Surface" hint="A subtle texture over the whole app">
+            <Row label="Pages" hint="On notes, folders and the overview. Boards keep their dots.">
               <ToggleGroup
                 type="single"
                 variant="outline"
                 value={a.texture}
                 onValueChange={choose('texture')}
-                aria-label="Texture"
+                aria-label="Page texture"
                 className="w-full"
               >
                 {TEXTURES.map((t) => (
@@ -216,6 +217,31 @@ export function AppearancePanel({
                 ))}
               </ToggleGroup>
             </Row>
+            {a.texture !== 'none' && (
+              <Row label="Strength">
+                <StrengthSlider
+                  label="Page texture strength"
+                  value={a.textureStrength}
+                  onChange={(textureStrength) => updateAppearance({ textureStrength })}
+                />
+              </Row>
+            )}
+            <SwitchRow
+              id="ap-ui-grain"
+              label="Grain on the interface"
+              hint="Sidebar, menus and this panel"
+              checked={a.uiGrain}
+              onChange={(uiGrain) => updateAppearance({ uiGrain })}
+            />
+            {a.uiGrain && (
+              <Row label="Intensity">
+                <StrengthSlider
+                  label="Interface grain intensity"
+                  value={a.uiGrainStrength}
+                  onChange={(uiGrainStrength) => updateAppearance({ uiGrainStrength })}
+                />
+              </Row>
+            )}
           </Section>
         </div>
 
@@ -283,6 +309,23 @@ function SwitchRow({
       </div>
       <Switch id={id} checked={checked} onCheckedChange={onChange} />
     </div>
+  )
+}
+
+/** 0–100 %, with a dot marking the default (50 %, each texture's tuned strength) */
+function StrengthSlider({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  return (
+    <Slider
+      thumbLabel={label}
+      thumbValueText={`${value} %`}
+      min={0}
+      max={100}
+      step={5}
+      marker={TEXTURE_STRENGTH_DEFAULT}
+      value={[value]}
+      onValueChange={([v]) => onChange(v)}
+      className="h-6 [--slider-thumb:1.5rem] **:data-[slot=slider-range]:bg-transparent **:data-[slot=slider-thumb]:size-(--slider-thumb) **:data-[slot=slider-thumb]:border-border dark:**:data-[slot=slider-thumb]:border-transparent **:data-[slot=slider-thumb]:shadow-md **:data-[slot=slider-track]:h-6! **:data-[slot=slider-track]:border **:data-[slot=slider-track]:bg-muted/60"
+    />
   )
 }
 

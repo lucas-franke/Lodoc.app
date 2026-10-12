@@ -35,6 +35,8 @@ export const TEXTURES = [
   { id: 'linen', name: 'Linen' },
 ] as const
 export type Texture = (typeof TEXTURES)[number]['id']
+/** Texture strength in percent; 50 is each texture's tuned default, 100 twice as strong */
+export const TEXTURE_STRENGTH_DEFAULT = 50
 
 const TEXT_SIZES = { s: '0.9375rem', m: '1rem', l: '1.125rem' } as const
 const PAGE_WIDTHS = { normal: '48rem', wide: '64rem' } as const
@@ -48,6 +50,10 @@ const schema = z.object({
   sidebar: z.enum(['connected', 'floating']).catch('connected'),
   corners: z.enum(['sharp', 'rounded', 'round']).catch('rounded'),
   texture: z.enum(['none', 'grain', 'paper', 'linen']).catch('none'),
+  textureStrength: z.number().int().min(0).max(100).catch(TEXTURE_STRENGTH_DEFAULT),
+  /** Grain on the interface (sidebar, menus, panels), separate from the page texture */
+  uiGrain: z.boolean().catch(false),
+  uiGrainStrength: z.number().int().min(0).max(100).catch(TEXTURE_STRENGTH_DEFAULT),
 })
 
 /** Earlier versions stored a free corner radius (px) and a grain on/off switch */
@@ -95,6 +101,9 @@ export function applyAppearance(a: Appearance) {
   root.dataset.gradient = String(a.gradient)
   root.dataset.sidebar = a.sidebar
   root.dataset.texture = a.texture
+  root.style.setProperty('--texture-strength', String(a.textureStrength / TEXTURE_STRENGTH_DEFAULT))
+  root.dataset.uiGrain = String(a.uiGrain)
+  root.style.setProperty('--ui-grain-strength', String(a.uiGrainStrength / TEXTURE_STRENGTH_DEFAULT))
   const tint = TINTS.find((t) => t.id === a.tint) ?? TINTS[0]
   root.style.setProperty('--tint-h', String(tint.hue))
   root.style.setProperty('--tint-c', String(tint.chroma))

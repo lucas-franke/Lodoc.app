@@ -32,6 +32,9 @@ import { ImageNode } from './nodes/ImageNode'
 import { NoteNode } from './nodes/NoteNode'
 import { TextNode } from './nodes/TextNode'
 
+/** Height of the page header that floats over the canvas (App.tsx, h-12) */
+const HEADER_HEIGHT = 48
+
 const nodeTypes = { note: NoteNode, text: TextNode, image: ImageNode }
 const NO_NOTES = new Map<string, Note>()
 
@@ -165,8 +168,9 @@ function Canvas({ board }: { board: Board }) {
   // ---- adding items ----------------------------------------------------------------------
 
   const viewportCenter = useCallback((): XYPosition => {
+    // The visible middle: the part of the canvas below the header that floats over it
     const r = container.current!.getBoundingClientRect()
-    return rf.screenToFlowPosition({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
+    return rf.screenToFlowPosition({ x: r.left + r.width / 2, y: r.top + HEADER_HEIGHT + (r.height - HEADER_HEIGHT) / 2 })
   }, [rf])
 
   /** Top-left for a new item, centered on `at` (default: the middle of the view) and nudged so it never lands exactly on another item. */
@@ -371,8 +375,9 @@ function Canvas({ board }: { board: Board }) {
           onPaneClick={() => setEditingId(null)}
           onNodeClick={(_, node) => editingId && node.id !== editingId && setEditingId(null)}
           deleteKeyCode={['Backspace', 'Delete']}
-          onMoveEnd={(_, viewport) => void updateBoard(board.id, { viewport })}
-          defaultViewport={board.viewport}
+          // The canvas runs behind the page header; saved viewports stay relative to the area below it
+          onMoveEnd={(_, viewport) => void updateBoard(board.id, { viewport: { ...viewport, y: viewport.y - HEADER_HEIGHT } })}
+          defaultViewport={{ ...board.viewport, y: board.viewport.y + HEADER_HEIGHT }}
           minZoom={0.1}
           maxZoom={2}
           zoomOnDoubleClick={false}

@@ -219,7 +219,7 @@ export function CardShell({
           ) : (
             <a
               href={href}
-              className="min-w-0 flex-1 truncate font-medium outline-none after:absolute after:inset-0 after:rounded-lg"
+              className="min-w-0 flex-1 truncate font-page font-medium outline-none after:absolute after:inset-0 after:rounded-lg"
             >
               {title}
             </a>
@@ -285,7 +285,7 @@ function FolderTitle({ folder }: { folder: Folder }) {
       }}
       placeholder="Untitled folder"
       aria-label="Folder name"
-      className="w-full min-w-0 bg-transparent text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
+      className="w-full min-w-0 bg-transparent font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
     />
   )
 }

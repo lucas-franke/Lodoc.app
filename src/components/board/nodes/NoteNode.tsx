@@ -69,7 +69,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
           <FileText className="mr-1 size-4 shrink-0 text-muted-foreground" />
           {/* While editing, the editor's own title field is right below, so the header doesn't repeat it */}
           <span
-            className={cn('min-w-0 flex-1 truncate text-sm font-medium', editing && 'text-muted-foreground')}
+            className={cn('min-w-0 flex-1 truncate font-page text-sm font-medium', editing && 'text-muted-foreground')}
             data-testid="board-note-title"
           >
             {editing ? 'Editing' : title}
