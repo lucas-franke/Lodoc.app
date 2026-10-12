@@ -313,16 +313,23 @@
     }
 }
 
-/* While the Appearance panel is open on a wide screen, the page makes room for it instead of being covered */
+/* While the Appearance panel is open on a wide screen, the page makes room for it instead of being covered.
+   Pages use padding rather than a margin: the strip stays part of the page, so its texture runs on behind
+   the panel (and around a floating one) instead of stopping at a hard edge. A board keeps the margin, since
+   its header and controls are positioned over the canvas and must stay clear of the panel. */
 @media (min-width: 80rem) {
     [data-app-shell] > main {
-        transition: margin-right 0.2s ease;
+        transition: padding-right 0.2s ease, margin-right 0.2s ease;
+        --appearance-room: 380px;
     }
-    :root[data-appearance-open] [data-app-shell] > main {
-        margin-right: 380px;
+    :root[data-sidebar='floating'] [data-app-shell] > main {
+        --appearance-room: calc(380px + 0.5rem);
     }
-    :root[data-appearance-open][data-sidebar='floating'] [data-app-shell] > main {
-        margin-right: calc(380px + 0.5rem);
+    :root[data-appearance-open] [data-app-shell] > main:not([data-board]) {
+        padding-right: var(--appearance-room);
+    }
+    :root[data-appearance-open] [data-app-shell] > main[data-board] {
+        margin-right: var(--appearance-room);
     }
 }
 
@@ -359,10 +366,11 @@
   --bn-colors-editor-background: transparent;
 }
 
-/* Appearance settings (lib/appearance.ts) set data-page-font, --page-text-size and --page-width on <html>;
+/* Appearance settings (lib/appearance.ts) set data-page-font and --page-text-size on <html>;
    these are the defaults. The UI keeps Geist. */
 :root {
   --page-text-size: 1rem;
+  /* The width of a note page */
   --page-width: 48rem;
 }
 :root,
@@ -386,6 +394,21 @@
 .bn-root.bn-shadcn .bn-editor {
   font-family: var(--page-font);
   font-size: var(--page-text-size);
+}
+
+/* The margin beside the text of a note: room for BlockNote's block handles (+ and drag) on wider screens. The
+   title, info line, tags and backlinks use it too, so everything lines up. On a phone the handles aren't
+   used and the text takes the full width. */
+:root {
+  --page-gutter: 54px;
+}
+@media (max-width: 39.99rem) {
+  :root {
+    --page-gutter: 0px;
+  }
+}
+.bn-root.bn-shadcn .bn-editor {
+  padding-inline: var(--page-gutter);
 }
 
 /* Level 1 has no data-level attribute */
@@ -467,7 +490,8 @@ html .react-flow__connection-path {
   stroke-width: 1.5;
 }
 
-/* The note editor inside a board card: no room for BlockNote's 54px page margins */
-.bn-embedded .bn-editor {
+/* The note editor inside a board card: no room for the page gutter */
+.bn-root.bn-shadcn.bn-embedded .bn-editor,
+.bn-embedded .bn-root.bn-shadcn .bn-editor {
   padding-inline: 12px;
 }

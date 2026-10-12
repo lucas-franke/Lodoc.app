@@ -10,14 +10,26 @@ import {
   type DragMoveEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { FileText, Folder as FolderIcon } from 'lucide-react'
+import { FileText, Folder as FolderIcon, LayoutDashboard, Layers } from 'lucide-react'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { planDrop, TreeDndContext, type DndData, type DropPlan } from '@/components/sidebar/tree-dnd'
+import { boardTitle, moveBoard } from '@/db/boards'
+import { moveItems, type ItemRef } from '@/db/bulk'
 import { noteTitle } from '@/db/notes'
 import { placeFolder, placeNote } from '@/db/order'
 import { DndRegistryContext, type CanvasDrop, type SidebarDnd } from './dnd-registry'
 
 const EXPAND_DELAY = 600
+/** Notes dropped on a board together are laid out with this offset, so they don't land on top of each other */
+const GROUP_OFFSET = 32
+
+/** The dragged row as a selection item */
+function itemOf(data: DndData | undefined): ItemRef | null {
+  if (data?.type === 'note') return { kind: 'note', id: data.note.id }
+  if (data?.type === 'folder') return { kind: 'folder', id: data.folder.id }
+  if (data?.type === 'board') return { kind: 'board', id: data.board.id }
+  return null
+}
 
 /** Rows win over the areas they sit in: pick the smallest droppable under the pointer. */
 const smallestUnderPointer: CollisionDetection = (args) =>
@@ -47,6 +59,8 @@ function pointerPosition(activatorEvent: Event | null, delta: { x: number; y: nu
 export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCanvas?: () => void; children: ReactNode }) {
   const [active, setActive] = useState<DndData | null>(null)
   const [plan, setPlan] = useState<DropPlan | null>(null)
+  // Dragging a selected row (with others selected) moves the whole selection
+  const [group, setGroup] = useState<ItemRef[] | null>(null)
   const expandTimer = useRef<{ id: string; timer: number } | null>(null)
   // A drag ends with a click on the row's link; swallow it so dropping doesn't navigate
   const suppressClick = useRef(false)
@@ -107,6 +121,7 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
 
   const reset = () => {
     setActive(null)
+    setGroup(null)
     setPlan(null)
     clearExpandTimer()
   }
@@ -117,25 +132,38 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
         sensors={sensors}
         collisionDetection={smallestUnderPointer}
         onDragStart={({ active }: DragStartEvent) => {
-          setActive((active.data.current as DndData) ?? null)
+          const data = (active.data.current as DndData) ?? null
+          setActive(data)
+          const item = itemOf(data ?? undefined)
+          const selected = sidebar.current?.selected ?? []
+          setGroup(item && selected.length > 1 && selected.some((s) => s.kind === item.kind && s.id === item.id) ? selected : null)
           suppressClick.current = true
         }}
         onDragMove={onMove}
         onDragOver={onMove}
         onDragEnd={({ active, over, activatorEvent, delta }) => {
           const current = plan
+          const moving = group
           const data = active.data.current as DndData | undefined
           const overData = over?.data.current as DndData | undefined
           reset()
           if (overData?.type === 'canvas') {
             // Only notes go onto a board (a folder dropped there does nothing)
-            if (data?.type === 'note' && canvas.current) {
-              const { x, y } = pointerPosition(activatorEvent, delta)
-              canvas.current({ noteId: data.note.id, x, y })
+            const { x, y } = pointerPosition(activatorEvent, delta)
+            const noteIds = moving ? moving.filter((i) => i.kind === 'note').map((i) => i.id) : data?.type === 'note' ? [data.note.id] : []
+            if (noteIds.length && canvas.current) {
+              noteIds.forEach((noteId, i) => canvas.current!({ noteId, x: x + i * GROUP_OFFSET, y: y + i * GROUP_OFFSET }))
+              if (moving) sidebar.current?.clearSelection()
               onNoteDroppedOnCanvas?.()
             }
+          } else if (current && moving) {
+            // The whole selection goes where the dragged row would land (a folder, or the top level)
+            void moveItems(moving, current.parentId)
+            sidebar.current?.clearSelection()
+            if (current.parentId) sidebar.current?.onExpand(current.parentId)
           } else if (current) {
             if (current.kind === 'note') void placeNote(current.id, current.parentId, current.index)
+            else if (current.kind === 'board') void moveBoard(current.id, current.parentId)
             else void placeFolder(current.id, current.parentId, current.index)
             if (current.parentId) sidebar.current?.onExpand(current.parentId)
           }
@@ -160,14 +188,25 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
           </div>
         </TreeDndContext.Provider>
         <DragOverlay dropAnimation={null}>
-          {active && (active.type === 'note' || active.type === 'folder') && (
+          {active && (active.type === 'note' || active.type === 'folder' || active.type === 'board') && (
             <div className="flex h-9 w-56 items-center gap-2 rounded-md border bg-popover px-2.5 text-sm text-popover-foreground shadow-md">
-              {active.type === 'note' ? (
+              {group ? (
+                <>
+                  <Layers className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{group.length} items</span>
+                </>
+              ) : active.type === 'note' ? (
                 <FileText className="size-4 shrink-0 text-muted-foreground" />
+              ) : active.type === 'board' ? (
+                <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" />
               ) : (
                 <FolderIcon className="size-4 shrink-0 text-muted-foreground" />
               )}
-              <span className="truncate">{active.type === 'note' ? noteTitle(active.note) : active.folder.name}</span>
+              {!group && (
+                <span className="truncate">
+                  {active.type === 'note' ? noteTitle(active.note) : active.type === 'board' ? boardTitle(active.board) : active.folder.name}
+                </span>
+              )}
             </div>
           )}
         </DragOverlay>

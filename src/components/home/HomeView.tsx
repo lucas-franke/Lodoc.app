@@ -1,19 +1,16 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ArrowRight, FolderPlus, LayoutDashboard, Plus } from 'lucide-react'
-import { useState } from 'react'
-import { CardSection, CardShell, FolderCard, NoteCard } from '@/components/folder/FolderView'
+import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folder/FolderView'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { TemplateMenu } from '@/components/TemplateMenu'
-import { CardMeta } from '@/components/note/NoteCardMeta'
 import { NoteCover } from '@/components/note/NoteCover'
 import { Button } from '@/components/ui/button'
-import { createBoard, renameBoard, sortBoards } from '@/db/boards'
+import { createBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
 import { createNote, notePreview, noteTitle, sortNotes } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { useAppearance } from '@/hooks/useAppearance'
-import { useBoardMenuEntries } from '@/hooks/useItemMenus'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
 import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
@@ -125,40 +122,5 @@ function ContinueCard({ note }: { note: Note }) {
       </span>
       <ArrowRight aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
     </a>
-  )
-}
-
-function BoardCard({ board }: { board: Board }) {
-  const [renaming, setRenaming] = useState(false)
-  const entries = useBoardMenuEntries(board, { onRename: () => setRenaming(true) })
-  const title = board.title.trim() || 'Untitled board'
-
-  return (
-    <CardShell
-      href={`#/board/${encodeURIComponent(board.id)}`}
-      icon={LayoutDashboard}
-      title={title}
-      entries={entries}
-      rename={
-        renaming && {
-          initial: board.title,
-          onDone: (value) => {
-            if (value !== null) void renameBoard(board.id, value)
-            setRenaming(false)
-          },
-        }
-      }
-    >
-      <div className="flex flex-1 flex-col px-4 pt-1 pb-3">
-        <CardMeta
-          primary={
-            <>
-              {plural(board.nodes.length, 'item')} · Edited {formatRelative(board.updatedAt)}
-            </>
-          }
-          created={board.createdAt}
-        />
-      </div>
-    </CardShell>
   )
 }

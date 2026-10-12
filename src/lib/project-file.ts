@@ -63,6 +63,7 @@ const boardEdgeSchema = z.object({
 const boardSchema = z.object({
   id: z.string().min(1),
   title: z.string(),
+  folderId: z.string().nullable().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
   viewport: z.object({ x: z.number(), y: z.number(), zoom: z.number() }),
@@ -119,21 +120,29 @@ const boardImageIds = (boards: Board[]) =>
   boards.flatMap((b) => b.nodes.flatMap((n) => (n.type === 'image' ? [n.assetId] : [])))
 const coverIds = (notes: Note[]) => notes.flatMap((n) => coverAssetId(n) ?? [])
 
-export async function exportProject() {
+/** Everything as a backup file (also used by the automatic backup) */
+export async function buildProjectBlob(): Promise<Blob> {
   const [folders, notes, boards] = await Promise.all([db.folders.toArray(), db.notes.toArray(), db.boards.toArray()])
   // Only images that a board or a note cover still uses (removing an image from a board leaves its bytes behind)
   const used = await db.assets.bulkGet([...new Set([...boardImageIds(boards), ...coverIds(notes)])])
   const assets = await Promise.all(
     used.flatMap((a) => (a ? [a] : [])).map(async ({ blob, ...a }) => ({ ...a, data: await blobToBase64(blob) })),
   )
+  const data = { app: 'localnotes', version: FORMAT_VERSION, exportedAt: Date.now(), folders, notes, boards, assets }
+  return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+}
+
+export async function exportProject() {
+  const blob = await buildProjectBlob()
   const now = Date.now()
-  const data = { app: 'localnotes', version: FORMAT_VERSION, exportedAt: now, folders, notes, boards, assets }
-  saveFile(
-    new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
-    `lodoc-${new Date(now).toISOString().slice(0, 10)}.json`,
-  )
+  saveFile(blob, `lodoc-${new Date(now).toISOString().slice(0, 10)}.json`)
+  setLastExport(now)
+}
+
+/** Remembers when the last backup was made (for the reminder in the sidebar) */
+export function setLastExport(time: number) {
   try {
-    localStorage.setItem(LAST_EXPORT_KEY, String(now))
+    localStorage.setItem(LAST_EXPORT_KEY, String(time))
   } catch {
     // storage unavailable; the hint just won't update
   }

@@ -1,4 +1,4 @@
-import { ArchiveRestore, Download, ShieldCheck, Upload } from 'lucide-react'
+import { ArchiveRestore, Download, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ImportDialog } from '@/components/ImportDialog'
@@ -11,6 +11,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { exportProject, getLastExport, readProjectFile, type ProjectFile } from '@/lib/project-file'
 import { useAppEvent } from '@/lib/app-events'
+import {
+  autoBackupSupported,
+  backUpNow,
+  chooseBackupFolder,
+  resumeAutoBackup,
+  stopAutoBackup,
+  useAutoBackup,
+} from '@/lib/auto-backup'
 import { formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -38,9 +46,18 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
     }, []),
   )
 
-  const status = lastExport ? `Last backup ${formatRelative(lastExport, now)}` : 'Never backed up'
-  const overdue = hasNotes && (!lastExport || now - lastExport > EXPORT_REMINDER_DAYS * DAY)
-  const urgent = hasNotes && (!lastExport || now - lastExport > EXPORT_WARNING_DAYS * DAY)
+  const auto = useAutoBackup()
+  const paused = auto.status === 'paused'
+  const autoError = auto.status === 'on' && !!auto.error
+  const status = paused
+    ? 'Automatic backup paused'
+    : autoError
+      ? 'Automatic backup failed'
+      : lastExport
+        ? `${auto.status === 'on' ? 'Saved to folder' : 'Last backup'} ${formatRelative(lastExport, now)}`
+        : 'Never backed up'
+  const overdue = paused || autoError || (hasNotes && (!lastExport || now - lastExport > EXPORT_REMINDER_DAYS * DAY))
+  const urgent = paused || autoError || (hasNotes && (!lastExport || now - lastExport > EXPORT_WARNING_DAYS * DAY))
   const persisted = usePersistedStorage()
 
   const onFile = async (file: File | undefined) => {
@@ -89,6 +106,47 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             <Upload /> Import from file…
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          {autoBackupSupported && auto.status === 'off' && (
+            <DropdownMenuItem onSelect={() => void chooseBackupFolder()}>
+              <FolderSync />
+              <span className="flex flex-col">
+                <span>Back up automatically…</span>
+                <span className="text-xs text-muted-foreground">Into a folder on this computer, whenever something changes</span>
+              </span>
+            </DropdownMenuItem>
+          )}
+          {auto.status === 'paused' && (
+            <DropdownMenuItem onSelect={() => void resumeAutoBackup()}>
+              <PauseCircle />
+              <span className="flex flex-col">
+                <span>Resume automatic backup</span>
+                <span className="text-xs text-muted-foreground">The browser asks once per visit before writing to “{auto.folder}”</span>
+              </span>
+            </DropdownMenuItem>
+          )}
+          {auto.status === 'on' && (
+            <>
+              <p className="px-2 py-1.5 text-xs leading-relaxed text-muted-foreground" data-auto-backup-status>
+                {auto.error
+                  ? `Could not save to “${auto.folder}”: ${auto.error}`
+                  : `Backing up to “${auto.folder}”${auto.lastSaved ? `, last saved ${formatRelative(auto.lastSaved, now)}` : ''}. The last ${7} days are kept.`}
+              </p>
+              <DropdownMenuItem onSelect={() => void backUpNow()}>
+                <RefreshCw /> Back up to folder now
+              </DropdownMenuItem>
+            </>
+          )}
+          {auto.status !== 'off' && (
+            <>
+              <DropdownMenuItem onSelect={() => void chooseBackupFolder()}>
+                <FolderSync /> Choose another folder…
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => void stopAutoBackup()}>
+                <X /> Stop automatic backup
+              </DropdownMenuItem>
+            </>
+          )}
+          {(autoBackupSupported || auto.status !== 'off') && <DropdownMenuSeparator />}
           {persisted.supported && !persisted.value && (
             <DropdownMenuItem onSelect={() => void persisted.request()}>
               <ShieldCheck />

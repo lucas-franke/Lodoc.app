@@ -18,6 +18,7 @@ import {
   updateAppearance,
   useAppearance,
 } from '@/hooks/useAppearance'
+import { useWideScreen } from '@/hooks/useWideScreen'
 import { openNote, useRoute } from '@/hooks/useRoute'
 import {
   APPEARANCE_SECTIONS,
@@ -56,6 +57,7 @@ export function AppearancePanel({
   returnFocus: () => void
 }) {
   const a = useAppearance()
+  const wide = useWideScreen()
   const { theme, resolvedTheme, setTheme } = useTheme()
   const mode = resolvedTheme === 'dark' ? 'dark' : 'light'
   const route = useRoute()
@@ -136,7 +138,7 @@ export function AppearancePanel({
         </SheetHeader>
 
         <div className="space-y-2 border-b px-4 pb-4">
-          <AppearancePreview view={view} pageWidth={a.pageWidth} sidebar={a.sidebar} autoCover={a.autoCover} flash={flash} />
+          <AppearancePreview view={view} sidebar={wide ? a.sidebar : 'connected'} autoCover={a.autoCover} flash={flash} />
           <ToggleGroup
             type="single"
             variant="outline"
@@ -257,17 +259,6 @@ export function AppearancePanel({
                 }))}
               />
             </Row>
-            <Row label="Page width">
-              <Tiles
-                label="Page width"
-                value={a.pageWidth}
-                onChange={choose('pageWidth', 'page')}
-                options={[
-                  { value: 'normal', name: 'Normal', preview: <WidthPreview wide={false} /> },
-                  { value: 'wide', name: 'Wide', preview: <WidthPreview wide /> },
-                ]}
-              />
-            </Row>
             <SwitchRow
               id="ap-auto-cover"
               label="Automatic covers"
@@ -305,17 +296,20 @@ export function AppearancePanel({
             onReset={isDefault('interface') ? undefined : () => resetSection('interface', 'sidebar')}
             last
           >
-            <Row label="Sidebar">
-              <Tiles
-                label="Sidebar style"
-                value={a.sidebar}
-                onChange={choose('sidebar', 'sidebar')}
-                options={[
-                  { value: 'connected', name: 'Connected', preview: <SidebarPreview floating={false} /> },
-                  { value: 'floating', name: 'Floating', preview: <SidebarPreview floating /> },
-                ]}
-              />
-            </Row>
+            {/* Desktop only: on a phone the sidebar lies over the page, and a floating one would only take room */}
+            {wide && (
+              <Row label="Sidebar">
+                <Tiles
+                  label="Sidebar style"
+                  value={a.sidebar}
+                  onChange={choose('sidebar', 'sidebar')}
+                  options={[
+                    { value: 'connected', name: 'Connected', preview: <SidebarPreview floating={false} /> },
+                    { value: 'floating', name: 'Floating', preview: <SidebarPreview floating /> },
+                  ]}
+                />
+              </Row>
+            )}
             <Row label="Corners">
               <Tiles
                 label="Corner style"
@@ -486,17 +480,6 @@ function FontSample({ font }: { font: 'sans' | 'serif' }) {
   return (
     <span className="text-xl leading-none" data-font-sample={font}>
       Ag
-    </span>
-  )
-}
-
-/** A page with its text block: narrow (normal) or almost the full width (wide) */
-function WidthPreview({ wide }: { wide: boolean }) {
-  return (
-    <span className="flex h-7 w-11 flex-col items-center justify-center gap-1 rounded-[4px] border bg-background">
-      {[1, 0.8, 1].map((f, i) => (
-        <span key={i} className="block h-0.5 rounded-full bg-muted-foreground/50" style={{ width: `${(wide ? 34 : 18) * f}px` }} />
-      ))}
     </span>
   )
 }

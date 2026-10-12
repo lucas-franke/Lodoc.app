@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect } from 'react'
+import type { ItemRef } from '@/db/bulk'
 import type { Folder, Note } from '@/db/schema'
 
 /** What the sidebar tells the app-level drag layer, so it can plan and commit sidebar drops. */
@@ -7,6 +8,9 @@ export interface SidebarDnd {
   notes: Note[]
   /** Expand a folder (while hovering a collapsed one, and after dropping into it) */
   onExpand: (folderId: string) => void
+  /** The multi-selection: dragging one of its rows takes all of them along */
+  selected: ItemRef[]
+  clearSelection: () => void
 }
 
 /** A note was dropped on the canvas at this screen position. */

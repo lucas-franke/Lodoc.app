@@ -9,17 +9,15 @@ export type PreviewFlash = { area: PreviewArea; n: number } | null
 
 /**
  * A miniature of Lodoc, drawn with the same CSS variables and data attributes as the app itself, so it shows
- * every setting no matter which view is open behind the panel (e.g. page width while looking at a board).
+ * every setting no matter which view is open behind the panel (e.g. the page font while looking at a board).
  */
 export function AppearancePreview({
   view,
-  pageWidth,
   sidebar,
   autoCover,
   flash,
 }: {
   view: PreviewView
-  pageWidth: Appearance['pageWidth']
   sidebar: Appearance['sidebar']
   autoCover: boolean
   flash: PreviewFlash
@@ -61,7 +59,7 @@ export function AppearancePreview({
         >
           {pulse('page')}
           <div
-            className={cn('mx-auto transition-[width] duration-200', pageWidth === 'wide' ? 'w-[94%]' : 'w-[68%]')}
+            className="mx-auto w-[68%]"
             data-preview-page
           >
             {autoCover && <div className="h-7 rounded-md bg-linear-to-br from-sky-400 to-teal-300" />}

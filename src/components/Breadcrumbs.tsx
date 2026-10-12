@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Folder as FolderIcon } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -17,8 +17,11 @@ import { folderPath } from '@/lib/folder-tree'
 /** Show at most this many folders; deeper paths collapse the middle into "…". */
 const MAX_FOLDERS = 3
 
-/** Trail of folders leading to the current page (a note or a folder), which is shown last. */
-export function Breadcrumbs({ folderId, current }: { folderId: string | null; current: string }) {
+/**
+ * Trail of folders leading to the current page (a note, folder or board), which is shown last. `current` is
+ * its name, or an element shown as is (the board's editable title).
+ */
+export function Breadcrumbs({ folderId, current }: { folderId: string | null; current: ReactNode }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], [] as Folder[])
   const path = folderPath(folders, folderId)
   const collapsed = path.length > MAX_FOLDERS
@@ -50,7 +53,7 @@ export function Breadcrumbs({ folderId, current }: { folderId: string | null; cu
           </Fragment>
         ))}
         <BreadcrumbItem className="min-w-0">
-          <BreadcrumbPage className="truncate px-1.5">{current}</BreadcrumbPage>
+          {typeof current === 'string' ? <BreadcrumbPage className="truncate px-1.5">{current}</BreadcrumbPage> : current}
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

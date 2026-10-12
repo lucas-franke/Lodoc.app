@@ -6,20 +6,43 @@ import type { Board } from '@/db/schema'
 import { useBoardMenuEntries } from '@/hooks/useItemMenus'
 import { RenameInput } from './RenameInput'
 import { rowActionsClass, rowClass, rowLinkClass } from './row-styles'
-import { useSidebar } from './sidebar-context'
+import { useSidebar, withSelectEntry } from './sidebar-context'
+import { dndId, useTreeItem } from './tree-dnd'
 
-/** A board in the sidebar's "Boards" list. Not draggable: the list is flat and sorted. */
-export function BoardItem({ board }: { board: Board }) {
-  const { activeBoardId, renamingId, setRenamingId } = useSidebar()
+/**
+ * A board in the sidebar: in the Boards section (top level) or inside its folder. Boards are sorted (newest
+ * first), so dragging one only moves it into another folder or back to the top level, never between rows.
+ */
+export function BoardItem({ board, depth = 0 }: { board: Board; depth?: number }) {
+  const { activeBoardId, renamingId, setRenamingId, toggleExpanded, selected, toggleSelected, selectClick } = useSidebar()
+  const selectKey = dndId('board', board.id)
+  const isSelected = selected.has(selectKey)
   const active = board.id === activeBoardId
   const renameKey = `board:${board.id}`
   const renaming = renamingId === renameKey
-  const entries = useBoardMenuEntries(board, { onRename: () => setRenamingId(renameKey) })
-  const indent = { paddingLeft: '0.5rem' }
+  const menu = useBoardMenuEntries(board, {
+    onRename: () => setRenamingId(renameKey),
+    onMoved: (folderId) => folderId && toggleExpanded(folderId, true),
+  })
+  const entries = withSelectEntry(menu, isSelected, () => toggleSelected(selectKey))
+  // Same indent as notes, so a board's icon lines up with the notes next to it
+  const indent = { paddingLeft: depth === 0 ? '0.5rem' : `${2 + depth * 0.75}rem` }
+  const { setNodeRef, listeners, isDragging } = useTreeItem(
+    dndId('board', board.id),
+    { type: 'board', board },
+    { dragDisabled: renaming },
+  )
 
   return (
     <RowContextMenu entries={entries}>
-      <div data-active={active} className={rowClass(active)}>
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        data-active={active}
+        data-select-key={selectKey}
+        data-selected={isSelected || undefined}
+        className={rowClass(active, false, isDragging, isSelected)}
+      >
         {renaming ? (
           <div className="flex h-full min-w-0 flex-1 items-center gap-2" style={indent}>
             <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" />
@@ -38,9 +61,13 @@ export function BoardItem({ board }: { board: Board }) {
             className={rowLinkClass}
             style={indent}
             draggable={false}
+            onClick={(e) => selectClick(e, selectKey)}
           >
             <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 flex-1 truncate">{boardTitle(board)}</span>
+            <span className="min-w-0 flex-1 truncate">
+              {boardTitle(board)}
+              {isSelected && <span className="sr-only">, selected</span>}
+            </span>
           </a>
         )}
         <div className={rowActionsClass}>

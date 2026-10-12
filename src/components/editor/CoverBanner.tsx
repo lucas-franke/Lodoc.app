@@ -143,7 +143,7 @@ export function AddCoverButton({ note }: { note: Note }) {
       <Button
         variant="ghost"
         size="sm"
-        className="absolute -top-9 left-[54px] text-muted-foreground opacity-0 transition-none group-focus-within/title:opacity-100 group-hover/title:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+        className="absolute -top-9 left-(--page-gutter) text-muted-foreground opacity-0 transition-none group-focus-within/title:opacity-100 group-hover/title:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
       >
         <ImagePlus /> Add cover
       </Button>

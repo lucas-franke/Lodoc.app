@@ -15,7 +15,7 @@ export function NoteBacklinks({ noteId }: { noteId: string }) {
   )
   if (!from.length) return null
   return (
-    <section aria-label="Linked from" className="mt-10 border-t px-[54px] pt-4">
+    <section aria-label="Linked from" className="mt-10 border-t px-(--page-gutter) pt-4">
       <h2 className="mb-2 text-xs font-medium text-muted-foreground">Linked from</h2>
       <ul className="space-y-1">
         {from.map((n) => (

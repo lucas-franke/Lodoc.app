@@ -3,11 +3,12 @@ import { pruneAssets } from './assets'
 import { db } from './db'
 import type { Board } from './schema'
 
-export async function createBoard(): Promise<string> {
+export async function createBoard(folderId: string | null = null): Promise<string> {
   const now = Date.now()
   const board: Board = {
     id: nanoid(),
     title: '',
+    folderId,
     createdAt: now,
     updatedAt: now,
     viewport: { x: 0, y: 0, zoom: 1 },
@@ -15,6 +16,11 @@ export async function createBoard(): Promise<string> {
   }
   await db.boards.add(board)
   return board.id
+}
+
+/** Moves a board into a folder (null = top level). Not an edit of the board itself. */
+export function moveBoard(id: string, folderId: string | null) {
+  return db.boards.update(id, { folderId })
 }
 
 export function renameBoard(id: string, title: string) {

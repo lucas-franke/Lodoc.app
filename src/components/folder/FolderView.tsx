@@ -4,6 +4,7 @@ import {
   Folder as FolderIcon,
   FolderOpen,
   FolderPlus,
+  LayoutDashboard,
   MoreHorizontal,
   Pin,
   Plus,
@@ -17,26 +18,28 @@ import { RenameInput } from '@/components/sidebar/RenameInput'
 import { TemplateMenu } from '@/components/TemplateMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { boardTitle, createBoard, renameBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder, renameFolder } from '@/db/folders'
 import { createNote, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
-import type { Folder, Note, NoteCardView } from '@/db/schema'
-import { useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
+import type { Board, Folder, Note, NoteCardView } from '@/db/schema'
+import { useBoardMenuEntries, useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { NoteCardBody } from '@/components/note/NoteCardBody'
 import { CardMeta } from '@/components/note/NoteCardMeta'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
 import { useNoteSort } from '@/hooks/useNoteSort'
-import { openFolder, openNote } from '@/hooks/useRoute'
+import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
-import { formatDate, formatDateTime, plural } from '@/lib/format'
+import { formatDate, formatDateTime, formatRelative, plural } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { SortMenu } from './SortMenu'
 
-/** A folder opened as a page: its subfolders and notes as preview cards. */
+/** A folder opened as a page: its subfolders, boards and notes as preview cards. */
 export function FolderView({ folder }: { folder: Folder }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], [] as Folder[])
   const notes = useLiveQuery(() => db.notes.toArray(), [], [] as Note[])
+  const boards = useLiveQuery(() => db.boards.toArray(), [], [] as Board[])
 
   const allSubfolders = sortFolders(folders.filter((f) => f.parentId === folder.id))
   const [sort, setSort] = useNoteSort()
@@ -51,11 +54,13 @@ export function FolderView({ folder }: { folder: Folder }) {
   const q = filter.trim().toLowerCase()
   const subfolders = q ? allSubfolders.filter((f) => f.name.toLowerCase().includes(q)) : allSubfolders
   const folderNotes = q ? allNotes.filter((n) => noteText(n).toLowerCase().includes(q)) : allNotes
+  const allBoards = sortBoards(boards.filter((b) => b.folderId === folder.id))
+  const folderBoards = q ? allBoards.filter((b) => boardTitle(b).toLowerCase().includes(q)) : allBoards
   const counts = (id: string) => ({
     notes: notes.filter((n) => n.folderId === id).length,
     folders: folders.filter((f) => f.parentId === id).length,
   })
-  const empty = allSubfolders.length === 0 && allNotes.length === 0
+  const empty = allSubfolders.length === 0 && allNotes.length === 0 && allBoards.length === 0
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
@@ -66,6 +71,7 @@ export function FolderView({ folder }: { folder: Folder }) {
       <p className="mt-2 text-sm text-muted-foreground">
         {plural(allNotes.length, 'note')}
         {allSubfolders.length > 0 && ` · ${plural(allSubfolders.length, 'folder')}`}
+        {allBoards.length > 0 && ` · ${plural(allBoards.length, 'board')}`}
         {' · '}
         <span title={formatDateTime(folder.createdAt)}>Created {formatDate(folder.createdAt)}</span>
       </p>
@@ -80,6 +86,9 @@ export function FolderView({ folder }: { folder: Folder }) {
           onClick={async () => openFolder(await createFolder('New folder', folder.id))}
         >
           <FolderPlus /> New folder
+        </Button>
+        <Button variant="outline" onClick={async () => openBoard(await createBoard(folder.id))}>
+          <LayoutDashboard /> New board
         </Button>
         {!empty && (
           <div className="relative ml-auto w-full sm:w-56">
@@ -99,10 +108,10 @@ export function FolderView({ folder }: { folder: Folder }) {
 
       {empty && (
         <p className="mt-10 text-sm text-muted-foreground">
-          This folder is empty. Create a note here, or move notes in from the sidebar (drag them onto this folder).
+          This folder is empty. Create a note or board here, or move notes and boards in from the sidebar (drag them onto this folder).
         </p>
       )}
-      {!empty && q && subfolders.length === 0 && folderNotes.length === 0 && (
+      {!empty && q && subfolders.length === 0 && folderNotes.length === 0 && folderBoards.length === 0 && (
         <p className="mt-10 text-sm text-muted-foreground">Nothing in this folder matches "{filter.trim()}".</p>
       )}
 
@@ -110,6 +119,14 @@ export function FolderView({ folder }: { folder: Folder }) {
         <CardSection title="Folders">
           {subfolders.map((sub) => (
             <FolderCard key={sub.id} folder={sub} view={cardView} {...counts(sub.id)} />
+          ))}
+        </CardSection>
+      )}
+
+      {folderBoards.length > 0 && (
+        <CardSection title="Boards">
+          {folderBoards.map((board) => (
+            <BoardCard key={board.id} board={board} />
           ))}
         </CardSection>
       )}
@@ -317,5 +334,40 @@ function FolderTitle({ folder }: { folder: Folder }) {
       aria-label="Folder name"
       className="w-full min-w-0 bg-transparent font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
     />
+  )
+}
+
+export function BoardCard({ board }: { board: Board }) {
+  const [renaming, setRenaming] = useState(false)
+  const entries = useBoardMenuEntries(board, { onRename: () => setRenaming(true) })
+  const title = boardTitle(board)
+
+  return (
+    <CardShell
+      href={`#/board/${encodeURIComponent(board.id)}`}
+      icon={LayoutDashboard}
+      title={title}
+      entries={entries}
+      rename={
+        renaming && {
+          initial: board.title,
+          onDone: (value) => {
+            if (value !== null) void renameBoard(board.id, value)
+            setRenaming(false)
+          },
+        }
+      }
+    >
+      <div className="flex flex-1 flex-col px-4 pt-1 pb-3">
+        <CardMeta
+          primary={
+            <>
+              {plural(board.nodes.length, 'item')} · Edited {formatRelative(board.updatedAt)}
+            </>
+          }
+          created={board.createdAt}
+        />
+      </div>
+    </CardShell>
   )
 }

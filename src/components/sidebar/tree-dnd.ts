@@ -2,17 +2,18 @@ import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { createContext, useContext } from 'react'
 import { descendantIds } from '@/db/folders'
 import { sortNotesManual } from '@/db/notes'
-import type { Folder, Note } from '@/db/schema'
+import type { Board, Folder, Note } from '@/db/schema'
 import { sortFolders } from '@/lib/folder-tree'
 
-export type ItemKind = 'note' | 'folder'
+export type ItemKind = 'note' | 'folder' | 'board'
 export type DropPosition = 'before' | 'after' | 'inside'
 
 /** What is attached to each draggable / droppable via dnd-kit's `data`. */
 export type DndData =
   | { type: 'note'; note: Note }
   | { type: 'folder'; folder: Folder; expanded: boolean; hasChildren: boolean }
-  | { type: 'section'; section: 'folders' | 'notes' }
+  | { type: 'board'; board: Board }
+  | { type: 'section'; section: 'folders' | 'notes' | 'boards' }
   | { type: 'canvas' } // the open board: notes dropped here become cards
 
 /** Where the dragged item would land, plus which element shows the indicator. */
@@ -44,6 +45,29 @@ export function planDrop(
 
   // The canvas is handled by the board, not by the sidebar's ordering rules
   if (over.type === 'canvas') return null
+
+  if (active.type === 'board') {
+    // Boards have no manual order: they only go into a folder or back to the top level (the Boards section)
+    const id = active.board.id
+    const into = (parentId: string | null): DropPlan => ({
+      kind: 'board',
+      id,
+      parentId,
+      index: 0,
+      indicator: parentId ? { id: dndId('folder', parentId), position: 'inside' } : { id: dndId('section', 'boards'), position: 'inside' },
+    })
+    if (over.type === 'folder') return into(over.folder.id)
+    if (over.type === 'note') return over.note.folderId ? into(over.note.folderId) : null
+    if (over.type === 'board') return over.board.id === id ? null : into(over.board.folderId ?? null)
+    return over.section === 'boards' ? into(null) : null
+  }
+  // Notes and folders dropped on a board row go where that board is
+  if (over.type === 'board') {
+    const folderId = over.board.folderId ?? null
+    if (!folderId) return null
+    const folder = folders.find((f) => f.id === folderId)
+    return folder ? planDrop(active, { type: 'folder', folder, expanded: true, hasChildren: true }, 0.5, folders, notes) : null
+  }
 
   if (active.type === 'note') {
     const id = active.note.id

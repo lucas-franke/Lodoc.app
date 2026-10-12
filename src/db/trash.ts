@@ -47,7 +47,7 @@ export function trashNote(id: string) {
   })
 }
 
-/** Moves a folder with its subfolders and all notes inside to the trash. */
+/** Moves a folder with its subfolders and all notes and boards inside to the trash. */
 export function trashFolder(id: string) {
   return db.transaction('rw', tables, async () => {
     const folder = await db.folders.get(id)
@@ -55,6 +55,8 @@ export function trashFolder(id: string) {
     const ids = [...descendantIds(await db.folders.toArray(), id)]
     const folders = await db.folders.bulkGet(ids)
     const notes = await db.notes.where('folderId').anyOf(ids).toArray()
+    const inside = new Set(ids)
+    const boards = await db.boards.filter((b) => !!b.folderId && inside.has(b.folderId)).toArray()
     const entry: TrashEntry = {
       id: nanoid(),
       kind: 'folder',
@@ -62,8 +64,9 @@ export function trashFolder(id: string) {
       deletedAt: Date.now(),
       notes,
       folders: folders.filter((f) => !!f),
-      boards: [],
-      cards: await cardsOf(new Set(notes.map((n) => n.id))),
+      boards,
+      // Cards on boards that stay; boards deleted along with the folder keep their cards themselves
+      cards: (await cardsOf(new Set(notes.map((n) => n.id)))).filter((c) => !boards.some((b) => b.id === c.boardId)),
     }
     await db.trash.add(entry)
     await deleteFolder(id)
@@ -105,7 +108,7 @@ export function restoreTrash(entryId: string) {
     const folderExists = (id: string | null) => id === null || restoredFolders.has(id) || existing.has(id)
     await db.folders.bulkPut(entry.folders.map((f) => (folderExists(f.parentId) ? f : { ...f, parentId: null })))
     await db.notes.bulkPut(entry.notes.map((n) => (folderExists(n.folderId) ? n : { ...n, folderId: null })))
-    await db.boards.bulkPut(entry.boards)
+    await db.boards.bulkPut(entry.boards.map((b) => (folderExists(b.folderId ?? null) ? b : { ...b, folderId: null })))
     for (const boardId of new Set(entry.cards.map((c) => c.boardId))) {
       const board = await db.boards.get(boardId)
       if (!board) continue

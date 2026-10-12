@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import { db } from './db'
+import { deleteBoard } from './boards'
 import { deleteNotes } from './notes'
 import type { Folder } from './schema'
 
@@ -48,11 +49,13 @@ export async function moveFolder(id: string, parentId: string | null) {
   await db.folders.update(id, { parentId, order: await nextFolderOrder(parentId) })
 }
 
-/** Deletes the folder, its subfolders and all notes inside them. */
+/** Deletes the folder, its subfolders and all notes and boards inside them. */
 export async function deleteFolder(id: string) {
   await db.transaction('rw', [db.folders, db.notes, db.boards, db.assets, db.trash], async () => {
     const ids = [...descendantIds(await db.folders.toArray(), id)]
     await deleteNotes(await db.notes.where('folderId').anyOf(ids).primaryKeys())
+    const inside = new Set(ids)
+    for (const board of await db.boards.filter((b) => !!b.folderId && inside.has(b.folderId)).toArray()) await deleteBoard(board.id)
     await db.folders.bulkDelete(ids)
   })
 }

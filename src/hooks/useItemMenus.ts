@@ -9,6 +9,7 @@ import {
   FolderInput,
   FolderOpen,
   FolderPlus,
+  LayoutDashboard,
   Pencil,
   Pin,
   PinOff,
@@ -20,7 +21,7 @@ import {
 import { toast } from 'sonner'
 import type { MenuEntry } from '@/components/ItemMenu'
 import { db } from '@/db/db'
-import { boardTitle } from '@/db/boards'
+import { boardTitle, createBoard, moveBoard } from '@/db/boards'
 import { duplicateFolder, duplicateNote } from '@/db/duplicate'
 import { createFolder, descendantIds, moveFolder } from '@/db/folders'
 import { createNote, moveNote, noteTitle, toggleFavorite, togglePinned } from '@/db/notes'
@@ -190,6 +191,15 @@ export function useFolderMenuEntries(
     },
     {
       type: 'item',
+      label: 'New board',
+      icon: LayoutDashboard,
+      onSelect: async () => {
+        onBeforeCreate?.()
+        openBoard(await createBoard(folder.id))
+      },
+    },
+    {
+      type: 'item',
       label: 'New subfolder',
       icon: FolderPlus,
       onSelect: async () => {
@@ -241,11 +251,19 @@ export function useFolderMenuEntries(
   ]
 }
 
-export function useBoardMenuEntries(board: Board, { onRename }: { onRename: () => void }): MenuEntry[] {
+export function useBoardMenuEntries(
+  board: Board,
+  { onRename, onMoved }: { onRename: () => void; onMoved?: (folderId: string | null) => void },
+): MenuEntry[] {
+  const folders = useAllFolders()
   const route = useRoute()
 
   return [
     { type: 'item', label: 'Rename', icon: Pencil, onSelect: onRename },
+    ...moveToEntries(folders, board.folderId ?? null, (folderId) => {
+      void moveBoard(board.id, folderId)
+      onMoved?.(folderId)
+    }),
     { type: 'separator' },
     {
       type: 'item',

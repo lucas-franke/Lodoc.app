@@ -1,13 +1,15 @@
 import { cn } from '@/lib/utils'
 
 /** Sidebar row: 36px tall, whole row highlights on hover. */
-export const rowClass = (active: boolean, dropInside = false, dragging = false) =>
+export const rowClass = (active: boolean, dropInside = false, dragging = false, selected = false) =>
   cn(
     'group/row relative flex h-9 items-center gap-0.5 rounded-md pr-1 text-sm text-sidebar-foreground hover:bg-sidebar-accent',
     active && 'bg-sidebar-accent font-medium',
     // Drop target for "inside" and the row being dragged (its preview follows the pointer)
     dropInside && 'bg-sidebar-accent ring-2 ring-primary/50',
     dragging && 'opacity-40',
+    // Multi-select: a tinted row with an outline, distinct from the open page
+    selected && 'bg-primary/10 ring-1 ring-primary/40 ring-inset hover:bg-primary/15',
   )
 
 /** The link filling a row; focus ring for keyboard users. */

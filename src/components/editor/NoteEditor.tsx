@@ -128,7 +128,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
           className={
             embedded
               ? 'mb-1 w-full bg-transparent px-3 font-page text-lg font-semibold tracking-tight outline-none placeholder:text-muted-foreground'
-              : 'mb-4 w-full bg-transparent px-[54px] font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground'
+              : 'mb-4 w-full bg-transparent px-(--page-gutter) font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground'
           }
         />
         {!embedded && <PageInfo note={note} title={title} />}
@@ -163,7 +163,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
 function PageInfo({ note, title }: { note: Note; title: string }) {
   const empty = !title.trim() && note.content.length === 0
   return (
-    <p className="-mt-3 mb-3 px-[54px] text-xs text-muted-foreground" data-page-info>
+    <p className="-mt-3 mb-3 px-(--page-gutter) text-xs text-muted-foreground" data-page-info>
       {empty && note.updatedAt === note.createdAt && isFreshNote(note.id) ? (
         "Empty notes aren't kept when you leave them."
       ) : (

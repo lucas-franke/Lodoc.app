@@ -9,10 +9,11 @@ import { openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
 import { canReorderFolder } from '@/lib/reorder'
 import { cn } from '@/lib/utils'
+import { BoardItem } from './BoardItem'
 import { NoteItem } from './NoteItem'
 import { RenameInput } from './RenameInput'
 import { rowActionsClass, rowClass, rowLinkClass } from './row-styles'
-import { useSidebar } from './sidebar-context'
+import { useSidebar, withSelectEntry } from './sidebar-context'
 import { DropLine } from './DropLine'
 import { dndId, useTreeItem } from './tree-dnd'
 
@@ -23,15 +24,29 @@ export function FolderTree({ parentId = null, depth = 0 }: { parentId?: string |
 }
 
 function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
-  const { folders, notesByFolder, activeFolderId, expanded, toggleExpanded, renamingId, setRenamingId } =
-    useSidebar()
+  const {
+    folders,
+    notesByFolder,
+    boardsByFolder,
+    activeFolderId,
+    expanded,
+    toggleExpanded,
+    renamingId,
+    setRenamingId,
+    selected,
+    toggleSelected,
+    selectClick,
+  } = useSidebar()
+  const selectKey = dndId('folder', folder.id)
+  const isSelected = selected.has(selectKey)
   const open = expanded.has(folder.id)
   const active = folder.id === activeFolderId
   const notes = notesByFolder.get(folder.id) ?? []
-  const hasChildren = notes.length > 0 || folders.some((f) => f.parentId === folder.id)
+  const boards = boardsByFolder.get(folder.id) ?? []
+  const hasChildren = notes.length > 0 || boards.length > 0 || folders.some((f) => f.parentId === folder.id)
   const expand = () => toggleExpanded(folder.id, true)
 
-  const entries = useFolderMenuEntries(folder, {
+  const menu = useFolderMenuEntries(folder, {
     onRename: () => setRenamingId(folder.id),
     onBeforeCreate: expand,
     // In the sidebar a new subfolder is named inline right away
@@ -39,6 +54,7 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
     onMoved: (parentId) => parentId && toggleExpanded(parentId, true),
     reorder: canReorderFolder(folders, folder),
   })
+  const entries = withSelectEntry(menu, isSelected, () => toggleSelected(selectKey))
   const { setNodeRef, listeners, isDragging, indicator } = useTreeItem(
     dndId('folder', folder.id),
     { type: 'folder', folder, expanded: open, hasChildren },
@@ -55,7 +71,9 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
           ref={setNodeRef}
           {...listeners}
           data-active={active}
-          className={rowClass(active, indicator === 'inside', isDragging)}
+          data-select-key={selectKey}
+          data-selected={isSelected || undefined}
+          className={rowClass(active, indicator === 'inside', isDragging, isSelected)}
           style={{ paddingLeft: indentLeft }}
         >
           <DropLine position={indicator} indent={indentLeft} />
@@ -87,9 +105,13 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
               aria-current={active ? 'page' : undefined}
               className={rowLinkClass}
               draggable={false}
+              onClick={(e) => selectClick(e, selectKey)}
             >
               <Icon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 truncate">{folder.name}</span>
+              <span className="min-w-0 flex-1 truncate">
+                {folder.name}
+                {isSelected && <span className="sr-only">, selected</span>}
+              </span>
             </a>
           )}
           <div className={rowActionsClass}>
@@ -118,6 +140,9 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
       {open && (
         <>
           <FolderTree parentId={folder.id} depth={depth + 1} />
+          {boards.map((board) => (
+            <BoardItem key={board.id} board={board} depth={depth + 1} />
+          ))}
           {notes.map((note) => (
             <NoteItem key={note.id} note={note} depth={depth + 1} />
           ))}

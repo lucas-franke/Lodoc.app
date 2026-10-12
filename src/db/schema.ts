@@ -85,6 +85,8 @@ export interface BoardEdge {
 export interface Board {
   id: string
   title: string
+  /** The folder it lives in, next to notes; missing or null = top level (the sidebar's Boards section) */
+  folderId?: string | null
   createdAt: number
   updatedAt: number
   viewport: Viewport

@@ -39,14 +39,14 @@ export type Texture = (typeof TEXTURES)[number]['id']
 export const TEXTURE_STRENGTH_DEFAULT = 50
 
 const TEXT_SIZES = { s: '0.9375rem', m: '1rem', l: '1.125rem' } as const
-const PAGE_WIDTHS = { normal: '48rem', wide: '64rem' } as const
+/** The floating sidebar is a desktop look: on narrow screens the sidebar lies over the page, so it stays connected there */
+export const WIDE_SCREEN = '(min-width: 48rem)'
 
 const schema = z.object({
   tint: z.enum(TINTS.map((t) => t.id) as [Tint, ...Tint[]]).catch('neutral'),
   gradient: z.boolean().catch(false),
   pageFont: z.enum(['sans', 'serif']).catch('sans'),
   textSize: z.enum(['s', 'm', 'l']).catch('m'),
-  pageWidth: z.enum(['normal', 'wide']).catch('normal'),
   /** Notes without a chosen cover show a generated gradient (off: only covers the user picked) */
   autoCover: z.boolean().catch(true),
   sidebar: z.enum(['connected', 'floating']).catch('connected'),
@@ -75,7 +75,7 @@ export const DEFAULT_APPEARANCE: Appearance = schema.parse({})
 /** Which settings each panel section owns (for "Reset" per section) */
 export const APPEARANCE_SECTIONS = {
   theme: ['tint', 'gradient'],
-  pages: ['pageFont', 'textSize', 'pageWidth', 'autoCover', 'texture', 'textureStrength'],
+  pages: ['pageFont', 'textSize', 'autoCover', 'texture', 'textureStrength'],
   interface: ['sidebar', 'corners', 'uiGrain', 'uiGrainStrength'],
 } as const satisfies Record<string, readonly (keyof Appearance)[]>
 
@@ -103,12 +103,17 @@ export function saveAppearance(settings: Appearance) {
   }
 }
 
+let applied: Appearance | null = null
+
 export function applyAppearance(a: Appearance) {
   const root = document.documentElement
+  // Follow the window across the wide/narrow line (the floating sidebar only applies on wide screens)
+  if (!applied) window.matchMedia(WIDE_SCREEN).addEventListener('change', () => applied && applyAppearance(applied))
+  applied = a
   root.dataset.pageFont = a.pageFont
   root.dataset.tint = a.tint
   root.dataset.gradient = String(a.gradient)
-  root.dataset.sidebar = a.sidebar
+  root.dataset.sidebar = a.sidebar === 'floating' && window.matchMedia(WIDE_SCREEN).matches ? 'floating' : 'connected'
   root.dataset.texture = a.texture
   root.style.setProperty('--texture-strength', String(a.textureStrength / TEXTURE_STRENGTH_DEFAULT))
   root.dataset.uiGrain = String(a.uiGrain)
@@ -119,5 +124,4 @@ export function applyAppearance(a: Appearance) {
   const corners = RADIUS_PRESETS.find((p) => p.id === a.corners) ?? RADIUS_PRESETS[1]
   root.style.setProperty('--radius', `${corners.px / 16}rem`)
   root.style.setProperty('--page-text-size', TEXT_SIZES[a.textSize])
-  root.style.setProperty('--page-width', PAGE_WIDTHS[a.pageWidth])
 }

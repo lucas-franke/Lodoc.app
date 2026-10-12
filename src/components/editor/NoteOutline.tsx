@@ -1,13 +1,11 @@
-import { useAppearance } from '@/hooks/useAppearance'
 import { OUTLINE_MIN, type OutlineItem } from '@/lib/outline'
 import { cn } from '@/lib/utils'
 
 /**
  * A slim list of the headings at the right edge of wide windows; clicking one scrolls to it. It only
- * appears where there is room next to the text (depends on the page width setting), so it never covers it.
+ * appears where there is room next to the text, so it never covers it.
  */
 export function NoteOutline({ items }: { items: OutlineItem[] }) {
-  const { pageWidth } = useAppearance()
   if (items.length < OUTLINE_MIN) return null
   const top = Math.min(...items.map((i) => i.level))
   return (
@@ -17,7 +15,7 @@ export function NoteOutline({ items }: { items: OutlineItem[] }) {
       className={cn(
         'fixed top-24 right-6 hidden max-h-[calc(100dvh-10rem)] w-48 overflow-y-auto',
         // room for the text column plus the outline on both sides
-        pageWidth === 'wide' ? '@min-[92rem]:block' : '@min-[76rem]:block',
+        '@min-[76rem]:block',
       )}
     >
       <p className="mb-2 text-xs font-medium text-muted-foreground">On this page</p>

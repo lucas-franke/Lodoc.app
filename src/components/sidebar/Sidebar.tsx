@@ -21,6 +21,8 @@ import { useSidebarWidth } from '@/hooks/useSidebarWidth'
 import { SidebarResizer } from './SidebarResizer'
 import { SidebarContext, type SidebarContextValue } from './sidebar-context'
 import { rowClass, rowLinkClass } from './row-styles'
+import { SelectionBar } from './SelectionBar'
+import { parseItemKey } from '@/db/bulk'
 import { dndId, useDropIndicator } from './tree-dnd'
 import { cn } from '@/lib/utils'
 
@@ -51,6 +53,38 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const [expanded, setExpanded] = useState(loadExpanded)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const searchInput = useRef<HTMLInputElement>(null)
+
+  // Multi-select (Ctrl/⌘-click, Shift-click, or "Select" in a row menu)
+  const [selected, setSelected] = useState<Set<string>>(() => new Set())
+  const anchor = useRef<string | null>(null)
+  const nav = useRef<HTMLElement>(null)
+  const clearSelection = useCallback(() => setSelected((prev) => (prev.size ? new Set() : prev)), [])
+  const toggleSelected = useCallback((key: string) => {
+    anchor.current = key
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }, [])
+  const selectClick = useCallback(
+    (e: React.MouseEvent, key: string) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        toggleSelected(key)
+      } else if (e.shiftKey) {
+        e.preventDefault()
+        // A range in the order the rows are shown (each item once, wherever it first appears)
+        const keys = [...new Set([...(nav.current?.querySelectorAll<HTMLElement>('[data-select-key]') ?? [])].map((el) => el.dataset.selectKey!))]
+        const from = keys.indexOf(anchor.current ?? key)
+        const to = keys.indexOf(key)
+        const range = from < 0 || to < 0 ? [key] : keys.slice(Math.min(from, to), Math.max(from, to) + 1)
+        setSelected((prev) => new Set([...prev, ...range]))
+      } else clearSelection()
+    },
+    [toggleSelected, clearSelection],
+  )
 
   const toggleExpanded = useCallback((id: string, open?: boolean) => {
     setExpanded((prev) => {
@@ -96,8 +130,6 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
     return () => cancelAnimationFrame(frame)
   }, [revealFolderId, activeNoteId, activeBoardId, foldersLoaded, expandPath])
 
-  // Tell the app-level drag layer how to plan and commit drops on the sidebar
-  useRegisterSidebarDnd({ folders, notes, onExpand: (id) => toggleExpanded(id, true) })
 
   const notesByFolder = useMemo(() => {
     const map = new Map<string | null, Note[]>()
@@ -106,6 +138,12 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
     for (const [folderId, list] of map) map.set(folderId, sortNotesManual(list))
     return map
   }, [notes])
+
+  const boardsByFolder = useMemo(() => {
+    const map = new Map<string | null, Board[]>()
+    for (const board of sortBoards(boards)) map.set(board.folderId ?? null, [...(map.get(board.folderId ?? null) ?? []), board])
+    return map
+  }, [boards])
 
   const sidebarWidth = useSidebarWidth()
   const isHome = useIsHome()
@@ -122,6 +160,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const ctx: SidebarContextValue = {
     folders,
     notesByFolder,
+    boardsByFolder,
     activeNoteId,
     activeFolderId,
     activeBoardId,
@@ -129,7 +168,18 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
     toggleExpanded,
     renamingId,
     setRenamingId,
+    selected,
+    toggleSelected,
+    selectClick,
   }
+
+  // Only what still exists (an item may have been deleted elsewhere meanwhile)
+  const selectedItems = [...selected].map(parseItemKey).filter(({ kind, id }) =>
+    kind === 'note' ? notes.some((n) => n.id === id) : kind === 'folder' ? folders.some((f) => f.id === id) : boards.some((b) => b.id === id),
+  )
+
+  // Tell the app-level drag layer how to plan and commit drops on the sidebar
+  useRegisterSidebarDnd({ folders, notes, onExpand: (id) => toggleExpanded(id, true), selected: selectedItems, clearSelection })
 
   const q = query.trim().toLowerCase()
   const results = q ? sortNotes(notes.filter((n) => noteText(n).toLowerCase().includes(q))) : []
@@ -137,6 +187,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const tags = tagCounts(notes)
   const recent = [...notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, RECENT_COUNT)
   const unfiled = notesByFolder.get(null) ?? []
+  const topBoards = boardsByFolder.get(null) ?? []
   const folderName = (id: string | null) => folders.find((f) => f.id === id)?.name
 
   return (
@@ -144,6 +195,9 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
       <aside
         // w-64 on a small screen (overlay); the chosen width from md up
         data-sidebar-panel
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && selected.size && !(e.target as HTMLElement).closest('input')) clearSelection()
+        }}
         className="relative flex h-full w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground floating:rounded-xl floating:border floating:shadow-sm md:w-(--sidebar-width)"
         style={{ '--sidebar-width': `${sidebarWidth.width}px` } as React.CSSProperties}
       >
@@ -210,7 +264,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
 
         {/* Radix lays the content out as a table that grows with its widest row; make it a plain block so long names are cut off (truncate) and the buttons stay in view */}
         <ScrollArea className="min-h-0 flex-1 [&>[data-slot=scroll-area-viewport]>div]:block!">
-          <nav aria-label="Notes and folders" className="px-2 pb-4">
+          <nav ref={nav} aria-label="Notes and folders" className="px-2 pb-4">
             {q ? (
               <Section title={`${results.length} result${results.length === 1 ? '' : 's'}`}>
                 {results.map((note) => (
@@ -255,6 +309,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                 <Section
                   title="Boards"
                   collapsible="boards"
+                  drop="boards"
                   action={
                     <Tip label="New board">
                       <Button
@@ -268,10 +323,10 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                     </Tip>
                   }
                 >
-                  {boards.length ? (
-                    sortBoards(boards).map((board) => <BoardItem key={board.id} board={board} />)
+                  {topBoards.length ? (
+                    topBoards.map((board) => <BoardItem key={board.id} board={board} />)
                   ) : (
-                    <EmptyHint>No boards yet</EmptyHint>
+                    <EmptyHint>{boards.length ? 'Boards outside folders appear here' : 'No boards yet'}</EmptyHint>
                   )}
                 </Section>
                 <Section
@@ -315,6 +370,14 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
           </nav>
         </ScrollArea>
 
+        {selectedItems.length > 0 && (
+          <SelectionBar
+            items={selectedItems}
+            folders={folders}
+            onClear={clearSelection}
+            onMoved={(folderId) => folderId && expandPath(folderId)}
+          />
+        )}
         <div className="space-y-1 border-t p-2">
           <AppearanceMenu />
           <BackupMenu hasNotes={notes.length > 0} />
@@ -336,7 +399,7 @@ function Section({
   title: string
   action?: ReactNode
   /** Makes the section a drop zone for moving items to the top level */
-  drop?: 'folders' | 'notes'
+  drop?: 'folders' | 'notes' | 'boards'
   /** Key under which the collapsed state is remembered; without it the section can't be collapsed */
   collapsible?: string
   defaultCollapsed?: boolean

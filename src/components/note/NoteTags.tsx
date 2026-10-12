@@ -25,7 +25,7 @@ export function NoteTags({ note }: { note: Note }) {
 
   if (!note.tags.length && !adding) {
     return (
-      <div className="-mt-1 mb-3 px-[54px]">
+      <div className="-mt-1 mb-3 px-(--page-gutter)">
         <button
           type="button"
           onClick={() => setAdding(true)}
@@ -38,7 +38,7 @@ export function NoteTags({ note }: { note: Note }) {
   }
 
   return (
-    <ul className="-mt-1 mb-3 flex flex-wrap items-center gap-1.5 px-[54px]" aria-label="Tags">
+    <ul className="-mt-1 mb-3 flex flex-wrap items-center gap-1.5 px-(--page-gutter)" aria-label="Tags">
       {note.tags.map((tag) => (
         <li key={tag} className="flex items-center rounded-full border bg-muted/50 text-xs">
           <a
