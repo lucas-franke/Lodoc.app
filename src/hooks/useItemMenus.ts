@@ -1,8 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useMemo } from 'react'
 import {
   ArrowDown,
   ArrowUp,
   Copy,
+  Download,
   ExternalLink,
   FolderInput,
   FolderOpen,
@@ -27,6 +29,7 @@ import type { Board, Folder, Note } from '@/db/schema'
 import { useConfirm } from '@/hooks/useConfirm'
 import { openFolder, openNote, useRoute } from '@/hooks/useRoute'
 import { flattenFolders } from '@/lib/folder-tree'
+import { downloadFolderAsZip, downloadNoteAsMarkdown } from '@/lib/downloads'
 import type { CanReorder } from '@/lib/reorder'
 
 // Shared by sidebar rows and folder-view cards so both offer the same actions.
@@ -109,6 +112,7 @@ export function useNoteMenuEntries(
         if (await duplicateNote(note.id)) toast.success(`Duplicated "${noteTitle(note)}"`)
       },
     },
+    { type: 'item', label: 'Download as .md', icon: Download, onSelect: () => void downloadNoteAsMarkdown(note.id) },
     ...moveToEntries(folders, note.folderId, (folderId) => {
       void moveNote(note.id, folderId)
       onMoved?.(folderId)
@@ -154,6 +158,12 @@ export function useFolderMenuEntries(
   },
 ): MenuEntry[] {
   const folders = useAllFolders()
+  // Folders that hold notes (cheap: just the index keys), to offer a download only when there is something in it
+  const withNotes = useLiveQuery(() => db.notes.orderBy('folderId').uniqueKeys(), [], [])
+  const hasNotes = useMemo(() => {
+    const ids = new Set(withNotes as string[])
+    return [...descendantIds(folders, folder.id)].some((id) => ids.has(id))
+  }, [withNotes, folders, folder.id])
   const confirm = useConfirm()
   const route = useRoute()
 
@@ -191,6 +201,9 @@ export function useFolderMenuEntries(
         if (await duplicateFolder(folder.id)) toast.success(`Duplicated folder "${folder.name}" with its contents`)
       },
     },
+    ...(hasNotes
+      ? [{ type: 'item' as const, label: 'Download as .zip', icon: Download, onSelect: () => void downloadFolderAsZip(folder.id) }]
+      : []),
     ...moveToEntries(
       folders,
       folder.parentId,

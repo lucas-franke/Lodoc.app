@@ -3,6 +3,7 @@ import { useTheme } from 'next-themes'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 
+/** Light/dark switch in the page header (used often, so it is always one click away). */
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
   const dark = resolvedTheme === 'dark'

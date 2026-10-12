@@ -11,7 +11,7 @@ This Project and its content are written by Claude Code.
 ## Features
 
 - Block editor ([BlockNote](https://www.blocknotejs.org/)) with slash commands (`/`) for headings, lists, checklists, quotes, code, tables, images and more, plus markdown shortcuts (`#`, `-`, `[]`, …)
-- Overview: opening the app (or clicking the **Lodoc** logo) shows favorites, recently edited notes, folders and boards as cards; new users see a short welcome instead
+- Overview: opening the app (or **Overview** in the sidebar) shows favorites, recently edited notes, folders and boards as cards; new users see a short welcome instead
 - Covers: every note gets a colored gradient from a fixed palette by default (a note always keeps the same one). Click the cover to pick another gradient, upload an image (or drop an image file on it), or remove it; **Add cover** brings it back. Note cards show the cover too
 - Card views (**Full** / **Cover** / **Title**): the folder view has one switch for all cards; on a board every card has its own view (card menu) and the toolbar in the top-right corner sets all of them at once (new cards start in that view)
 - Resizable sidebar: drag its right edge (or focus it and use the arrow keys, double-click to reset) to read long titles; the buttons to create things always stay in view
@@ -26,7 +26,10 @@ This Project and its content are written by Claude Code.
 - A new note you never touch (no title, no text, not pinned, favorited or moved) is not kept when you move on to something else
 - Full-text search across titles and note content
 - Backup: export everything (notes, folders, boards and their images, including note covers) as `lodoc-YYYY-MM-DD.json`; import with **Merge** (the more recently edited note or board wins) or **Replace**
-- Light/dark mode
+- Light/dark switch at the top right of every page
+- **Appearance** panel (bottom of the sidebar): light or dark mode, a soft color tint (pastel in light mode, tinted darks in dark mode), an optional diagonal gradient, page font (sans serif or serif, bundled, nothing loaded from the internet), text size, page width, a connected or floating sidebar, corner roundness and a paper-like grain; every change shows right away
+- Notifications stay until you close them
+- Download a note as Markdown (`.md`) or a folder with everything in it as a `.zip` of Markdown files: from the button at the top right of the page, or from the right-click menu
 - Right-click (or the `…` button) on a note, folder or board for all actions, including **Duplicate** (a note, or a folder with all its subfolders and notes)
 
 Shortcuts: `Ctrl+Alt+N` new note · `Ctrl+K` search · `Ctrl+\` toggle sidebar

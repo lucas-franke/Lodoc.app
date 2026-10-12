@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { db } from '@/db/db'
+import { saveFile } from './save-file'
 import { coverAssetId, type Asset, type Board, type Folder, type Note } from '@/db/schema'
 
 // Version 2 adds boards and the images they use; version 3 adds note covers and card views.
@@ -118,13 +119,10 @@ export async function exportProject() {
   )
   const now = Date.now()
   const data = { app: 'localnotes', version: FORMAT_VERSION, exportedAt: now, folders, notes, boards, assets }
-  const file = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(file)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `lodoc-${new Date(now).toISOString().slice(0, 10)}.json`
-  a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  saveFile(
+    new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+    `lodoc-${new Date(now).toISOString().slice(0, 10)}.json`,
+  )
   try {
     localStorage.setItem(LAST_EXPORT_KEY, String(now))
   } catch {

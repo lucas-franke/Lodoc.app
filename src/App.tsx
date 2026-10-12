@@ -5,6 +5,8 @@ import { BoardBreadcrumb } from '@/components/board/BoardBreadcrumb'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { AppDnd } from '@/components/dnd/AppDnd'
 import { FolderView } from '@/components/folder/FolderView'
+import { PageActions } from '@/components/PageActions'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { HomeView } from '@/components/home/HomeView'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 import { Tip } from '@/components/Tip'
@@ -95,17 +97,17 @@ export default function App() {
   return (
     // On a narrow screen the sidebar covers the board, so close it once a note has been dropped there
     <AppDnd onNoteDroppedOnCanvas={() => isNarrow() && setSidebarOpen(false)}>
-      <div className="flex h-dvh overflow-hidden bg-background text-foreground">
+      <div data-app-shell className="flex h-dvh overflow-hidden bg-background text-foreground">
         {sidebarOpen && (
           <>
-            <div className="fixed inset-y-0 left-0 z-40 md:static md:z-auto">
+            <div className="fixed inset-y-0 left-0 z-40 floating:p-2 md:static md:z-auto md:floating:pr-0">
               <Sidebar onCollapse={() => setSidebarOpen(false)} focusSearch={focusSearch} />
             </div>
             <div className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
           </>
         )}
 
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-w-0 flex-1 flex-col md:floating:pt-2">
           {/* The visible titles are editable inputs, so give the page a real heading for screen readers */}
           <h1 className="sr-only">
             {current?.type === 'note'
@@ -131,6 +133,11 @@ export default function App() {
               <Breadcrumbs folderId={current.folder.parentId} current={current.folder.name} />
             )}
             {current?.type === 'board' && <BoardBreadcrumb board={current.board} />}
+            <div className="ml-auto flex shrink-0 items-center gap-1">
+              {current?.type === 'note' && <PageActions type="note" id={current.note.id} />}
+              {current?.type === 'folder' && <PageActions type="folder" id={current.folder.id} />}
+              <ThemeToggle />
+            </div>
           </header>
 
           {/* Boards are full-bleed and pan/zoom themselves, so the page itself must not scroll */}

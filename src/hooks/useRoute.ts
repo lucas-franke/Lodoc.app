@@ -27,6 +27,11 @@ export function useRoute(): Route {
   return useSyncExternalStore(subscribe, getRoute)
 }
 
+/** True on the overview (no page open). */
+export function useIsHome(): boolean {
+  return useRoute() === null
+}
+
 export function useActiveNoteId(): string | null {
   const route = useRoute()
   return route?.type === 'note' ? route.id : null

@@ -1,8 +1,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { FolderPlus, PanelLeftClose, Plus, Search, X } from 'lucide-react'
+import { FolderPlus, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -11,8 +10,9 @@ import { createBoard, sortBoards } from '@/db/boards'
 import { createFolder } from '@/db/folders'
 import { createNote, noteText, sortNotes, sortNotesManual } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId } from '@/hooks/useRoute'
+import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useIsHome } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
+import { AppearanceMenu } from './AppearanceMenu'
 import { BackupMenu } from './BackupMenu'
 import { BoardItem } from './BoardItem'
 import { FolderTree } from './FolderTree'
@@ -20,6 +20,7 @@ import { NoteItem } from './NoteItem'
 import { useSidebarWidth } from '@/hooks/useSidebarWidth'
 import { SidebarResizer } from './SidebarResizer'
 import { SidebarContext, type SidebarContextValue } from './sidebar-context'
+import { rowClass, rowLinkClass } from './row-styles'
 import { dndId, useDropIndicator } from './tree-dnd'
 import { cn } from '@/lib/utils'
 
@@ -115,6 +116,8 @@ export function Sidebar({
   }, [notes])
 
   const sidebarWidth = useSidebarWidth()
+  const isHome = useIsHome()
+  const newNote = async () => openNote(await createNote())
 
   const ctx: SidebarContextValue = {
     folders,
@@ -138,22 +141,21 @@ export function Sidebar({
     <SidebarContext.Provider value={ctx}>
       <aside
         // w-64 on a small screen (overlay); the chosen width from md up
-        className="relative flex h-full w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:w-(--sidebar-width)"
+        data-sidebar-panel
+        className="relative flex h-full w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground floating:rounded-xl floating:border floating:shadow-sm md:w-(--sidebar-width)"
         style={{ '--sidebar-width': `${sidebarWidth.width}px` } as React.CSSProperties}
       >
-        <div className="flex items-center gap-1 py-2 pr-2 pl-4">
-          {/* The logo is the link to the overview */}
-          <a
-            href="#/"
-            title="Overview"
-            className="flex-1 rounded-md px-1 py-1.5 text-sm font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-          >
-            Lodoc
-          </a>
-          <ThemeToggle />
+        {/* Same height and padding as the page header, so this toggle and "Show sidebar" sit on the same spot */}
+        <div className="flex h-12 shrink-0 items-center gap-1 px-3">
           <Tip label="Hide sidebar" shortcut="Ctrl \">
             <Button variant="ghost" size="icon-sm" onClick={onCollapse} aria-label="Hide sidebar">
               <PanelLeftClose />
+            </Button>
+          </Tip>
+          <span className="flex-1 truncate px-1 text-sm font-semibold tracking-tight">Lodoc</span>
+          <Tip label="New note" shortcut="Ctrl Alt N">
+            <Button variant="ghost" size="icon-sm" onClick={newNote} aria-label="New note">
+              <SquarePen />
             </Button>
           </Tip>
         </div>
@@ -192,14 +194,12 @@ export function Sidebar({
               </kbd>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start px-2.5"
-            onClick={async () => openNote(await createNote())}
-          >
-            <Plus /> New note
-          </Button>
+          <div className={rowClass(isHome)}>
+            <a href="#/" aria-current={isHome ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
+              <LayoutGrid className="size-4 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 truncate">Overview</span>
+            </a>
+          </div>
         </div>
 
         {/* Radix lays the content out as a table that grows with its widest row; make it a plain block so long names are cut off (truncate) and the buttons stay in view */}
@@ -259,7 +259,17 @@ export function Sidebar({
                     <EmptyHint>No boards yet</EmptyHint>
                   )}
                 </Section>
-                <Section title="Notes" drop="notes">
+                <Section
+                  title="Notes"
+                  drop="notes"
+                  action={
+                    <Tip label="New note">
+                      <Button variant="ghost" size="icon-xs" onClick={newNote} aria-label="New note outside folders">
+                        <Plus />
+                      </Button>
+                    </Tip>
+                  }
+                >
                   {unfiled.length ? (
                     unfiled.map((note) => <NoteItem key={note.id} note={note} />)
                   ) : (
@@ -271,7 +281,8 @@ export function Sidebar({
           </nav>
         </ScrollArea>
 
-        <div className="border-t p-2">
+        <div className="space-y-1 border-t p-2">
+          <AppearanceMenu />
           <BackupMenu hasNotes={notes.length > 0} />
         </div>
         <SidebarResizer width={sidebarWidth.width} onResize={sidebarWidth.setWidth} onCommit={sidebarWidth.save} />

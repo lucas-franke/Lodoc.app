@@ -5,6 +5,7 @@ import '@blocknote/shadcn/style.css'
 import { useTheme } from 'next-themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { updateNote } from '@/db/notes'
+import { registerFlush } from '@/lib/pending-saves'
 import { AddCoverButton, CoverBanner } from './CoverBanner'
 import type { Note, StoredBlock } from '@/db/schema'
 
@@ -30,17 +31,19 @@ function useDebouncedSave(noteId: string) {
 
   const flush = useCallback(() => {
     window.clearTimeout(timer.current)
-    if (Object.keys(pending.current).length === 0) return
+    if (Object.keys(pending.current).length === 0) return undefined
     const changes = pending.current
     pending.current = {}
-    void updateNote(noteId, changes)
+    return updateNote(noteId, changes)
   }, [noteId])
 
   useEffect(() => {
     const onHide = () => document.visibilityState === 'hidden' && flush()
     document.addEventListener('visibilitychange', onHide)
     window.addEventListener('pagehide', flush)
+    const unregister = registerFlush(flush)
     return () => {
+      unregister()
       document.removeEventListener('visibilitychange', onHide)
       window.removeEventListener('pagehide', flush)
       flush()
@@ -87,7 +90,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   }, [embedded, startedUntitled, editor])
 
   return (
-    <div className={embedded ? 'bn-embedded w-full pt-2 pb-4' : 'mx-auto w-full max-w-3xl px-4 pt-10 pb-32 sm:px-12'}>
+    <div className={embedded ? 'bn-embedded w-full pt-2 pb-4' : 'mx-auto w-full max-w-(--page-width) px-4 pt-10 pb-32 sm:px-12'}>
       {!embedded && <CoverBanner note={note} />}
       <div className="group/title relative">
         {!embedded && <AddCoverButton note={note} />}
@@ -109,8 +112,8 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
           autoFocus={!note.title}
           className={
             embedded
-              ? 'mb-1 w-full bg-transparent px-3 text-lg font-semibold tracking-tight outline-none placeholder:text-muted-foreground'
-              : 'mb-4 w-full bg-transparent px-[54px] text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground'
+              ? 'mb-1 w-full bg-transparent px-3 font-page text-lg font-semibold tracking-tight outline-none placeholder:text-muted-foreground'
+              : 'mb-4 w-full bg-transparent px-[54px] font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground'
           }
         />
       </div>

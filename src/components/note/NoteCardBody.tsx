@@ -23,7 +23,7 @@ export function NoteCardBody({ note, view, fill = false }: { note: Note; view: N
     }
     // No cover to show: a short text, so the card isn't bare
     return (
-      <p className={cn('line-clamp-2 px-4 pt-1 pb-3 text-sm text-muted-foreground', fill && 'min-h-0 flex-1 overflow-hidden')}>
+      <p className={cn('line-clamp-2 px-4 pt-1 pb-3 font-page text-sm text-muted-foreground', fill && 'min-h-0 flex-1 overflow-hidden')}>
         {preview || emptyText}
       </p>
     )
@@ -33,7 +33,7 @@ export function NoteCardBody({ note, view, fill = false }: { note: Note; view: N
     <>
       {cover && <NoteCover cover={cover} className="h-20 shrink-0" />}
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden px-4 pt-2 pb-3">
-        <p className={cn('min-h-0 flex-1 overflow-hidden text-sm text-muted-foreground', !fill && 'line-clamp-3')}>
+        <p className={cn('min-h-0 flex-1 overflow-hidden font-page text-sm text-muted-foreground', !fill && 'line-clamp-3')}>
           {preview || emptyText}
         </p>
         <NoteCardMeta note={note} />
