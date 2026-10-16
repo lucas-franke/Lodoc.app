@@ -1,31 +1,14 @@
 import { nanoid } from 'nanoid'
 import { db } from './db'
 import { coverAssetId, type Asset } from './schema'
+import { compressLoadedImage, loadImage, type CompressOptions } from '@/lib/image-compress'
 
-/** Larger images are scaled down on import to keep the database and exports reasonable. */
-const MAX_SIDE = 2048
+/** Larger images are scaled down and re-encoded on import to keep the database and exports reasonable. */
+const BOARD_IMAGE: CompressOptions = { maxSide: 2048, quality: 0.85 }
 /** Used when the browser can't tell the size of an image (e.g. an SVG without dimensions). */
 const FALLBACK_SIZE = { width: 300, height: 200 }
-const RESIZABLE = /^image\/(png|jpeg|webp)$/ // GIFs may be animated and SVGs are vectors: stored as they are
 
 export const isImageFile = (file: File) => file.type.startsWith('image/')
-
-function loadImage(blob: Blob): Promise<{ img: HTMLImageElement; revoke: () => void }> {
-  const url = URL.createObjectURL(blob)
-  const img = new Image()
-  return new Promise((resolve, reject) => {
-    img.onload = () => resolve({ img, revoke: () => URL.revokeObjectURL(url) })
-    img.onerror = () => {
-      URL.revokeObjectURL(url)
-      reject(new Error('This image could not be read.'))
-    }
-    img.src = url
-  })
-}
-
-function canvasToBlob(canvas: HTMLCanvasElement, type: string): Promise<Blob | null> {
-  return new Promise((resolve) => canvas.toBlob(resolve, type, 0.9))
-}
 
 /**
  * Stores an image file in the assets table and returns it (with its stored size).
@@ -40,20 +23,9 @@ export async function addImageAsset(file: File): Promise<Asset> {
     let width = img.naturalWidth || FALLBACK_SIZE.width
     let height = img.naturalHeight || FALLBACK_SIZE.height
 
-    if (RESIZABLE.test(file.type) && Math.max(width, height) > MAX_SIDE) {
-      const scale = MAX_SIDE / Math.max(width, height)
-      const canvas = document.createElement('canvas')
-      canvas.width = Math.round(width * scale)
-      canvas.height = Math.round(height * scale)
-      canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height)
-      const scaled = await canvasToBlob(canvas, file.type)
-      // Keep the original if scaling somehow made it bigger
-      if (scaled && scaled.size < file.size) {
-        blob = scaled
-        width = canvas.width
-        height = canvas.height
-      }
-    }
+    // Keeps the original when compressing wouldn't make it smaller (or it's a GIF/SVG)
+    const compressed = await compressLoadedImage(img, file, BOARD_IMAGE)
+    if (compressed) ({ blob, width, height } = compressed)
 
     const asset: Asset = {
       id: nanoid(),

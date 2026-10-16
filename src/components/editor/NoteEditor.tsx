@@ -4,8 +4,13 @@ import { BlockNoteView } from '@blocknote/shadcn'
 import '@blocknote/shadcn/style.css'
 import { useTheme } from 'next-themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isImageFile } from '@/db/assets'
 import { isFreshNote, noteWordCount, updateNote } from '@/db/notes'
 import { formatDateTime, formatRelative, plural } from '@/lib/format'
+import { blobToDataUrl, compressImage, NOTE_IMAGE } from '@/lib/image-compress'
+import { useCaretNearTop } from './caret-scroll'
+import { cleanCopiedText } from './clipboard'
+import { indentSelectedFile, nestImagesAddedInLists } from './list-images'
 import { registerFlush } from '@/lib/pending-saves'
 import { AddCoverButton, CoverBanner } from './CoverBanner'
 import { noteLinkItems } from './note-link-items'
@@ -18,14 +23,9 @@ import type { Note, StoredBlock } from '@/db/schema'
 
 const SAVE_DELAY = 400
 
-/** Stores files inline as data URLs, since there is no server to upload to. */
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
+/** Stores files inline as data URLs, since there is no server to upload to. Images are compressed first. */
+async function uploadFile(file: File): Promise<string> {
+  return blobToDataUrl(await compressImage(file, NOTE_IMAGE))
 }
 
 /**
@@ -85,7 +85,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   const editor = useCreateBlockNote({
     schema: editorSchema,
     initialContent: note.content.length ? (note.content as PartialBlock<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema>[]) : undefined,
-    uploadFile: fileToDataUrl,
+    uploadFile,
     // Accessible name for the editable area (screen readers otherwise announce just "edit text")
     domAttributes: { editor: { 'aria-label': 'Note content' } },
   })
@@ -104,8 +104,64 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
     editor.focus()
   }, [embedded, startedUntitled, editor])
 
+  /**
+   * BlockNote only takes files dropped onto the text itself. Images dropped elsewhere on the page (the empty
+   * space below a short note, the title, the margins) go at the top when dropped above the text, otherwise
+   * at the end. In a board card the board takes such drops instead (as image items).
+   */
+  const dropImages = (e: React.DragEvent) => {
+    // Already handled: by BlockNote (on the text) or the cover
+    if (e.nativeEvent.defaultPrevented) return
+    const files = [...e.dataTransfer.files].filter(isImageFile)
+    if (!files.length) return
+    e.preventDefault()
+    const atStart = e.clientY < (editor.domElement?.getBoundingClientRect().top ?? 0)
+    const blocks = editor.document
+    let ref = atStart ? blocks[0] : blocks[blocks.length - 1]
+    let placement: 'before' | 'after' = atStart ? 'before' : 'after'
+    for (const file of files) {
+      const image = { type: 'image' as const, props: { name: file.name } }
+      // An empty line is replaced instead of being left next to the image
+      const empty = Array.isArray(ref.content) && ref.content.length === 0
+      const block = empty ? editor.updateBlock(ref, image) : editor.insertBlocks([image], ref, placement)[0]
+      ref = block
+      placement = 'after'
+      editor
+        .uploadFile!(file, block.id)
+        .then((url) => editor.updateBlock(block.id, { props: { url: url as string } }))
+        .catch(() => editor.removeBlocks([block.id]))
+    }
+  }
+
+  const pageRef = useRef<HTMLDivElement>(null)
+  useCaretNearTop(pageRef, !embedded)
+
+  useEffect(() => nestImagesAddedInLists(editor), [editor])
+
   return (
-    <div className={embedded ? 'bn-embedded w-full pt-2 pb-4' : 'mx-auto w-full max-w-(--page-width) px-4 pt-10 pb-32 sm:px-12'}>
+    <div
+      ref={pageRef}
+      className={
+        embedded
+          ? 'bn-embedded w-full pt-2 pb-4'
+          : // On phones a cover can scroll out of view even on a short note, so the cursor can reach the top
+            'mx-auto min-h-full w-full max-w-(--page-width) px-4 pt-10 pb-32 sm:px-12 max-md:has-[[data-testid=note-cover]]:min-h-[calc(100%+18rem)]'
+      }
+      // After BlockNote has filled the clipboard: no base64 images in the plain-text copy
+      onCopy={(e) => cleanCopiedText(e.nativeEvent)}
+      onCut={(e) => cleanCopiedText(e.nativeEvent)}
+      onKeyDownCapture={(e) => indentSelectedFile(editor, e.nativeEvent)}
+      onDragOver={
+        embedded
+          ? undefined
+          : (e) => {
+              if (!e.dataTransfer.types.includes('Files')) return
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'copy'
+            }
+      }
+      onDrop={embedded ? undefined : dropImages}
+    >
       {!embedded && <CoverBanner note={note} />}
       <div className="group/title relative">
         {!embedded && <AddCoverButton note={note} />}

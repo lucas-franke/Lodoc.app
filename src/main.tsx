@@ -9,6 +9,7 @@ import App from './App.tsx'
 import { applySavedAppearance } from '@/hooks/useAppearance'
 import { purgeOldTrash } from '@/db/trash'
 import { startAutoBackup } from '@/lib/auto-backup'
+import { shrinkNoteImages } from '@/lib/shrink-note-images'
 
 // Appearance settings (font, corners, …) are applied before the first render, so nothing jumps
 applySavedAppearance()
@@ -16,11 +17,24 @@ applySavedAppearance()
 void purgeOldTrash()
 // Automatic backups into a folder, if the user set them up
 void startAutoBackup()
+// Images added to notes before uploads were compressed are shrunk once, in the background
+void shrinkNoteImages()
 
 // Works offline once loaded (and can be installed as an app); only in the built app, not during development
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => void navigator.serviceWorker.register('./sw.js'))
 }
+
+// A file dropped where nothing takes it would make the browser open it in place of the app: ignore it instead
+const isFileDrag = (e: DragEvent) => !!e.dataTransfer?.types.includes('Files')
+window.addEventListener('dragover', (e) => {
+  if (!isFileDrag(e) || e.defaultPrevented) return
+  e.preventDefault()
+  e.dataTransfer!.dropEffect = 'none'
+})
+window.addEventListener('drop', (e) => {
+  if (isFileDrag(e)) e.preventDefault()
+})
 
 // Ask the browser not to evict IndexedDB under storage pressure
 void navigator.storage?.persist?.()
