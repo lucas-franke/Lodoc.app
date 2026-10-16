@@ -34,14 +34,14 @@ export function ActivityView({ tab }: { tab: ActivityTab }) {
       <p className="mt-2 text-sm text-muted-foreground">
         What changed, what was deleted and the messages you were shown, newest first.
       </p>
-      <nav aria-label="Filter" className="mt-6 flex gap-1 overflow-x-auto border-b">
+      <nav aria-label="Filter" className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-border)]">
         {TABS.map(({ tab: t, label }) => (
           <a
             key={t}
             href={activityHash(t)}
             aria-current={t === tab ? 'page' : undefined}
             className={cn(
-              '-mb-px shrink-0 border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60',
+              'shrink-0 border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60',
               t === tab && 'border-foreground font-medium text-foreground',
             )}
           >
