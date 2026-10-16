@@ -1,4 +1,4 @@
-import type { PartialBlock } from '@blocknote/core'
+import { isTouchDevice, type PartialBlock } from '@blocknote/core'
 import { SuggestionMenuController, useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/shadcn'
 import '@blocknote/shadcn/style.css'
@@ -8,6 +8,9 @@ import { isImageFile } from '@/db/assets'
 import { isFreshNote, noteWordCount, updateNote } from '@/db/notes'
 import { formatDateTime, formatRelative, plural } from '@/lib/format'
 import { blobToDataUrl, compressImage, NOTE_IMAGE } from '@/lib/image-compress'
+import { useCaptionEditor } from './CaptionEditor'
+import { MobileFormatBar } from './MobileFormatBar'
+import { useWideScreen } from '@/hooks/useWideScreen'
 import { useCaretNearTop } from './caret-scroll'
 import { cleanCopiedText } from './clipboard'
 import { indentSelectedFile, nestImagesAddedInLists } from './list-images'
@@ -15,7 +18,7 @@ import { registerFlush } from '@/lib/pending-saves'
 import { AddCoverButton, CoverBanner } from './CoverBanner'
 import { noteLinkItems } from './note-link-items'
 import { NoteBacklinks } from './NoteLinks'
-import { NoteOutline } from './NoteOutline'
+import { NoteOutline, OutlineButton } from './NoteOutline'
 import { outlineOf, type OutlineItem } from '@/lib/outline'
 import { editorSchema } from './schema'
 import { NoteTags } from '@/components/note/NoteTags'
@@ -137,16 +140,21 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   useCaretNearTop(pageRef, !embedded)
 
   useEffect(() => nestImagesAddedInLists(editor), [editor])
+  const caption = useCaptionEditor(editor)
+  // Phones get a fixed format bar at the bottom instead of the toolbar floating over the selection
+  const wide = useWideScreen()
+  const formatBar = !embedded && !wide && isTouchDevice()
 
   return (
     <div
       ref={pageRef}
       className={
         embedded
-          ? 'bn-embedded w-full pt-2 pb-4'
+          ? 'bn-embedded relative w-full pt-2 pb-4'
           : // On phones a cover can scroll out of view even on a short note, so the cursor can reach the top
-            'mx-auto min-h-full w-full max-w-(--page-width) px-4 pt-10 pb-32 sm:px-12 max-md:has-[[data-testid=note-cover]]:min-h-[calc(100%+18rem)]'
+            'relative mx-auto min-h-full w-full max-w-(--page-width) px-1 pt-10 pb-32 sm:px-12 max-md:has-[[data-testid=note-cover]]:min-h-[calc(100%+18rem)]'
       }
+      onDoubleClick={caption.onDoubleClick}
       // After BlockNote has filled the clipboard: no base64 images in the plain-text copy
       onCopy={(e) => cleanCopiedText(e.nativeEvent)}
       onCut={(e) => cleanCopiedText(e.nativeEvent)}
@@ -187,12 +195,13 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
               : 'mb-4 w-full bg-transparent px-(--page-gutter) font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground'
           }
         />
-        {!embedded && <PageInfo note={note} title={title} />}
+        {!embedded && <PageInfo note={note} title={title} outline={outline} />}
         {!embedded && <NoteTags note={note} />}
       </div>
       <BlockNoteView
         editor={editor}
         sideMenu={!embedded}
+        formattingToolbar={!formatBar}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
         onChange={() => {
           save({ content: editor.document as unknown as StoredBlock[] })
@@ -208,7 +217,9 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
             )
           }
         />
+        {formatBar && <MobileFormatBar />}
       </BlockNoteView>
+      {caption.field}
       {!embedded && <NoteBacklinks noteId={note.id} />}
       {!embedded && <NoteOutline items={outline} />}
     </div>
@@ -216,18 +227,21 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
 }
 
 /** A quiet line under the title: when it was edited and how long it is; for a brand-new empty note, that it isn't kept. */
-function PageInfo({ note, title }: { note: Note; title: string }) {
+function PageInfo({ note, title, outline }: { note: Note; title: string; outline: OutlineItem[] }) {
   const empty = !title.trim() && note.content.length === 0
   return (
-    <p className="-mt-3 mb-3 px-(--page-gutter) text-xs text-muted-foreground" data-page-info>
-      {empty && note.updatedAt === note.createdAt && isFreshNote(note.id) ? (
-        "Empty notes aren't kept when you leave them."
-      ) : (
-        <>
-          <span title={formatDateTime(note.updatedAt)}>Edited {formatRelative(note.updatedAt)}</span> ·{' '}
-          {plural(noteWordCount(note), 'word')}
-        </>
-      )}
-    </p>
+    <div className="-mt-3 mb-3 flex items-center gap-2 px-(--page-gutter) text-xs text-muted-foreground" data-page-info>
+      <p>
+        {empty && note.updatedAt === note.createdAt && isFreshNote(note.id) ? (
+          "Empty notes aren't kept when you leave them."
+        ) : (
+          <>
+            <span title={formatDateTime(note.updatedAt)}>Edited {formatRelative(note.updatedAt)}</span> ·{' '}
+            {plural(noteWordCount(note), 'word')}
+          </>
+        )}
+      </p>
+      <OutlineButton items={outline} />
+    </div>
   )
 }

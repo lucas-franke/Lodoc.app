@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { logActivity, logChange, type ActivityItem } from './activity'
 import { pruneAssets } from './assets'
 import { boardTitle, deleteBoard } from './boards'
 import { db } from './db'
@@ -11,6 +12,18 @@ import { coverAssetId, type TrashEntry } from './schema'
 
 export const TRASH_DAYS = 30
 const tables = [db.notes, db.folders, db.boards, db.assets, db.trash]
+
+/** What a trash entry is about: the note, board or (top) folder that was deleted */
+export function trashedItem(entry: TrashEntry): ActivityItem {
+  if (entry.kind === 'note') return { type: 'note', id: entry.notes[0].id, title: entry.title }
+  if (entry.kind === 'board') return { type: 'board', id: entry.boards[0].id, title: entry.title }
+  const inside = new Set(entry.folders.map((f) => f.id))
+  const top = entry.folders.find((f) => !f.parentId || !inside.has(f.parentId)) ?? entry.folders[0]
+  return { type: 'folder', id: top.id, title: entry.title }
+}
+
+const logTrashed = (entry: TrashEntry) =>
+  logActivity({ kind: 'deleted', text: 'Moved to Trash', item: trashedItem(entry), trashId: entry.id })
 
 /** Cards of these notes on boards that stay (so they can come back with the notes) */
 async function cardsOf(noteIds: Set<string>, exceptBoard?: string): Promise<TrashEntry['cards']> {
@@ -42,6 +55,7 @@ export function trashNote(id: string) {
       cards: await cardsOf(new Set([id])),
     }
     await db.trash.add(entry)
+    logTrashed(entry)
     await deleteNotes([id])
     return entry.id
   })
@@ -69,6 +83,7 @@ export function trashFolder(id: string) {
       cards: (await cardsOf(new Set(notes.map((n) => n.id)))).filter((c) => !boards.some((b) => b.id === c.boardId)),
     }
     await db.trash.add(entry)
+    logTrashed(entry)
     await deleteFolder(id)
     return entry.id
   })
@@ -90,6 +105,7 @@ export function trashBoard(id: string) {
       cards: [],
     }
     await db.trash.add(entry)
+    logTrashed(entry)
     await deleteBoard(id)
     return entry.id
   })
@@ -124,15 +140,17 @@ export function restoreTrash(entryId: string) {
       await db.boards.update(boardId, { nodes, edges: [...edges, ...new Map(arrows.map((e) => [e.id, e])).values()], updatedAt: Date.now() })
     }
     await db.trash.delete(entryId)
+    logChange('Restored from Trash', trashedItem(entry))
     return entry
   })
 }
 
-/** Removes trash entries for good, with the images only they used. */
-export function deleteForever(entryIds: string[]) {
+/** Removes trash entries for good, with the images only they used. `reason` is what Activity says. */
+export function deleteForever(entryIds: string[], reason = 'Deleted for good') {
   return db.transaction('rw', tables, async () => {
     const entries = (await db.trash.bulkGet(entryIds)).filter((e) => !!e)
     await db.trash.bulkDelete(entryIds)
+    for (const entry of entries) logActivity({ kind: 'deleted', text: reason, item: trashedItem(entry) })
     await pruneAssets(
       entries.flatMap((e) => [
         ...e.notes.map((n) => coverAssetId(n)),
@@ -152,5 +170,5 @@ export async function purgeOldTrash(now = Date.now()) {
     .where('deletedAt')
     .below(now - TRASH_DAYS * 24 * 60 * 60 * 1000)
     .primaryKeys()
-  if (old.length) await deleteForever(old)
+  if (old.length) await deleteForever(old, `Removed from Trash after ${TRASH_DAYS} days`)
 }

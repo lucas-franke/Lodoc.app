@@ -18,7 +18,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { nanoid } from 'nanoid'
 import { useTheme } from 'next-themes'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { notify } from '@/lib/notify'
 import { useRegisterCanvasDrop } from '@/components/dnd/dnd-registry'
 import type { DndData } from '@/components/sidebar/tree-dnd'
 import { addImageAsset, isImageFile } from '@/db/assets'
@@ -393,7 +393,7 @@ function Canvas({ board }: { board: Board }) {
           const size = { width: Math.round(asset.width * scale), height: Math.round(asset.height * scale) }
           addNode({ id: nanoid(), type: 'image', assetId: asset.id, ...place(size, at), ...size })
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : 'Could not add the image.')
+          notify(error instanceof Error ? error.message : 'Could not add the image.', { level: 'error' })
         }
       }
     },

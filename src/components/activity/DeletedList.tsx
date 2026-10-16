@@ -1,46 +1,43 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { FileText, Folder, LayoutGrid, RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import type { ActivityItem } from '@/db/activity'
 import { db } from '@/db/db'
-import type { TrashEntry } from '@/db/schema'
-import { deleteForever, emptyTrash, restoreTrash, TRASH_DAYS } from '@/db/trash'
+import { deleteForever, emptyTrash, restoreTrash, trashedItem, TRASH_DAYS } from '@/db/trash'
 import { useConfirm } from '@/hooks/useConfirm'
 import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
 import { formatDateTime, formatRelative, plural } from '@/lib/format'
+import { notify } from '@/lib/notify'
 
 const DAY = 24 * 60 * 60 * 1000
 const ICONS = { note: FileText, folder: Folder, board: LayoutGrid } as const
 
-/** Deleted notes, folders and boards, newest first, each restorable until it expires. */
-export function TrashView() {
+export const openItem = ({ type, id }: Pick<ActivityItem, 'type' | 'id'>) =>
+  type === 'note' ? openNote(id) : type === 'folder' ? openFolder(id) : openBoard(id)
+
+/** Puts a deleted item back and says so, with a button to open it. */
+export async function restoreWithMessage(entryId: string) {
+  const entry = await restoreTrash(entryId)
+  if (!entry) return
+  const item = trashedItem(entry)
+  notify(`Restored "${entry.title}"`, { logged: true, action: { label: 'Open', onClick: () => openItem(item) } })
+}
+
+/** Activity › Deleted (the trash): deleted notes, folders and boards, newest first, each restorable until it expires. */
+export function DeletedList() {
   const entries = useLiveQuery(() => db.trash.orderBy('deletedAt').reverse().toArray(), [], undefined)
   const confirm = useConfirm()
   // "Now" for the days left, taken when the page opens
   const [now] = useState(Date.now)
   if (!entries) return null
 
-  const restore = async (entry: TrashEntry) => {
-    if (!(await restoreTrash(entry.id))) return
-    const open =
-      entry.kind === 'note'
-        ? () => openNote(entry.notes[0].id)
-        : entry.kind === 'folder'
-          ? () => openFolder(entry.folders.find((f) => f.name === entry.title)?.id ?? entry.folders[0].id)
-          : () => openBoard(entry.boards[0].id)
-    toast(`Restored "${entry.title}"`, { action: { label: 'Open', onClick: open } })
-  }
-
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="font-page text-4xl font-bold tracking-tight">Trash</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Deleted notes, folders and boards stay here for {TRASH_DAYS} days, then they are removed for good.
-          </p>
-        </div>
+    <>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          Deleted notes, folders and boards stay here for {TRASH_DAYS} days, then they are removed for good.
+        </p>
         {entries.length > 0 && (
           <Button
             variant="outline"
@@ -61,7 +58,7 @@ export function TrashView() {
       {entries.length === 0 ? (
         <p className="mt-16 text-center text-sm text-muted-foreground">The trash is empty.</p>
       ) : (
-        <ul className="mt-8 divide-y rounded-lg border" aria-label="Deleted items">
+        <ul className="mt-6 divide-y rounded-lg border" aria-label="Deleted items">
           {entries.map((entry) => {
             const Icon = ICONS[entry.kind]
             const daysLeft = Math.max(1, Math.ceil((entry.deletedAt + TRASH_DAYS * DAY - now) / DAY))
@@ -81,7 +78,7 @@ export function TrashView() {
                     {daysLeft === 1 ? 'removed tomorrow' : `removed in ${daysLeft} days`}
                   </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => void restore(entry)} aria-label={`Restore "${entry.title}"`}>
+                <Button variant="outline" size="sm" onClick={() => void restoreWithMessage(entry.id)} aria-label={`Restore "${entry.title}"`}>
                   <RotateCcw /> Restore
                 </Button>
                 <Button
@@ -105,6 +102,6 @@ export function TrashView() {
           })}
         </ul>
       )}
-    </div>
+    </>
   )
 }

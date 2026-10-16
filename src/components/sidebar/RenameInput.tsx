@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 /** Inline name editor: Enter/blur saves, Escape cancels (onDone(null)). */
 export function RenameInput({ initial, onDone }: { initial: string; onDone: (name: string | null) => void }) {
@@ -11,9 +11,15 @@ export function RenameInput({ initial, onDone }: { initial: string; onDone: (nam
     onDone(name)
   }
 
-  useEffect(() => {
-    // Delay so the closing menu doesn't steal focus back
-    const t = window.setTimeout(() => ref.current?.select(), 50)
+  useLayoutEffect(() => {
+    // Right away, so a phone keeps the keyboard that was opened for it (holdKeyboard); again a moment later
+    // in case a closing menu pulled focus back to its button
+    const focus = () => {
+      ref.current?.focus()
+      ref.current?.select()
+    }
+    focus()
+    const t = window.setTimeout(focus, 50)
     return () => window.clearTimeout(t)
   }, [])
 

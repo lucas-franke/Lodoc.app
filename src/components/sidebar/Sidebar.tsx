@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronRight, FolderPlus, Hash, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, Trash2, X } from 'lucide-react'
+import { ChevronRight, FolderPlus, Hash, History, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { createBoard, sortBoards } from '@/db/boards'
 import { createFolder } from '@/db/folders'
 import { createNote, noteText, sortNotes, sortNotesManual, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useIsHome, useIsTrash, useTagRoute } from '@/hooks/useRoute'
+import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useActivityTab, useIsHome, useTagRoute } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
 import { AppearanceMenu } from './AppearanceMenu'
 import { BackupMenu } from './BackupMenu'
@@ -25,6 +25,9 @@ import { SelectionBar } from './SelectionBar'
 import { parseItemKey } from '@/db/bulk'
 import { dndId, useDropIndicator } from './tree-dnd'
 import { cn } from '@/lib/utils'
+import { holdKeyboard } from '@/lib/keyboard'
+import { plural } from '@/lib/format'
+import { useActivitySeen } from '@/db/activity'
 
 const EXPANDED_KEY = 'localnotes:expanded'
 const NOT_LOADED: Folder[] = []
@@ -147,9 +150,11 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
 
   const sidebarWidth = useSidebarWidth()
   const isHome = useIsHome()
-  const isTrash = useIsTrash()
+  const onActivity = useActivityTab() !== null
   const activeTag = useTagRoute()
-  const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
+  // Errors since Activity was last opened get a dot (other messages were seen as they appeared)
+  const seen = useActivitySeen()
+  const unseenErrors = useLiveQuery(() => db.activity.where('at').above(seen).filter((e) => e.level === 'error').count(), [seen], 0)
   // Like Ctrl+Alt+N: a new note goes into the folder you're in (the open folder, or the open note's folder)
   const targetFolderId = activeFolderId ?? notes.find((n) => n.id === activeNoteId)?.folderId ?? null
   const targetFolder = targetFolderId ? folders.find((f) => f.id === targetFolderId) : undefined
@@ -249,14 +254,12 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
               <span className="min-w-0 flex-1 truncate">Overview</span>
             </a>
           </div>
-          <div className={rowClass(isTrash)}>
-            <a href="#/trash" aria-current={isTrash ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
-              <Trash2 className="size-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 truncate">Trash</span>
-              {trashCount > 0 && (
-                <span className="pr-1.5 text-xs text-muted-foreground tabular-nums" aria-label={`${trashCount} items`}>
-                  {trashCount}
-                </span>
+          <div className={rowClass(onActivity)}>
+            <a href="#/activity" aria-current={onActivity ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
+              <History className="size-4 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 truncate">Activity</span>
+              {unseenErrors > 0 && !onActivity && (
+                <span className="mr-2 size-2 shrink-0 rounded-full bg-destructive" role="status" aria-label={`${plural(unseenErrors, 'new error')}`} />
               )}
             </a>
           </div>
@@ -296,7 +299,10 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                       <Button
                         variant="ghost"
                         size="icon-xs"
-                        onClick={async () => setRenamingId(await createFolder('New folder'))}
+                        onClick={async () => {
+                          holdKeyboard()
+                          setRenamingId(await createFolder('New folder'))
+                        }}
                         aria-label="New folder"
                       >
                         <FolderPlus />

@@ -13,6 +13,7 @@ import {
   Palette,
   Sun,
   Trash2,
+  History,
   type LucideIcon,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -32,7 +33,7 @@ import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
 import { createNote, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openFolder, openNote, openTag, openTrash } from '@/hooks/useRoute'
+import { openBoard, openFolder, openNote, openTag, openActivity } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
 import { openGuideNote } from '@/lib/guide'
 import { createFromTemplate, TEMPLATES } from '@/lib/templates'
@@ -80,7 +81,8 @@ export function CommandPalette({
     { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme font color tint texture settings', run: () => emitAppEvent('open-appearance') },
     { id: 'export', label: 'Export backup (.json)', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
     { id: 'overview', label: 'Go to Overview', icon: LayoutGrid, keywords: 'home start', run: () => openNote(null) },
-    { id: 'trash', label: 'Open Trash', icon: Trash2, keywords: 'deleted restore', run: openTrash },
+    { id: 'activity', label: 'Open Activity', icon: History, keywords: 'changes log history messages notifications', run: () => openActivity() },
+    { id: 'trash', label: 'Open Trash', icon: Trash2, keywords: 'deleted restore activity', run: () => openActivity('deleted') },
     { id: 'guide', label: 'Getting started guide', icon: BookOpen, keywords: 'help tutorial welcome', run: async () => openNote(await openGuideNote()) },
     { id: 'shortcuts', label: 'Keyboard shortcuts', icon: Keyboard, keywords: 'help keys', shortcut: '?', run: () => emitAppEvent('open-shortcuts') },
   ]

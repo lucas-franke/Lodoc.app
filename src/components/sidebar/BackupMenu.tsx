@@ -1,6 +1,6 @@
 import { ArchiveRestore, Download, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { notify } from '@/lib/notify'
 import { ImportDialog } from '@/components/ImportDialog'
 import {
   DropdownMenu,
@@ -65,7 +65,7 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
     try {
       setImporting(await readProjectFile(file))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not read the file.')
+      notify(error instanceof Error ? error.message : 'Could not read the file.', { level: 'error' })
     }
   }
 
@@ -189,8 +189,8 @@ function usePersistedStorage() {
   const request = async () => {
     const granted = await navigator.storage.persist()
     setValue(granted)
-    if (granted) toast.success('Your notes are now kept safe in this browser')
-    else toast("The browser didn't allow it. Regular backups keep your notes safe.")
+    if (granted) notify('Your notes are now kept safe in this browser', { level: 'success' })
+    else notify("The browser didn't allow it. Regular backups keep your notes safe.")
   }
   return { supported, value, request }
 }

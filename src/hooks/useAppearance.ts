@@ -14,6 +14,8 @@ function set(next: Appearance) {
 
 export const updateAppearance = (patch: Partial<Appearance>) => set({ ...current, ...patch })
 export const resetAppearance = () => set(DEFAULT_APPEARANCE)
+/** All settings at once, e.g. from a backup */
+export const replaceAppearance = (next: Appearance) => set(next)
 /** Back to the defaults for some settings only (one panel section) */
 export const resetAppearanceKeys = (keys: readonly (keyof Appearance)[]) =>
   set({ ...current, ...Object.fromEntries(keys.map((k) => [k, DEFAULT_APPEARANCE[k]])) })

@@ -396,16 +396,38 @@
   font-size: var(--page-text-size);
 }
 
-/* The margin beside the text of a note: room for BlockNote's block handles (+ and drag) on wider screens. The
-   title, info line, tags and backlinks use it too, so everything lines up. On a phone the handles aren't
-   used and the text takes the full width. */
+/* The margin beside the text of a note: room for BlockNote's block handles (+ and drag). The title, info
+   line, tags and backlinks use it too, so everything lines up. On a phone only the drag handle is shown
+   (blocks are added with the format bar or "/"), so a narrower margin is enough. */
 :root {
   --page-gutter: 54px;
 }
 @media (max-width: 39.99rem) {
   :root {
-    --page-gutter: 0px;
+    --page-gutter: 28px;
   }
+  .bn-root.bn-shadcn .bn-side-menu .bn-button:has([data-test='dragHandleAdd']) {
+    display: none;
+  }
+  /* The handle is on the left only */
+  .bn-root.bn-shadcn .bn-editor {
+    padding-inline-end: 8px;
+  }
+}
+
+/* The phone format bar (MobileFormatBar): the full width of the screen, scrolling sideways when the buttons
+   don't fit. Below the sidebar overlay (z-30/40) and dialogs. */
+.bn-mobile-formatting-toolbar.note-format-bar {
+  z-index: 20;
+}
+.bn-mobile-formatting-toolbar.note-format-bar .bn-toolbar {
+  width: 100%;
+  max-width: none;
+  overflow-x: auto;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  box-shadow: none;
+  scrollbar-width: none;
 }
 .bn-root.bn-shadcn .bn-editor {
   padding-inline: var(--page-gutter);
@@ -420,6 +442,16 @@
 }
 .bn-root.bn-shadcn [data-content-type='heading'][data-level='3'] {
   --level: 1.25em;
+}
+
+/* Image captions: readable, and editable with a double click (CaptionEditor) */
+.bn-root.bn-shadcn [data-file-block] .bn-file-caption {
+  cursor: text;
+}
+@media (min-width: 48rem) {
+  .bn-root.bn-shadcn [data-file-block] .bn-file-caption {
+    font-size: 14px;
+  }
 }
 
 /* Boards (React Flow): follow the shadcn theme in light and dark. The extra `html` raises specificity
@@ -494,4 +526,31 @@ html .react-flow__connection-path {
 .bn-root.bn-shadcn.bn-embedded .bn-editor,
 .bn-embedded .bn-root.bn-shadcn .bn-editor {
   padding-inline: 12px;
+}
+
+/* Toasts with buttons (Undo, Open, Got it): the buttons get their own row under the text, right-aligned, at a
+   size that's easy to read and hit (sonner's own are 24px high with 12px text, squeezed in beside the text) */
+html [data-sonner-toaster] [data-sonner-toast]:has([data-button]) {
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+html [data-sonner-toaster] [data-sonner-toast]:has([data-button]) [data-content] {
+  /* the whole first row (next to the icon, if any), so the buttons wrap below */
+  flex: 1 1 calc(100% - 2rem);
+}
+html [data-sonner-toaster] [data-sonner-toast] [data-button] {
+  height: 2.25rem;
+  padding-inline: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: calc(var(--radius) - 2px);
+  margin-left: 0.5rem;
+}
+html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
+  margin-left: auto;
+}
+@media (pointer: coarse) {
+  html [data-sonner-toaster] [data-sonner-toast] [data-button] {
+    height: 2.75rem;
+  }
 }

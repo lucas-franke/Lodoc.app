@@ -1,6 +1,5 @@
 import { Palette } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { useAppearance } from '@/hooks/useAppearance'
 import { useAppEvent } from '@/lib/app-events'
 
 // The panel (and its slider/switch/toggle components) is only loaded once it is opened
@@ -13,8 +12,6 @@ export function AppearanceMenu() {
   const [open, setOpen] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const trigger = useRef<HTMLButtonElement>(null)
-  const { pageFont } = useAppearance()
-  const status = pageFont === 'serif' ? 'Serif' : 'Sans serif'
 
   // The command palette can open the panel too
   useAppEvent(
@@ -36,7 +33,6 @@ export function AppearanceMenu() {
       <button
         ref={trigger}
         type="button"
-        aria-label={`Appearance. ${status}`}
         aria-haspopup="dialog"
         onClick={() => {
           setLoaded(true)
@@ -46,10 +42,7 @@ export function AppearanceMenu() {
         aria-expanded={open}
       >
         <Palette className="size-4 shrink-0 text-muted-foreground" />
-        <span className="min-w-0 flex-1">
-          <span className="block">Appearance</span>
-          <span className="block truncate text-xs text-muted-foreground">{status}</span>
-        </span>
+        <span className="min-w-0 flex-1 truncate">Appearance</span>
       </button>
       {loaded && (
         <Suspense fallback={null}>

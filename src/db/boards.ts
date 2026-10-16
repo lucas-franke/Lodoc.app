@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import { pruneAssets } from './assets'
+import { logChange, logMove, logRename } from './activity'
 import { db } from './db'
 import type { Board } from './schema'
 
@@ -15,16 +16,21 @@ export async function createBoard(folderId: string | null = null): Promise<strin
     nodes: [],
   }
   await db.boards.add(board)
+  logChange('Created', { type: 'board', id: board.id, title: '' })
   return board.id
 }
 
 /** Moves a board into a folder (null = top level). Not an edit of the board itself. */
-export function moveBoard(id: string, folderId: string | null) {
-  return db.boards.update(id, { folderId })
+export async function moveBoard(id: string, folderId: string | null) {
+  const before = await db.boards.get(id)
+  await db.boards.update(id, { folderId })
+  if (before) logMove({ type: 'board', id, title: boardTitle(before) }, before.folderId, folderId)
 }
 
-export function renameBoard(id: string, title: string) {
-  return db.boards.update(id, { title: title.trim(), updatedAt: Date.now() })
+export async function renameBoard(id: string, title: string) {
+  const before = await db.boards.get(id)
+  await db.boards.update(id, { title: title.trim(), updatedAt: Date.now() })
+  if (before) logRename({ type: 'board', id, title: boardTitle({ title: title.trim() }) }, boardTitle(before), before.createdAt)
 }
 
 /**

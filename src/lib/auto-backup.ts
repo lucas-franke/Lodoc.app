@@ -1,6 +1,7 @@
 import { liveQuery } from 'dexie'
 import { useSyncExternalStore } from 'react'
 import { db } from '@/db/db'
+import { logChange } from '@/db/activity'
 import { emitAppEvent } from './app-events'
 import { buildProjectBlob, setLastExport } from './project-file'
 
@@ -156,6 +157,9 @@ export async function backUpNow() {
     for await (const name of handle.keys()) if (FILE.test(name)) names.push(name)
     for (const old of names.sort().reverse().slice(KEEP)) await handle.removeEntry(old)
     const now = Date.now()
+    // Today's file is rewritten after every change; Activity mentions it once a day
+    const before = readSaved().lastSaved
+    if (!before || new Date(before).toISOString().slice(0, 10) !== today()) logChange(`Automatic backup saved to "${handle.name}"`)
     writeSaved(now, print)
     setLastExport(now)
     emitAppEvent('backup-exported')

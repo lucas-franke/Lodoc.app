@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import { addImageAsset, pruneAssets } from './assets'
+import { forgetItem, logChange, logMove, logRename } from './activity'
 import { db } from './db'
 import { coverAssetId, type Note } from './schema'
 
@@ -28,6 +29,7 @@ export async function createNote(folderId: string | null = null): Promise<string
   }
   await db.notes.add(note)
   freshNotes.set(note.id, { folderId, order: note.order })
+  logChange('Created', { type: 'note', id: note.id, title: '' })
   return note.id
 }
 
@@ -55,7 +57,9 @@ export async function discardIfUntouched(id: string) {
       note.cover === undefined
     if (!untouched) return
     const usedOnBoard = (await db.boards.toArray()).some((b) => b.nodes.some((n) => n.type === 'note' && n.noteId === id))
-    if (!usedOnBoard) await db.notes.delete(id)
+    if (usedOnBoard) return
+    await db.notes.delete(id)
+    forgetItem(id)
   })
 }
 
@@ -63,13 +67,18 @@ export function updateNote(id: string, changes: Partial<Pick<Note, 'title' | 'co
   return db.notes.update(id, { ...changes, updatedAt: Date.now() })
 }
 
-export function renameNote(id: string, title: string) {
-  return updateNote(id, { title: title.trim() })
+/** Renaming from a menu (titles typed on the page itself are edits, not logged as renames) */
+export async function renameNote(id: string, title: string) {
+  const before = await db.notes.get(id)
+  await updateNote(id, { title: title.trim() })
+  if (before) logRename({ type: 'note', id, title: noteTitle({ title: title.trim() }) }, noteTitle(before), before.createdAt)
 }
 
 /** Moves a note into another folder, placing it at the top there. */
-export function moveNote(id: string, folderId: string | null) {
-  return db.notes.update(id, { folderId, order: -Date.now() })
+export async function moveNote(id: string, folderId: string | null) {
+  const before = await db.notes.get(id)
+  await db.notes.update(id, { folderId, order: -Date.now() })
+  if (before) logMove({ type: 'note', id, title: noteTitle(before) }, before.folderId, folderId)
 }
 
 export async function toggleFavorite(id: string) {

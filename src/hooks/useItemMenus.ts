@@ -18,9 +18,10 @@ import {
   StarOff,
   Trash2,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import { notify } from '@/lib/notify'
 import type { MenuEntry } from '@/components/ItemMenu'
 import { db } from '@/db/db'
+import { holdKeyboard } from '@/lib/keyboard'
 import { boardTitle, createBoard, moveBoard } from '@/db/boards'
 import { duplicateFolder, duplicateNote } from '@/db/duplicate'
 import { createFolder, descendantIds, moveFolder } from '@/db/folders'
@@ -37,7 +38,8 @@ import type { CanReorder } from '@/lib/reorder'
 
 /** Deleting moves to the trash, so there is no confirmation: the toast offers Undo instead. */
 function announceTrash(entryId: string, title: string, reopen: () => void) {
-  toast(`Moved "${title}" to Trash`, {
+  notify(`Moved "${title}" to Trash`, {
+    logged: true,
     action: {
       label: 'Undo',
       onClick: async () => {
@@ -86,6 +88,17 @@ function reorderEntries(shift: (delta: -1 | 1) => void, can: CanReorder | undefi
   ]
 }
 
+/** "Rename" opens an inline text field; on a phone the keyboard has to be requested during the tap */
+const renameEntry = (onRename: () => void): MenuEntry => ({
+  type: 'item',
+  label: 'Rename',
+  icon: Pencil,
+  onSelect: () => {
+    holdKeyboard()
+    onRename()
+  },
+})
+
 export function useNoteMenuEntries(
   note: Note,
   {
@@ -103,7 +116,7 @@ export function useNoteMenuEntries(
   const route = useRoute()
 
   return [
-    { type: 'item', label: 'Rename', icon: Pencil, onSelect: onRename },
+    renameEntry(onRename),
     {
       type: 'item',
       label: note.favorite ? 'Remove from favorites' : 'Add to favorites',
@@ -121,7 +134,7 @@ export function useNoteMenuEntries(
       label: 'Duplicate',
       icon: Copy,
       onSelect: async () => {
-        if (await duplicateNote(note.id)) toast.success(`Duplicated "${noteTitle(note)}"`)
+        if (await duplicateNote(note.id)) notify(`Duplicated "${noteTitle(note)}"`, { level: 'success', logged: true })
       },
     },
     { type: 'item', label: 'Download as .md', icon: Download, onSelect: () => void downloadNoteAsMarkdown(note.id) },
@@ -203,18 +216,20 @@ export function useFolderMenuEntries(
       label: 'New subfolder',
       icon: FolderPlus,
       onSelect: async () => {
+        // The sidebar names a new subfolder right away (the default just opens it)
+        if (onNewSubfolder !== openFolder) holdKeyboard()
         onBeforeCreate?.()
         onNewSubfolder(await createFolder('New folder', folder.id))
       },
     },
     { type: 'separator' },
-    { type: 'item', label: 'Rename', icon: Pencil, onSelect: onRename },
+    renameEntry(onRename),
     {
       type: 'item',
       label: 'Duplicate',
       icon: Copy,
       onSelect: async () => {
-        if (await duplicateFolder(folder.id)) toast.success(`Duplicated folder "${folder.name}" with its contents`)
+        if (await duplicateFolder(folder.id)) notify(`Duplicated folder "${folder.name}" with its contents`, { level: 'success', logged: true })
       },
     },
     ...(hasNotes
@@ -259,7 +274,7 @@ export function useBoardMenuEntries(
   const route = useRoute()
 
   return [
-    { type: 'item', label: 'Rename', icon: Pencil, onSelect: onRename },
+    renameEntry(onRename),
     ...moveToEntries(folders, board.folderId ?? null, (folderId) => {
       void moveBoard(board.id, folderId)
       onMoved?.(folderId)

@@ -125,3 +125,20 @@ export interface TrashEntry {
   /** Note cards removed from boards that were not deleted themselves, with their arrows */
   cards: { boardId: string; node: BoardNode; edges?: BoardEdge[] }[]
 }
+
+/**
+ * One line in Activity: a change to the notes (created, renamed, moved, …), something deleted, or a message
+ * the app showed (a toast). Kept for a while on this device only; not part of backups.
+ */
+export interface ActivityEntry {
+  id: string
+  at: number
+  kind: 'change' | 'deleted' | 'message'
+  /** What happened, e.g. "Created", "Moved to Trash", or the whole message */
+  text: string
+  /** What it happened to: linked (with its current name) while it still exists */
+  item?: { type: 'note' | 'folder' | 'board'; id: string; title: string }
+  level?: 'success' | 'error' | 'info'
+  /** For deletions: the trash entry, as long as it can still be restored */
+  trashId?: string
+}

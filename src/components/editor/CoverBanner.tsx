@@ -1,6 +1,6 @@
 import { Check, ImagePlus, Trash2 } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
-import { toast } from 'sonner'
+import { notify } from '@/lib/notify'
 import { NoteCover } from '@/components/note/NoteCover'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +24,7 @@ async function chooseImage(noteId: string, file: File | undefined) {
   try {
     await setNoteCover(noteId, file)
   } catch (error) {
-    toast.error(error instanceof Error ? error.message : 'Could not set the cover.')
+    notify(error instanceof Error ? error.message : 'Could not set the cover.', { level: 'error' })
   }
 }
 

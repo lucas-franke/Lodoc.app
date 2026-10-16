@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import { defaultGradient } from '@/lib/gradients'
 import { sortFolders } from '@/lib/folder-tree'
+import { logChange } from './activity'
 import { db } from './db'
 import { descendantIds } from './folders'
 import { noteTitle, sortNotesManual } from './notes'
@@ -36,6 +37,7 @@ export function duplicateNote(id: string): Promise<string | undefined> {
     const siblings = sortNotesManual(await db.notes.filter((n) => n.folderId === note.folderId).toArray())
     // placeNote renumbers the siblings; the copy goes right after the original
     await placeNote(copy.id, note.folderId, siblings.filter((n) => n.id !== copy.id).findIndex((n) => n.id === id) + 1)
+    logChange(`Duplicated "${noteTitle(note)}"`, { type: 'note', id: copy.id, title: copy.title })
     return copy.id
   })
 }
@@ -69,6 +71,7 @@ export function duplicateFolder(id: string): Promise<string | undefined> {
 
     const siblings = sortFolders(folders.filter((f) => f.parentId === root.parentId))
     await placeFolder(newIds.get(id)!, root.parentId, siblings.findIndex((f) => f.id === id) + 1)
+    logChange(`Duplicated "${root.name}" with its contents`, { type: 'folder', id: newIds.get(id)!, title: `${root.name} (copy)` })
     return newIds.get(id)
   })
 }

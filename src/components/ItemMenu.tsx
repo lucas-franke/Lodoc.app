@@ -20,6 +20,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { isTouchScreen } from '@/lib/keyboard'
 
 export type MenuEntry =
   | { type: 'item'; label: string; icon?: LucideIcon; onSelect: () => void; destructive?: boolean; indent?: number }
@@ -99,10 +100,16 @@ function keepMovedFocus(event: Event) {
   if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) event.preventDefault()
 }
 
+/**
+ * On touch screens the menus don't trap focus: "Rename" focuses a text field while the menu is still open
+ * (see holdKeyboard), and a trapped menu would pull focus back, so the keyboard wouldn't open.
+ */
+const modal = () => !isTouchScreen()
+
 /** Wraps a row with a right-click menu; the same entries can be shown in a "…" dropdown. */
 export function RowContextMenu({ entries, children }: { entries: MenuEntry[]; children: ReactNode }) {
   return (
-    <ContextMenu>
+    <ContextMenu modal={modal()}>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-56" onCloseAutoFocus={keepMovedFocus}>
         <Entries entries={entries} kind="context" />
@@ -121,7 +128,7 @@ export function RowDropdownMenu({
   align?: 'start' | 'end'
 }) {
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={modal()}>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="w-56" onCloseAutoFocus={keepMovedFocus}>
         <Entries entries={entries} kind="dropdown" />

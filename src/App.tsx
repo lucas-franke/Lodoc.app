@@ -11,7 +11,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { HomeView } from '@/components/home/HomeView'
 import { openGuideNote } from '@/lib/guide'
 import { rememberLastNote } from '@/lib/last-note'
-import { TrashView } from '@/components/trash/TrashView'
+import { ActivityView } from '@/components/activity/ActivityView'
 import { TagView } from '@/components/tags/TagView'
 import { ShortcutsDialog } from '@/components/ShortcutsDialog'
 import { Sidebar } from '@/components/sidebar/Sidebar'
@@ -20,8 +20,9 @@ import { Button } from '@/components/ui/button'
 import { boardTitle } from '@/db/boards'
 import { db } from '@/db/db'
 import { createNote, noteTitle } from '@/db/notes'
+import { useSidebarSwipe } from '@/hooks/useSidebarSwipe'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
-import { openNote, useIsTrash, useRoute, useTagRoute, type RouteType } from '@/hooks/useRoute'
+import { openNote, useActivityTab, useRoute, useTagRoute, type RouteType } from '@/hooks/useRoute'
 import { useAppEvent } from '@/lib/app-events'
 import { cn } from '@/lib/utils'
 
@@ -41,7 +42,7 @@ const LOADING = Symbol('loading')
 
 export default function App() {
   const route = useRoute()
-  const onTrash = useIsTrash()
+  const activityTab = useActivityTab()
   const tagRoute = useTagRoute()
   // A new note that was left untouched isn't kept when you move on
   useDiscardUntouchedNote(route?.type === 'note' ? route.id : null)
@@ -88,6 +89,8 @@ export default function App() {
   }, [route])
 
   const onBoard = current?.type === 'board'
+  // Boards pan with sideways swipes, so the edge swipe doesn't open the sidebar there
+  useSidebarSwipe({ open: sidebarOpen, setOpen: setSidebarOpen, canOpen: !onBoard, enabled: isNarrow })
 
   // New notes go into the folder you're looking at (or the current note's folder)
   const newNoteFolderId =
@@ -130,7 +133,7 @@ export default function App() {
             >
               <Sidebar onCollapse={() => setSidebarOpen(false)} />
             </div>
-            <div className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
+            <div data-sidebar-backdrop className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
           </>
         )}
 
@@ -191,8 +194,8 @@ export default function App() {
               <Suspense fallback={null}>
                 <BoardPage key={current.board.id} board={current.board} />
               </Suspense>
-            ) : onTrash ? (
-              <TrashView />
+            ) : activityTab ? (
+              <ActivityView tab={activityTab} />
             ) : tagRoute !== null ? (
               <TagView key={tagRoute} tag={tagRoute} />
             ) : route ? (

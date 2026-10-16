@@ -2,21 +2,16 @@ import { toast, useSonner } from 'sonner'
 import { Toaster } from '@/components/ui/sonner'
 
 /**
- * The app's notifications. They stay until they are closed, so they can pile up: from two on, a small
- * "Clear all" button sits just below the stack (which moves up to make room), never covering the newest one.
+ * The app's notifications (shown with `notify`). They close by themselves, except errors and the first-run
+ * hint, and everything stays readable in Activity. When several are showing, a small "Clear all" button sits
+ * just below the stack (which moves up to make room), never covering the newest one.
  */
 export function Notifications() {
   const { toasts } = useSonner()
   const many = toasts.length >= 2
   return (
     <>
-      <Toaster
-        position="bottom-center"
-        closeButton
-        duration={Infinity}
-        offset={{ bottom: many ? 60 : 24 }}
-        mobileOffset={{ bottom: many ? 52 : 16 }}
-      />
+      <Toaster position="bottom-center" closeButton offset={{ bottom: many ? 60 : 24 }} mobileOffset={{ bottom: many ? 52 : 16 }} />
       {many && (
         <button
           type="button"

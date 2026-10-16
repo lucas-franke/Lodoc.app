@@ -1,11 +1,14 @@
 import { z } from 'zod'
 import { db } from '@/db/db'
 import { saveFile } from './save-file'
+import { logChange } from '@/db/activity'
+import { parseAppearance, type Appearance } from './appearance'
+import { getAppearance } from '@/hooks/useAppearance'
 import { coverAssetId, type Asset, type Board, type Folder, type Note } from '@/db/schema'
 
-// Version 2 adds boards and the images they use; version 3 adds note covers and card views.
-// Older files still import.
-const FORMAT_VERSION = 3
+// Version 2 adds boards and the images they use; version 3 adds note covers and card views; version 4 adds
+// the theme and appearance settings. Older files still import (and leave the current settings as they are).
+const FORMAT_VERSION = 4
 const LAST_EXPORT_KEY = 'localnotes:lastExport'
 
 const folderSchema = z.object({
@@ -83,6 +86,15 @@ const assetFileSchema = z.object({
   data: z.string(),
 })
 
+const THEMES = ['light', 'dark', 'system'] as const
+type Theme = (typeof THEMES)[number]
+
+/** Light/dark and the Appearance panel. A damaged part is skipped rather than failing the whole import. */
+const settingsSchema = z.object({
+  theme: z.enum(THEMES).optional().catch(undefined),
+  appearance: z.record(z.string(), z.unknown()).optional().catch(undefined),
+})
+
 const projectSchema = z.object({
   app: z.literal('localnotes'),
   version: z.number().int().max(FORMAT_VERSION),
@@ -92,7 +104,11 @@ const projectSchema = z.object({
   // Not in version 1 files
   boards: z.array(boardSchema).default([]),
   assets: z.array(assetFileSchema).default([]),
+  // Not before version 4
+  settings: settingsSchema.optional().catch(undefined),
 })
+
+export type ProjectSettings = { theme?: Theme; appearance?: Appearance }
 
 export type ProjectFile = {
   folders: Folder[]
@@ -100,6 +116,18 @@ export type ProjectFile = {
   boards: Board[]
   assets: Asset[]
   exportedAt: number
+  /** Missing in files from before version 4 */
+  settings?: ProjectSettings
+}
+
+/** The light/dark choice, as next-themes keeps it */
+function currentTheme(): Theme {
+  try {
+    const saved = localStorage.getItem('theme')
+    return THEMES.find((t) => t === saved) ?? 'system'
+  } catch {
+    return 'system'
+  }
 }
 
 async function blobToBase64(blob: Blob): Promise<string> {
@@ -128,7 +156,8 @@ export async function buildProjectBlob(): Promise<Blob> {
   const assets = await Promise.all(
     used.flatMap((a) => (a ? [a] : [])).map(async ({ blob, ...a }) => ({ ...a, data: await blobToBase64(blob) })),
   )
-  const data = { app: 'localnotes', version: FORMAT_VERSION, exportedAt: Date.now(), folders, notes, boards, assets }
+  const settings: ProjectSettings = { theme: currentTheme(), appearance: getAppearance() }
+  const data = { app: 'localnotes', version: FORMAT_VERSION, exportedAt: Date.now(), settings, folders, notes, boards, assets }
   return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
 }
 
@@ -137,6 +166,7 @@ export async function exportProject() {
   const now = Date.now()
   saveFile(blob, `lodoc-${new Date(now).toISOString().slice(0, 10)}.json`)
   setLastExport(now)
+  logChange('Backup file saved')
 }
 
 /** Remembers when the last backup was made (for the reminder in the sidebar) */
@@ -175,7 +205,11 @@ export async function readProjectFile(file: File): Promise<ProjectFile> {
     const where = issue?.path.length ? ` (at ${issue.path.join('.')})` : ''
     throw new Error(`This is not a valid Lodoc project file${where}.`)
   }
-  const { folders, notes, boards, assets, exportedAt } = result.data
+  const { folders, notes, boards, assets, exportedAt, settings: savedSettings } = result.data
+  const settings: ProjectSettings | undefined = savedSettings && {
+    theme: savedSettings.theme,
+    appearance: savedSettings.appearance && parseAppearance(savedSettings.appearance),
+  }
   let restored: Asset[]
   try {
     restored = assets.map(({ data, ...a }) => ({ ...a, blob: base64ToBlob(data, a.mimeType) }))
@@ -183,7 +217,7 @@ export async function readProjectFile(file: File): Promise<ProjectFile> {
     throw new Error('An image in this file is damaged.')
   }
   const withOrder = notes.map((n) => ({ ...n, order: n.order ?? -n.updatedAt }))
-  return { folders, notes: withOrder as Note[], boards, assets: restored, exportedAt }
+  return { folders, notes: withOrder as Note[], boards, assets: restored, exportedAt, settings }
 }
 
 /** "2 notes, 1 folder and 3 boards" */
@@ -222,4 +256,5 @@ export async function importProject(project: ProjectFile, mode: ImportMode) {
     const missing = new Set(wanted.filter((_, i) => !have[i]))
     await db.assets.bulkAdd(project.assets.filter((a) => missing.has(a.id)))
   })
+  logChange(`${mode === 'replace' ? 'Replaced everything with' : 'Merged in'} ${describeProject(project)} from a backup`)
 }

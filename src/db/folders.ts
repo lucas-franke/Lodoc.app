@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { logChange, logMove, logRename } from './activity'
 import { db } from './db'
 import { deleteBoard } from './boards'
 import { deleteNotes } from './notes'
@@ -13,6 +14,7 @@ export async function createFolder(name: string, parentId: string | null = null)
     createdAt: Date.now(),
   }
   await db.folders.add(folder)
+  logChange('Created', { type: 'folder', id: folder.id, title: folder.name })
   return folder.id
 }
 
@@ -23,8 +25,11 @@ async function nextFolderOrder(parentId: string | null) {
   return siblings.reduce((max, f) => Math.max(max, f.order + 1), 0)
 }
 
-export function renameFolder(id: string, name: string) {
-  return db.folders.update(id, { name: name.trim() || 'Untitled folder' })
+export async function renameFolder(id: string, name: string) {
+  const before = await db.folders.get(id)
+  const next = name.trim() || 'Untitled folder'
+  await db.folders.update(id, { name: next })
+  if (before) logRename({ type: 'folder', id, title: next }, before.name, before.createdAt)
 }
 
 /** IDs of the folder and all of its descendants. */
@@ -47,6 +52,8 @@ export async function moveFolder(id: string, parentId: string | null) {
   const all = await db.folders.toArray()
   if (parentId && descendantIds(all, id).has(parentId)) return // no cycles
   await db.folders.update(id, { parentId, order: await nextFolderOrder(parentId) })
+  const folder = all.find((f) => f.id === id)
+  if (folder) logMove({ type: 'folder', id, title: folder.name }, folder.parentId, parentId)
 }
 
 /** Deletes the folder, its subfolders and all notes and boards inside them. */

@@ -27,13 +27,23 @@ export function useRoute(): Route {
   return useSyncExternalStore(subscribe, getRoute)
 }
 
-const TRASH_HASH = '#/trash'
-const isTrashHash = () => window.location.hash === TRASH_HASH
+/** The filters of the Activity page; "deleted" is what used to be the Trash page */
+export type ActivityTab = 'all' | 'changes' | 'messages' | 'deleted'
 
-/** True on the trash page (#/trash). */
-export function useIsTrash(): boolean {
-  return useSyncExternalStore(subscribe, isTrashHash)
+/** #/activity, #/activity/<tab>, and the old #/trash (bookmarks, history) for the deleted items */
+const activityTabOfHash = (): ActivityTab | null => {
+  const hash = window.location.hash
+  if (hash === '#/trash') return 'deleted'
+  const m = /^#\/activity(?:\/(changes|messages|deleted))?$/.exec(hash)
+  return m ? ((m[1] as ActivityTab | undefined) ?? 'all') : null
 }
+
+/** The Activity tab shown, or null on other pages */
+export function useActivityTab(): ActivityTab | null {
+  return useSyncExternalStore(subscribe, activityTabOfHash)
+}
+
+export const activityHash = (tab: ActivityTab = 'all') => (tab === 'all' ? '#/activity' : `#/activity/${tab}`)
 
 /** The tag whose notes are shown (#/tag/<name>), or null */
 const tagOfHash = () => {
@@ -47,9 +57,9 @@ export function useTagRoute(): string | null {
 /** True on the overview (no page open). */
 export function useIsHome(): boolean {
   const route = useRoute()
-  const trash = useIsTrash()
+  const activity = useActivityTab()
   const tag = useTagRoute()
-  return route === null && !trash && tag === null
+  return route === null && activity === null && tag === null
 }
 
 export function useActiveNoteId(): string | null {
@@ -79,8 +89,8 @@ export function openTag(tag: string) {
   window.location.hash = '#/tag/' + encodeURIComponent(tag)
 }
 
-export function openTrash() {
-  window.location.hash = TRASH_HASH
+export function openActivity(tab: ActivityTab = 'all') {
+  window.location.hash = activityHash(tab)
 }
 
 export function openBoard(id: string) {

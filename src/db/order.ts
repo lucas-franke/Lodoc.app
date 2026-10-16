@@ -1,6 +1,7 @@
+import { logMove } from './activity'
 import { db } from './db'
 import { descendantIds } from './folders'
-import { sortNotesManual } from './notes'
+import { noteTitle, sortNotesManual } from './notes'
 import { sortFolders } from '@/lib/folder-tree'
 
 // Manual ordering for the sidebar. Each placement rewrites the orders of the affected siblings
@@ -25,6 +26,7 @@ export async function placeNote(id: string, folderId: string | null, index: numb
           : n.order !== order && db.notes.update(n.id, { order }),
       ),
     )
+    logMove({ type: 'note', id, title: noteTitle(note) }, note.folderId, folderId)
   })
 }
 
@@ -43,6 +45,7 @@ export async function placeFolder(id: string, parentId: string | null, index: nu
           : f.order !== order && db.folders.update(f.id, { order }),
       ),
     )
+    logMove({ type: 'folder', id, title: folder.name }, folder.parentId, parentId)
   })
 }
 

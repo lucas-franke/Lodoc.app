@@ -8,6 +8,7 @@ import './index.css'
 import App from './App.tsx'
 import { applySavedAppearance } from '@/hooks/useAppearance'
 import { purgeOldTrash } from '@/db/trash'
+import { purgeOldActivity } from '@/db/activity'
 import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
 
@@ -15,6 +16,8 @@ import { shrinkNoteImages } from '@/lib/shrink-note-images'
 applySavedAppearance()
 // Deleted items older than the trash period are removed for good
 void purgeOldTrash()
+// Activity keeps the last 90 days
+void purgeOldActivity()
 // Automatic backups into a folder, if the user set them up
 void startAutoBackup()
 // Images added to notes before uploads were compressed are shrunk once, in the background

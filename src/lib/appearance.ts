@@ -83,10 +83,15 @@ const KEY = 'localnotes:appearance'
 /** The page font used to live in its own key (with a "mono" option that no longer exists) */
 const OLD_FONT_KEY = 'localnotes:pageFont'
 
+/** Settings as saved (here or in a backup file), including older forms; unknown or bad values become defaults */
+export function parseAppearance(saved: Record<string, unknown>): Appearance {
+  return schema.parse(migrate(saved))
+}
+
 export function readAppearance(): Appearance {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Record<string, unknown> | null
-    if (saved) return schema.parse(migrate(saved))
+    if (saved) return parseAppearance(saved)
     const oldFont = localStorage.getItem(OLD_FONT_KEY)
     return { ...DEFAULT_APPEARANCE, pageFont: oldFont === 'serif' ? 'serif' : 'sans' }
   } catch {

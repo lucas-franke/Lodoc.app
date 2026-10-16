@@ -1,5 +1,5 @@
 import { FolderInput, FolderOpen, Trash2, X } from 'lucide-react'
-import { toast } from 'sonner'
+import { notify } from '@/lib/notify'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import {
@@ -50,7 +50,7 @@ export function SelectionBar({
       openNote(null)
     }
     if (entries.length) {
-      toast(`Moved ${count} to Trash`, { action: { label: 'Undo', onClick: () => void restoreItems(entries) } })
+      notify(`Moved ${count} to Trash`, { logged: true, action: { label: 'Undo', onClick: () => void restoreItems(entries) } })
     }
   }
 
