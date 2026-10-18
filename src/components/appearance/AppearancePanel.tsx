@@ -26,6 +26,8 @@ import {
   RADIUS_PRESETS,
   TEXTURE_STRENGTH_DEFAULT,
   TEXTURES,
+  TEXT_COLORS,
+  textTintColor,
   TINTS,
   tintColor,
   type Appearance,
@@ -37,6 +39,8 @@ const TEXT_SIZE_OPTIONS = [
   { id: 'm', name: 'Default', sample: 18 },
   { id: 'l', name: 'Large', sample: 22 },
 ] as const
+
+const tintById = (id: string) => TINTS.find((t) => t.id === id) ?? TINTS[0]
 
 type Section = keyof typeof APPEARANCE_SECTIONS
 /** Settings that change pages; editing one switches the preview to a page */
@@ -195,7 +199,7 @@ export function AppearancePanel({
                       value={t.id}
                       aria-label={t.name}
                       data-tint-swatch={t.id}
-                      className="size-9 rounded-full border p-0 data-[state=on]:bg-transparent data-[state=on]:ring-2 data-[state=on]:ring-ring data-[state=on]:ring-offset-2 data-[state=on]:ring-offset-popover"
+                      className="size-9 rounded-full border p-0 aria-checked:ring-2 aria-checked:ring-ring aria-checked:ring-offset-2 aria-checked:ring-offset-popover"
                       style={{ backgroundColor: tintColor(t, mode) }}
                     >
                       {a.tint === t.id && <Check className="text-foreground" />}
@@ -214,6 +218,53 @@ export function AppearancePanel({
               checked={a.gradient}
               onChange={(gradient) => change({ gradient }, 'shell')}
             />
+            <Row label="Text color">
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                size="sm"
+                value={a.textColor}
+                onValueChange={choose('textColor', 'shell')}
+                aria-label="Text color"
+                className="w-full"
+              >
+                {TEXT_COLORS.map((c) => (
+                  <ToggleGroupItem key={c.id} value={c.id} className="flex-1">
+                    {c.name}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+              {a.textColor === 'tint' && a.tint === 'neutral' && (
+                <p className="text-xs text-muted-foreground">Pick a tint above to see it in the text.</p>
+              )}
+              {a.textColor === 'custom' && (
+                <>
+                  <ToggleGroup
+                    type="single"
+                    value={a.textTint}
+                    onValueChange={choose('textTint', 'shell')}
+                    aria-label="Custom text color"
+                    className="flex-wrap gap-2"
+                    spacing={2}
+                  >
+                    {TINTS.filter((t) => t.id !== 'neutral').map((t) => (
+                      <Tip key={t.id} label={t.name}>
+                        <ToggleGroupItem
+                          value={t.id}
+                          aria-label={`Text color: ${t.name}`}
+                          className="size-9 rounded-full border p-0 aria-checked:ring-2 aria-checked:ring-ring aria-checked:ring-offset-2 aria-checked:ring-offset-popover"
+                          // Filled with the text color itself; the check mark in the page color stays readable on it
+                          style={{ backgroundColor: textTintColor(t, mode) }}
+                        >
+                          {a.textTint === t.id && <Check className="text-background" />}
+                        </ToggleGroupItem>
+                      </Tip>
+                    ))}
+                  </ToggleGroup>
+                  <p className="text-xs text-muted-foreground">{tintById(a.textTint).name}</p>
+                </>
+              )}
+            </Row>
           </SectionBlock>
 
           <SectionBlock
