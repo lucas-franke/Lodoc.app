@@ -128,7 +128,7 @@
 }
 
 /* Color tints (Appearance panel). lib/appearance.ts sets data-tint plus --tint-h / --tint-c (oklch hue and
-   chroma); every surface is derived from them. Neutral keeps the tokens above. Text colors stay neutral. */
+   chroma); every surface is derived from them. Neutral keeps the tokens above. Text has its own setting below. */
 :root:not(.dark)[data-tint]:not([data-tint='neutral']) {
     --background: oklch(0.985 var(--tint-c) var(--tint-h));
     --card: oklch(0.993 calc(var(--tint-c) * 0.5) var(--tint-h));
@@ -153,6 +153,30 @@
     --muted-foreground: oklch(0.72 calc(var(--tint-c) * 0.6) var(--tint-h));
     --sidebar: oklch(0.205 calc(var(--tint-c) * 0.8) var(--tint-h));
     --sidebar-accent: oklch(0.27 calc(var(--tint-c) * 0.9) var(--tint-h));
+}
+
+/* Text color (Appearance panel: Match tint / Custom). lib/appearance.ts sets data-text-tint plus --text-h /
+   --text-c. The tint shows clearly but the lightness stays close to the neutral text, so contrast holds. Text on
+   primary buttons keeps its colors. After the tint rules, so it also wins over their muted text. */
+:root:not(.dark)[data-text-tint]:not([data-text-tint='neutral']) {
+    --foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --card-foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --popover-foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --sidebar-foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --secondary-foreground: oklch(0.32 calc(var(--text-c) * 4) var(--text-h));
+    --accent-foreground: oklch(0.32 calc(var(--text-c) * 4) var(--text-h));
+    --sidebar-accent-foreground: oklch(0.32 calc(var(--text-c) * 4) var(--text-h));
+    --muted-foreground: oklch(0.47 calc(var(--text-c) * 3) var(--text-h));
+}
+:root.dark[data-text-tint]:not([data-text-tint='neutral']) {
+    --foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --card-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --popover-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --sidebar-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --secondary-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --accent-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --sidebar-accent-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --muted-foreground: oklch(0.73 calc(var(--text-c) * 2.5) var(--text-h));
 }
 
 /* Gradient: a soft glow in the tint color from the top left corner that fades out well before the page
@@ -442,6 +466,19 @@
 }
 .bn-root.bn-shadcn [data-content-type='heading'][data-level='3'] {
   --level: 1.25em;
+}
+
+/* The hint in an empty line ("Enter text or type '/' for commands"): BlockNote draws it in its very light
+   side-menu grey (about 1.6:1 on white); the app's secondary text color keeps it readable (4.5:1 or more) */
+.bn-root.bn-shadcn .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
+  color: var(--muted-foreground);
+}
+
+/* Quotes: body text color (BlockNote greys them, about 4:1 on white); the line on the left stays, in the
+   theme's secondary text color so it follows tints and dark mode */
+.bn-root.bn-shadcn [data-content-type='quote'] blockquote {
+  color: inherit;
+  border-left-color: var(--muted-foreground);
 }
 
 /* Image captions: readable, and editable with a double click (CaptionEditor) */

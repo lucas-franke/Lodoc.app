@@ -21,6 +21,20 @@ export function tintColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
   return mode === 'light' ? `oklch(0.985 ${t.chroma} ${t.hue})` : `oklch(0.17 ${t.chroma * 0.8} ${t.hue})`
 }
 
+/** Text in a tint's color (same numbers as the data-text-tint rules in index.css), for the swatches */
+export function textTintColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
+  if (t.id === 'neutral') return mode === 'light' ? 'oklch(0.145 0 0)' : 'oklch(0.985 0 0)'
+  return mode === 'light' ? `oklch(0.3 ${t.chroma * 4} ${t.hue})` : `oklch(0.92 ${t.chroma * 2} ${t.hue})`
+}
+
+/** Text color: neutral grey, the page tint, or a tint of its own */
+export const TEXT_COLORS = [
+  { id: 'neutral', name: 'Neutral' },
+  { id: 'tint', name: 'Match tint' },
+  { id: 'custom', name: 'Custom' },
+] as const
+export type TextColor = (typeof TEXT_COLORS)[number]['id']
+
 export const RADIUS_PRESETS = [
   { id: 'sharp', name: 'Sharp', px: 0 },
   { id: 'rounded', name: 'Rounded', px: 10 },
@@ -45,6 +59,9 @@ export const WIDE_SCREEN = '(min-width: 48rem)'
 const schema = z.object({
   tint: z.enum(TINTS.map((t) => t.id) as [Tint, ...Tint[]]).catch('neutral'),
   gradient: z.boolean().catch(false),
+  textColor: z.enum(['neutral', 'tint', 'custom']).catch('neutral'),
+  /** The text's own tint, used when textColor is "custom" */
+  textTint: z.enum(TINTS.map((t) => t.id) as [Tint, ...Tint[]]).catch('sand'),
   pageFont: z.enum(['sans', 'serif']).catch('sans'),
   textSize: z.enum(['s', 'm', 'l']).catch('m'),
   /** Notes without a chosen cover show a generated gradient (off: only covers the user picked) */
@@ -74,7 +91,7 @@ export const DEFAULT_APPEARANCE: Appearance = schema.parse({})
 
 /** Which settings each panel section owns (for "Reset" per section) */
 export const APPEARANCE_SECTIONS = {
-  theme: ['tint', 'gradient'],
+  theme: ['tint', 'gradient', 'textColor', 'textTint'],
   pages: ['pageFont', 'textSize', 'autoCover', 'texture', 'textureStrength'],
   interface: ['sidebar', 'corners', 'uiGrain', 'uiGrainStrength'],
 } as const satisfies Record<string, readonly (keyof Appearance)[]>
@@ -126,6 +143,12 @@ export function applyAppearance(a: Appearance) {
   const tint = TINTS.find((t) => t.id === a.tint) ?? TINTS[0]
   root.style.setProperty('--tint-h', String(tint.hue))
   root.style.setProperty('--tint-c', String(tint.chroma))
+  // "Match tint" with a neutral page tint is simply neutral text
+  const textTint = TINTS.find((t) => t.id === (a.textColor === 'tint' ? a.tint : a.textTint)) ?? TINTS[0]
+  const textTintId = a.textColor === 'neutral' ? 'neutral' : textTint.id
+  root.dataset.textTint = textTintId
+  root.style.setProperty('--text-h', String(textTint.hue))
+  root.style.setProperty('--text-c', String(textTint.chroma))
   const corners = RADIUS_PRESETS.find((p) => p.id === a.corners) ?? RADIUS_PRESETS[1]
   root.style.setProperty('--radius', `${corners.px / 16}rem`)
   root.style.setProperty('--page-text-size', TEXT_SIZES[a.textSize])
