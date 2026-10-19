@@ -1,4 +1,4 @@
-import { ArchiveRestore, Download, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
+import { ArchiveRestore, Check, Download, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { notify } from '@/lib/notify'
 import { ImportDialog } from '@/components/ImportDialog'
@@ -155,6 +155,16 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
                 <span className="text-xs text-muted-foreground">Asks the browser not to clear it when space runs low</span>
               </span>
             </DropdownMenuItem>
+          )}
+          {/* Once granted it's a state, not an action: shown as a plain row with "On" */}
+          {persisted.supported && persisted.value && (
+            <div className="flex min-h-9 items-center gap-1.5 px-2 py-2 text-sm" data-persisted>
+              <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
+              <span className="flex-1">Data kept safe</span>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Check className="size-3.5" /> On
+              </span>
+            </div>
           )}
           <p className="px-2 py-1.5 text-xs leading-relaxed text-muted-foreground">
             Notes, boards and images are stored only in this browser
