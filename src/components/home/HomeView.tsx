@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, FolderPlus, LayoutDashboard, Plus } from 'luc
 import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folder/FolderView'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { TemplateMenu } from '@/components/TemplateMenu'
+import { QuickCapture } from './QuickCapture'
 import { NoteCover } from '@/components/note/NoteCover'
 import { Button } from '@/components/ui/button'
 import { createBoard, sortBoards } from '@/db/boards'
@@ -50,6 +51,8 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       <p className="mt-2 text-sm text-muted-foreground">
         {plural(notes.length, 'note')} · {plural(folders.length, 'folder')} · {plural(boards.length, 'board')}
       </p>
+
+      <QuickCapture />
 
       {continueWith && <ContinueCard note={continueWith} />}
 
