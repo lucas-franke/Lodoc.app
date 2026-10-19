@@ -22,6 +22,7 @@ const CONTENT: StoredBlock[] = [
   li({ text: 'Ctrl+K', bold: true }, ' (or Search at the top of the sidebar) opens the command palette: search every note by title and text, and run commands.'),
   li('Folders, favorites (the star at the top right) and pinned notes keep the sidebar tidy.'),
   li('Press ', { text: '?', code: true }, ' to see all keyboard shortcuts.'),
+  li('In the installed app on Android, share text or links from other apps to Lodoc: they are collected with the date in one note. "Collect here" in a note’s menu picks which.'),
   h(2, 'Boards'),
   li('A board is an infinite canvas: add notes as cards, text and images with the round + button.'),
   li('Drag a note from the sidebar onto a board. Double-click a card to edit the note right there.'),

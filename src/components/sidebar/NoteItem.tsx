@@ -1,4 +1,5 @@
-import { FileText, MoreHorizontal, Pin } from 'lucide-react'
+import { FileText, Inbox, MoreHorizontal, Pin } from 'lucide-react'
+import { useCollectNoteId } from '@/lib/collect'
 import { RowContextMenu, RowDropdownMenu } from '@/components/ItemMenu'
 import { Button } from '@/components/ui/button'
 import { noteTitle, renameNote } from '@/db/notes'
@@ -30,6 +31,7 @@ export function NoteItem({
   const isSelected = selected.has(selectKey)
   const active = note.id === activeNoteId
   const renameKey = `${section}:${note.id}`
+  const collecting = useCollectNoteId() === note.id
   const renaming = renamingId === renameKey
 
   const menu = useNoteMenuEntries(note, {
@@ -65,7 +67,7 @@ export function NoteItem({
         <DropLine position={indicator} indent={indentLeft} />
         {renaming ? (
           <div className="flex h-full min-w-0 flex-1 items-center gap-2" style={indent}>
-            <FileText className="size-4 shrink-0 text-muted-foreground" />
+            <NoteIcon collecting={collecting} />
             <RenameInput
               initial={note.title}
               onDone={(title) => {
@@ -84,7 +86,7 @@ export function NoteItem({
             draggable={false}
             onClick={(e) => selectClick(e, selectKey)}
           >
-            <FileText className="size-4 shrink-0 text-muted-foreground" />
+            <NoteIcon collecting={collecting} />
             <span className="min-w-0 flex-1 truncate">
               {noteTitle(note)}
               {hint && <span className="ml-1.5 text-xs font-normal text-muted-foreground">{hint}</span>}
@@ -108,4 +110,10 @@ export function NoteItem({
       </div>
     </RowContextMenu>
   )
+}
+
+/** The note that collects what's shared from other apps (lib/collect.ts) shows an inbox instead of a page */
+function NoteIcon({ collecting }: { collecting: boolean }) {
+  if (!collecting) return <FileText className="size-4 shrink-0 text-muted-foreground" />
+  return <Inbox className="size-4 shrink-0 text-muted-foreground" role="img" aria-label="Collects what you share to Lodoc" />
 }

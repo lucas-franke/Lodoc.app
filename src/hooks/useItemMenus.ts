@@ -3,12 +3,14 @@ import { useMemo } from 'react'
 import {
   ArrowDown,
   ArrowUp,
+  Check,
   Copy,
   Download,
   ExternalLink,
   FolderInput,
   FolderOpen,
   FolderPlus,
+  Inbox,
   LayoutDashboard,
   Pencil,
   Pin,
@@ -19,6 +21,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { notify } from '@/lib/notify'
+import { isInstalledApp, setCollectNoteId, useCollectNoteId } from '@/lib/collect'
 import type { MenuEntry } from '@/components/ItemMenu'
 import { db } from '@/db/db'
 import { holdKeyboard } from '@/lib/keyboard'
@@ -114,6 +117,8 @@ export function useNoteMenuEntries(
 ): MenuEntry[] {
   const folders = useAllFolders()
   const route = useRoute()
+  const collectNoteId = useCollectNoteId()
+  const collecting = collectNoteId === note.id
 
   return [
     renameEntry(onRename),
@@ -138,6 +143,20 @@ export function useNoteMenuEntries(
       },
     },
     { type: 'item', label: 'Download as .md', icon: Download, onSelect: () => void downloadNoteAsMarkdown(note.id) },
+    // Text and links shared to the installed app from other apps land in one note (lib/collect.ts)
+    ...(isInstalledApp()
+      ? [
+          {
+            type: 'item' as const,
+            label: collecting ? 'Collecting here' : 'Collect here',
+            icon: collecting ? Check : Inbox,
+            onSelect: () => {
+              if (!collecting) setCollectNoteId(note.id)
+              notify(`"${noteTitle(note)}" collects what you share to Lodoc from other apps`, { level: collecting ? 'info' : 'success' })
+            },
+          },
+        ]
+      : []),
     ...moveToEntries(folders, note.folderId, (folderId) => {
       void moveNote(note.id, folderId)
       onMoved?.(folderId)
