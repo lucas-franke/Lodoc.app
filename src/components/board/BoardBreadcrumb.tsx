@@ -7,7 +7,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
-import { renameBoard } from '@/db/boards'
+import { renameBoard, takeFreshBoard } from '@/db/boards'
 import type { Board } from '@/db/schema'
 
 /**
@@ -22,6 +22,11 @@ export function BoardBreadcrumb({ board }: { board: Board }) {
   useEffect(() => {
     if (document.activeElement !== ref.current) setTitle(board.title)
   }, [board.title])
+
+  // A board you just created starts with its name, like a new note
+  useEffect(() => {
+    if (takeFreshBoard(board.id)) ref.current?.select()
+  }, [board.id])
 
   const titleInput = (
     <>

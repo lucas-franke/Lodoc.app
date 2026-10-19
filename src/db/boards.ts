@@ -4,6 +4,14 @@ import { logChange, logMove, logRename } from './activity'
 import { db } from './db'
 import type { Board } from './schema'
 
+/** Boards created in this session that haven't been opened yet: their title field takes focus once, like a new note's */
+const freshBoards = new Set<string>()
+
+/** True once for a board just created here (the next call returns false) */
+export function takeFreshBoard(id: string) {
+  return freshBoards.delete(id)
+}
+
 export async function createBoard(folderId: string | null = null): Promise<string> {
   const now = Date.now()
   const board: Board = {
@@ -16,6 +24,7 @@ export async function createBoard(folderId: string | null = null): Promise<strin
     nodes: [],
   }
   await db.boards.add(board)
+  freshBoards.add(board.id)
   logChange('Created', { type: 'board', id: board.id, title: '' })
   return board.id
 }
