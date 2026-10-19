@@ -19,6 +19,7 @@ import {
   useAppearance,
 } from '@/hooks/useAppearance'
 import { useWideScreen } from '@/hooks/useWideScreen'
+import { crossfade, playOnce } from '@/lib/joy'
 import { openNote, useRoute } from '@/hooks/useRoute'
 import {
   APPEARANCE_SECTIONS,
@@ -113,10 +114,13 @@ export function AppearancePanel({
     highlight('shell')
     setUndo({ appearance: before, theme: beforeTheme, status: 'Back to defaults' })
   }
-  const randomize = () => {
+  const randomize = (e: React.MouseEvent<HTMLButtonElement>) => {
     const before = getAppearance()
+    // The dice roll, and the new look fades in
+    const dice = e.currentTarget.querySelector('svg')
+    if (dice) playOnce(dice, 'joy-roll')
     // Undo keeps the look from before the first of several rolls in a row
-    updateAppearance(randomAppearance(before))
+    crossfade(() => updateAppearance(randomAppearance(before)))
     highlight('shell')
     setUndo((u) => (u?.status === 'Randomized' ? u : { appearance: before, theme, status: 'Randomized' }))
   }

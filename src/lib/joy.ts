@@ -1,6 +1,8 @@
 // Small moments of delight ("sparks of joy"). Each is short and quiet, and none happens when the system asks
 // for reduced motion. The colour is --joy (index.css): the tint's hue, or a warm gold without a tint.
 
+import { flushSync } from 'react-dom'
+
 export const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /** A few dots that drift up from a point and fade, once (about 0.8 s) */
@@ -21,6 +23,12 @@ export function burst(x: number, y: number, count = 7) {
     dot.addEventListener('animationend', () => dot.remove())
     document.body.appendChild(dot)
   }
+}
+
+/** A change of the whole look that crossfades in (View Transitions; a plain switch where they aren't supported) */
+export function crossfade(update: () => void) {
+  if (reducedMotion() || !document.startViewTransition) return update()
+  document.startViewTransition(() => flushSync(update))
 }
 
 /** Plays a CSS animation class on an element once (restarting it if it is still running) */

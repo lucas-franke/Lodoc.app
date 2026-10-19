@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useState } from 'react'
 import { ArrowRight, CalendarDays, FolderPlus, LayoutDashboard, Plus } from 'lucide-react'
 import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folder/FolderView'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
@@ -28,6 +29,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], undefined as Folder[] | undefined)
   const boards = useLiveQuery(() => db.boards.toArray(), [], undefined as Board[] | undefined)
   const [cardView, setCardView] = useNoteCardView()
+  const [hello] = useState(() => greeting(new Date().getHours()))
 
   if (!notes || !folders || !boards) return null // still loading
   if (!notes.length && !folders.length && !boards.length) return empty
@@ -48,7 +50,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
       <p className="mb-1 text-sm text-muted-foreground" data-greeting>
-        {greeting(new Date().getHours())}
+        {hello}
       </p>
       <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
       <p className="mt-2 text-sm text-muted-foreground">
