@@ -31,7 +31,7 @@ import {
 import { boardTitle, createBoard } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
-import { createNote, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
+import { createNote, noteSnippetText, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openFolder, openNote, openTag, openActivity } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
@@ -234,7 +234,7 @@ function Item({
 /** A note with its folder, and (while searching) the text around the first match */
 function NoteItem({ note, folder, query, onSelect }: { note: Note; folder?: string; query?: string; onSelect: () => void }) {
   const title = noteTitle(note)
-  const excerpt = query && !title.toLowerCase().includes(query) ? excerptAround(noteText(note), query) : null
+  const excerpt = query && !title.toLowerCase().includes(query) ? excerptAround(noteSnippetText(note), query) : null
   return (
     <CommandItem value={'note:' + note.id} onSelect={onSelect} className="items-start">
       <FileText className="mt-0.5" />

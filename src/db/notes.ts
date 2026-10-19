@@ -223,11 +223,21 @@ export function noteText(note: Note): string {
   return [note.title, ...bodyParts(note), ...note.tags.map((t) => '#' + t)].join(' ')
 }
 
+/** Between blocks in one-line previews, so separate lines don't run together into one sentence */
+const BLOCK_SEPARATOR = ' · '
+
+/** The body and tags as one line, blocks kept apart: what search results quote around a match. */
+export function noteSnippetText(note: Note): string {
+  return [...bodyParts(note), ...note.tags.map((t) => '#' + t)].map(oneLine).filter(Boolean).join(BLOCK_SEPARATOR)
+}
+
 /** The start of a note's body as one line of plain text, for preview cards. */
 export function notePreview(note: Note, maxLength = 200): string {
-  const text = bodyParts(note).join(' ').replace(/\s+/g, ' ').trim()
+  const text = bodyParts(note).map(oneLine).filter(Boolean).join(BLOCK_SEPARATOR)
   return text.length > maxLength ? text.slice(0, maxLength).trimEnd() + '…' : text
 }
+
+const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim()
 
 function bodyParts(note: Note): string[] {
   // One entry per block (or table cell); styled runs inside it are joined without spaces
