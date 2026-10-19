@@ -1,4 +1,27 @@
-import { FormattingToolbar, PortalElementOverride, UIModeContext, usePortalElement, useVirtualKeyboard } from '@blocknote/react'
+import {
+  BasicTextStyleButton,
+  BlockTypeSelect,
+  ColorStyleButton,
+  CreateLinkButton,
+  FileCaptionButton,
+  FileDeleteButton,
+  FileDownloadButton,
+  FilePreviewButton,
+  FileRenameButton,
+  FileReplaceButton,
+  FormattingToolbar,
+  NestBlockButton,
+  PortalElementOverride,
+  TableCellMergeButton,
+  UIModeContext,
+  UnnestBlockButton,
+  useBlockNoteEditor,
+  useComponentsContext,
+  useEditorState,
+  usePortalElement,
+  useVirtualKeyboard,
+} from '@blocknote/react'
+import { List, ListChecks, Redo2, Undo2, type LucideIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 
 /**
@@ -26,8 +49,90 @@ function Bar() {
   if (!portalElement) return null
   return createPortal(
     <div className="bn-mobile-formatting-toolbar note-format-bar">
-      <FormattingToolbar />
+      {/* What a phone needs most comes first: undo (there is no Ctrl+Z), lists and indenting, then styles.
+          No text alignment, which is rarely used in notes. The bar scrolls sideways for the rest. */}
+      <FormattingToolbar>
+        <HistoryButton action="undo" />
+        <HistoryButton action="redo" />
+        <BlockTypeSelect />
+        <ListButton type="bulletListItem" />
+        <ListButton type="checkListItem" />
+        <NestBlockButton />
+        <UnnestBlockButton />
+        <BasicTextStyleButton basicTextStyle="bold" />
+        <BasicTextStyleButton basicTextStyle="italic" />
+        <CreateLinkButton />
+        <TableCellMergeButton />
+        <FileCaptionButton />
+        <FileReplaceButton />
+        <FileRenameButton />
+        <FileDeleteButton />
+        <FileDownloadButton />
+        <FilePreviewButton />
+        <BasicTextStyleButton basicTextStyle="underline" />
+        <BasicTextStyleButton basicTextStyle="strike" />
+        <ColorStyleButton />
+      </FormattingToolbar>
     </div>,
     portalElement,
+  )
+}
+
+function HistoryButton({ action }: { action: 'undo' | 'redo' }) {
+  const Components = useComponentsContext()!
+  const editor = useBlockNoteEditor()
+  const Icon = action === 'undo' ? Undo2 : Redo2
+  const label = action === 'undo' ? 'Undo' : 'Redo'
+  return (
+    <Components.FormattingToolbar.Button
+      className="bn-button"
+      label={label}
+      mainTooltip={label}
+      icon={<Icon className="size-4" />}
+      onClick={() => {
+        editor.focus()
+        editor[action]()
+      }}
+    />
+  )
+}
+
+const LISTS: Record<'bulletListItem' | 'checkListItem', { label: string; icon: LucideIcon }> = {
+  bulletListItem: { label: 'Bullet list', icon: List },
+  checkListItem: { label: 'Checklist', icon: ListChecks },
+}
+
+/** Turns the selected lines into a list of this kind, or back into plain text when they already are one */
+function ListButton({ type }: { type: keyof typeof LISTS }) {
+  const Components = useComponentsContext()!
+  const editor = useBlockNoteEditor()
+  const selectedBlocks = () => editor.getSelection()?.blocks ?? [editor.getTextCursorPosition().block]
+  const state = useEditorState({
+    editor,
+    selector: ({ editor }) => {
+      const blocks = (editor.getSelection()?.blocks ?? [editor.getTextCursorPosition().block]).filter(
+        (block) => block.content !== undefined,
+      )
+      if (!editor.isEditable || blocks.length === 0) return undefined
+      return { active: blocks.every((block) => block.type === type) }
+    },
+  })
+  if (state === undefined) return null
+  const { label, icon: Icon } = LISTS[type]
+  return (
+    <Components.FormattingToolbar.Button
+      className="bn-button"
+      label={label}
+      mainTooltip={label}
+      icon={<Icon className="size-4" />}
+      isSelected={state.active}
+      onClick={() => {
+        editor.focus()
+        const blocks = selectedBlocks().filter((block) => block.content !== undefined)
+        editor.transact(() => {
+          for (const block of blocks) editor.updateBlock(block, { type: state.active ? 'paragraph' : type })
+        })
+      }}
+    />
   )
 }
