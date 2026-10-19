@@ -18,7 +18,11 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks'
 import { nanoid } from 'nanoid'
 import { useTheme } from 'next-themes'
+import { LayoutGrid } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Tip } from '@/components/Tip'
+import { Button } from '@/components/ui/button'
+import { useAppEvent } from '@/lib/app-events'
 import { notify } from '@/lib/notify'
 import { useRegisterCanvasDrop } from '@/components/dnd/dnd-registry'
 import type { DndData } from '@/components/sidebar/tree-dnd'
@@ -33,6 +37,7 @@ import { BoardFab } from './BoardFab'
 import { CardViewMenu } from './CardViewMenu'
 import { ConnectPicker } from './ConnectPicker'
 import { NodeSearch } from './NodeSearch'
+import { tidyLayout } from './tidy'
 import { useMinimapSetting } from './use-minimap'
 import { ZoomSlider } from './ZoomSlider'
 import {
@@ -56,10 +61,14 @@ import { TextNode } from './nodes/TextNode'
 
 /** Height of the page header that floats over the canvas (App.tsx, h-12) */
 const HEADER_HEIGHT = 48
+/** Fitting items into view: clear of the header with the search and card controls under it, and of the zoom bar */
+const FIT_PADDING = { top: '120px', bottom: '88px', x: '32px' } as const
 
 const nodeTypes = { note: NoteNode, text: TextNode, image: ImageNode, frame: FrameNode }
 const edgeTypes = { arrow: ArrowEdge }
 const NO_NOTES = new Map<string, Note>()
+/** Where an item goes (frames also get a size) */
+type Move = { x: number; y: number; width?: number; height?: number }
 
 /** The board canvas. Loaded lazily, so React Flow is its own chunk. */
 export default function BoardPage({ board }: { board: Board }) {
@@ -132,7 +141,7 @@ function Canvas({ board }: { board: Board }) {
       const cy = y + h / 2
       return cx > from.x && cx < to.x && cy > from.y && cy < to.y
     })
-    if (!inView) void rf.fitView({ padding: 0.15, maxZoom: 1 })
+    if (!inView) void rf.fitView({ padding: FIT_PADDING, maxZoom: 1 })
   }, [nodesInitialized, rf])
 
   /**
@@ -469,6 +478,70 @@ function Canvas({ board }: { board: Board }) {
     setEditingId(id)
   }, [addNode, place])
 
+  // ---- tidy up ---------------------------------------------------------------------------
+
+  /** The items glide to new boxes (unless motion is reduced), then the result is saved */
+  const moveTo = useCallback(
+    (boxes: Map<string, Move>) => {
+      const from = nodesRef.current
+      const target = from.map((n) => {
+        const box = boxes.get(n.id)
+        if (!box) return n
+        return { ...n, position: { x: box.x, y: box.y }, ...(box.width !== undefined ? { width: box.width, height: box.height } : {}) }
+      })
+      const done = () => {
+        void commit(target)
+        void rf.fitView({ padding: FIT_PADDING, maxZoom: 1, duration: 300 })
+      }
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return done()
+      setInteracting(true)
+      const DURATION = 320
+      const start = performance.now()
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / DURATION)
+        const k = 1 - (1 - t) ** 3 // ease out
+        const mix = (a: number, b: number) => a + (b - a) * k
+        setNodes(
+          from.map((n, i) => {
+            const to = target[i]
+            if (to === n) return n
+            return {
+              ...n,
+              position: { x: mix(n.position.x, to.position.x), y: mix(n.position.y, to.position.y) },
+              ...(to.width !== n.width ? { width: mix(n.width ?? to.width!, to.width!), height: mix(n.height ?? to.height!, to.height!) } : {}),
+            }
+          }),
+        )
+        if (t < 1) requestAnimationFrame(step)
+        else done()
+      }
+      requestAnimationFrame(step)
+    },
+    [commit, rf],
+  )
+
+  /** Every item in neat rows, without overlaps (see tidy.ts); Undo puts them back where they were */
+  const tidyUp = useCallback(() => {
+    const before = nodesRef.current
+    if (before.length < 2) return
+    const size = (n: BoardFlowNode) => {
+      // What is drawn: a text item grows past its set height with its text
+      const measured = rf.getInternalNode(n.id)?.measured
+      return { width: measured?.width ?? n.width ?? n.data.width, height: measured?.height ?? n.height ?? n.data.height }
+    }
+    const boxes = tidyLayout(
+      before.map((n) => ({ id: n.id, frame: n.data.type === 'frame', x: n.position.x, y: n.position.y, ...size(n) })),
+    )
+    // Only frames change size; everything else keeps its own
+    const frames = new Set(before.filter((n) => n.data.type === 'frame').map((n) => n.id))
+    const moves = new Map<string, Move>([...boxes].map(([id, box]) => [id, frames.has(id) ? box : { x: box.x, y: box.y }]))
+    const previous = new Map<string, Move>(before.map((n) => [n.id, { x: n.position.x, y: n.position.y, width: n.width, height: n.height }]))
+    moveTo(moves)
+    notify('Board tidied up', { action: { label: 'Undo', onClick: () => moveTo(previous) } })
+  }, [rf, moveTo])
+
+  useAppEvent('tidy-board', tidyUp)
+
   useRegisterCanvasDrop(({ noteId, x, y }) => addNote(noteId, rf.screenToFlowPosition({ x, y })))
 
   // Paste images with Ctrl+V (unless the user is typing somewhere)
@@ -637,7 +710,14 @@ function Canvas({ board }: { board: Board }) {
             />
           )}
           {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
-          <Panel position="top-right">
+          <Panel position="top-right" className="flex gap-1.5">
+            {nodes.length > 1 && (
+              <Tip label="Tidy up">
+                <Button variant="outline" size="icon-sm" className="nodrag bg-background shadow-sm" onClick={tidyUp} aria-label="Tidy up">
+                  <LayoutGrid />
+                </Button>
+              </Tip>
+            )}
             <CardViewMenu value={noteView} onChange={setAllCardViews} />
           </Panel>
         </ReactFlow>

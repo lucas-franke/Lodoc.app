@@ -68,7 +68,7 @@ export function NodeSearch({
 
   return (
     // Phones: narrower, so it stays clear of the card size menu on the right
-    <Panel position="top-left" className="nodrag nopan nowheel w-64 max-sm:w-[calc(100%-12rem)]">
+    <Panel position="top-left" className="nodrag nopan nowheel w-64 max-sm:w-[calc(100%-14.75rem)]">
       <Command
         shouldFilter={false}
         label="Find on board"

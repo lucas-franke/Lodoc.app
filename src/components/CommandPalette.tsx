@@ -34,7 +34,7 @@ import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
 import { createNote, noteSnippetText, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openFolder, openNote, openTag, openActivity } from '@/hooks/useRoute'
+import { openBoard, openFolder, openNote, openTag, openActivity, useRoute } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
 import { openGuideNote } from '@/lib/guide'
 import { openTodaysJournal } from '@/lib/journal'
@@ -64,6 +64,7 @@ export function CommandPalette({
     null,
   )
   const { resolvedTheme, setTheme } = useTheme()
+  const onBoard = useRoute()?.type === 'board'
   // Opened by a shortcut or a button that isn't its Radix trigger, so remember where focus was and go back
   // there when the palette is dismissed (a command that ran leaves focus to whatever it opened)
   const returnFocus = useRef<HTMLElement | null>(null)
@@ -86,6 +87,7 @@ export function CommandPalette({
     ...TEMPLATES.map((t) => ({ id: 'template-' + t.id, label: 'New ' + t.name.toLowerCase(), icon: t.icon, keywords: 'template ' + t.name, run: async () => openNote(await createFromTemplate(t.id, newNoteFolderId)) })),
     { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder')) },
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
+    ...(onBoard ? [{ id: 'tidy-board', label: 'Tidy up this board', icon: LayoutGrid, keywords: 'arrange grid align layout clean order', run: () => emitAppEvent('tidy-board') }] : []),
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },
     { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme font color tint texture settings', run: () => emitAppEvent('open-appearance') },
     { id: 'export', label: 'Export backup (.json)', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
