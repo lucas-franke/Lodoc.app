@@ -653,6 +653,11 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
   .joy-dot {
     animation: joy-dot 800ms ease-out forwards;
   }
+  /* A typed arrow that just became → (editor/arrows.ts) */
+  .joy-flash {
+    border-radius: 3px;
+    animation: joy-flash 600ms ease-out;
+  }
 }
 @keyframes joy-pop {
   0% { transform: scale(0.7); }
@@ -662,4 +667,7 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
 @keyframes joy-dot {
   from { transform: translate(0, 0) scale(1); opacity: 1; }
   to { transform: translate(var(--dx), var(--dy)) scale(0.4); opacity: 0; }
+}
+@keyframes joy-flash {
+  from { color: var(--joy); background-color: color-mix(in oklch, var(--joy) 22%, transparent); }
 }
