@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PAPER_TILE_SIZE, renderPaperTexture } from './paper-texture'
 
 // Appearance settings: one object, remembered in this browser and applied to <html> as data attributes
 // and CSS variables. index.css turns them into the look (tinted surfaces, gradient, floating sidebar, grain).
@@ -137,6 +138,13 @@ export function applyAppearance(a: Appearance) {
   root.dataset.gradient = String(a.gradient)
   root.dataset.sidebar = a.sidebar === 'floating' && window.matchMedia(WIDE_SCREEN).matches ? 'floating' : 'connected'
   root.dataset.texture = a.texture
+  // Paper is rendered by a shader on first use; until then (or without WebGL) index.css shows an SVG paper
+  if (a.texture === 'paper')
+    void renderPaperTexture().then((url) => {
+      if (!url) return
+      root.style.setProperty('--paper-image', `url("${url}")`)
+      root.style.setProperty('--paper-size', PAPER_TILE_SIZE)
+    })
   root.style.setProperty('--texture-strength', String(a.textureStrength / TEXTURE_STRENGTH_DEFAULT))
   root.dataset.uiGrain = String(a.uiGrain)
   root.style.setProperty('--ui-grain-strength', String(a.uiGrainStrength / TEXTURE_STRENGTH_DEFAULT))
