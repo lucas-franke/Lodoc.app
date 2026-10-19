@@ -32,6 +32,8 @@ export interface Note {
    * gradient is shown; null = the user removed the cover.
    */
   cover?: NoteCoverValue | null
+  /** A daily journal note: the day it is for ("2026-10-20"), so "Today's journal" finds it again */
+  journal?: string
   createdAt: number
   updatedAt: number
 }

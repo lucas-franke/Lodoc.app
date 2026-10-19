@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowRight, FolderPlus, LayoutDashboard, Plus } from 'lucide-react'
+import { ArrowRight, CalendarDays, FolderPlus, LayoutDashboard, Plus } from 'lucide-react'
 import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folder/FolderView'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { TemplateMenu } from '@/components/TemplateMenu'
@@ -16,6 +16,7 @@ import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
 import { resolveCover } from '@/lib/cover'
 import { formatRelative, plural } from '@/lib/format'
+import { openTodaysJournal } from '@/lib/journal'
 import { readLastNote } from '@/lib/last-note'
 
 const RECENT_COUNT = 8
@@ -55,6 +56,9 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       <div className="mt-6 flex flex-wrap gap-2">
         <Button onClick={async () => openNote(await createNote())}>
           <Plus /> New note
+        </Button>
+        <Button variant="outline" onClick={async () => openNote(await openTodaysJournal())}>
+          <CalendarDays /> Today's journal
         </Button>
         <TemplateMenu />
         <Button variant="outline" onClick={async () => openFolder(await createFolder('New folder'))}>

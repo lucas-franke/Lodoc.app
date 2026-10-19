@@ -10,6 +10,7 @@ import { BoardPageActions, FolderPageActions, NotePageActions } from '@/componen
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { HomeView } from '@/components/home/HomeView'
 import { Welcome } from '@/components/home/Welcome'
+import { openTodaysJournal } from '@/lib/journal'
 import { rememberLastNote } from '@/lib/last-note'
 import { ActivityView } from '@/components/activity/ActivityView'
 import { TagView } from '@/components/tags/TagView'
@@ -113,6 +114,9 @@ export default function App() {
       if (mod && e.altKey && e.key.toLowerCase() === 'n') {
         e.preventDefault()
         openNote(await createNote(newNoteFolderId))
+      } else if (mod && e.altKey && e.code === 'KeyJ') {
+        e.preventDefault()
+        openNote(await openTodaysJournal())
       } else if (mod && e.key === '\\') {
         e.preventDefault()
         setSidebarOpen((open) => !open)

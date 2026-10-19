@@ -6,6 +6,7 @@ const GROUPS: { title: string; items: [keys: string[], what: string][] }[] = [
     items: [
       [['Ctrl', 'K'], 'Search and commands'],
       [['Ctrl', 'Alt', 'N'], 'New note in the folder you are in'],
+      [['Ctrl', 'Alt', 'J'], "Today's journal"],
       [['Ctrl', '\\'], 'Show or hide the sidebar'],
       [['?'], 'This list'],
     ],

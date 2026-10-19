@@ -14,6 +14,7 @@ import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
 import { followThemeColor } from '@/lib/theme-color'
 import { collectShared, takeSharedFromUrl } from '@/lib/collect'
+import { openTodaysJournal, takeJournalFromUrl } from '@/lib/journal'
 import { notify } from '@/lib/notify'
 
 // Appearance settings (font, corners, …) are applied before the first render, so nothing jumps
@@ -81,6 +82,11 @@ if (shared) {
       render()
       notify('Could not add what was shared', { level: 'error' })
     })
+} else if (takeJournalFromUrl()) {
+  // The app icon's "Today's journal" shortcut
+  void openTodaysJournal()
+    .then((id) => (location.hash = `#/note/${encodeURIComponent(id)}`))
+    .finally(render)
 } else {
   render()
 }

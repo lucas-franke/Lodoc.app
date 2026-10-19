@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   ArchiveRestore,
   BookOpen,
+  CalendarDays,
   FilePlus,
   FileText,
   Folder as FolderIcon,
@@ -36,6 +37,7 @@ import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openFolder, openNote, openTag, openActivity } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
 import { openGuideNote } from '@/lib/guide'
+import { openTodaysJournal } from '@/lib/journal'
 import { createFromTemplate, TEMPLATES } from '@/lib/templates'
 import { exportProject } from '@/lib/project-file'
 
@@ -80,6 +82,7 @@ export function CommandPalette({
   const dark = resolvedTheme === 'dark'
   const actions: Action[] = [
     { id: 'new-note', label: 'New note', icon: FilePlus, shortcut: 'Ctrl Alt N', run: async () => openNote(await createNote(newNoteFolderId)) },
+    { id: 'journal', label: "Today's journal", icon: CalendarDays, keywords: 'daily diary today date', shortcut: 'Ctrl Alt J', run: async () => openNote(await openTodaysJournal()) },
     ...TEMPLATES.map((t) => ({ id: 'template-' + t.id, label: 'New ' + t.name.toLowerCase(), icon: t.icon, keywords: 'template ' + t.name, run: async () => openNote(await createFromTemplate(t.id, newNoteFolderId)) })),
     { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder')) },
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
