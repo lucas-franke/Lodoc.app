@@ -12,6 +12,8 @@ type Options = {
 
 /** How long a message with a button (Undo, Open) stays; plain ones use sonner's default (4s) */
 const WITH_ACTION = 8000
+/** The first message with its explanation: time to read both, without staying in the way */
+const WITH_HINT = 15000
 
 const HINT_KEY = 'localnotes:toastHintSeen'
 const HINT =
@@ -38,7 +40,7 @@ function rememberHint() {
 /**
  * Shows a message and keeps it in Activity, so a message that closes by itself is never lost: everything
  * but errors closes after a few seconds (paused while hovered or focused), errors stay until closed. The
- * very first message stays too and explains this, until it is closed ("Got it").
+ * very first message explains this and stays a little longer; it is shown once.
  */
 export function notify(text: string, { level = 'info', action, id, logged = false }: Options = {}) {
   if (!logged) logActivity({ kind: 'message', text, level })
@@ -48,7 +50,7 @@ export function notify(text: string, { level = 'info', action, id, logged = fals
     hintShowing = true
     Object.assign(options, {
       description: HINT,
-      duration: Infinity,
+      duration: level === 'error' ? Infinity : WITH_HINT,
       action: action && {
         ...action,
         onClick: () => {
@@ -58,6 +60,7 @@ export function notify(text: string, { level = 'info', action, id, logged = fals
       },
       cancel: { label: 'Got it', onClick: rememberHint },
       onDismiss: rememberHint,
+      onAutoClose: rememberHint,
     } satisfies ExternalToast)
   }
 
