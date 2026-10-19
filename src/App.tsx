@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { BookOpen, FilePlus, PanelLeftOpen } from 'lucide-react'
+import { FilePlus, PanelLeftOpen } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { BoardBreadcrumb } from '@/components/board/BoardBreadcrumb'
 import { CommandPalette } from '@/components/CommandPalette'
@@ -9,7 +9,7 @@ import { FolderView } from '@/components/folder/FolderView'
 import { BoardPageActions, FolderPageActions, NotePageActions } from '@/components/PageActions'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { HomeView } from '@/components/home/HomeView'
-import { openGuideNote } from '@/lib/guide'
+import { Welcome } from '@/components/home/Welcome'
 import { rememberLastNote } from '@/lib/last-note'
 import { ActivityView } from '@/components/activity/ActivityView'
 import { TagView } from '@/components/tags/TagView'
@@ -213,8 +213,8 @@ export default function App() {
             ) : route ? (
               <EmptyState missing={route.type} />
             ) : (
-              // No page open: an overview once there is content, the welcome message before that
-              <HomeView empty={<EmptyState missing={null} />} />
+              // No page open: an overview once there is content, the welcome before that
+              <HomeView empty={<Welcome />} />
             )}
           </div>
         </main>
@@ -225,27 +225,15 @@ export default function App() {
   )
 }
 
-function EmptyState({ missing }: { missing: RouteType | null }) {
+/** A link to a page that has been deleted (or never existed) */
+function EmptyState({ missing }: { missing: RouteType }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
       <h1 className="sr-only">Lodoc</h1>
-      <p className="text-sm text-muted-foreground">
-        {missing ? `This ${missing} no longer exists.` : 'Select a note or create a new one.'}
-      </p>
-      <div className="flex flex-wrap justify-center gap-2">
-        <Button onClick={async () => openNote(await createNote())}>
-          <FilePlus /> New note
-        </Button>
-        {!missing && (
-          <Button variant="ghost" onClick={async () => openNote(await openGuideNote())}>
-            <BookOpen /> Getting started guide
-          </Button>
-        )}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Shortcut: <kbd className="font-sans">Ctrl</kbd> + <kbd className="font-sans">Alt</kbd> +{' '}
-        <kbd className="font-sans">N</kbd> · Type <kbd className="font-sans">/</kbd> in a note for blocks
-      </p>
+      <p className="text-sm text-muted-foreground">This {missing} no longer exists.</p>
+      <Button onClick={async () => openNote(await createNote())}>
+        <FilePlus /> New note
+      </Button>
     </div>
   )
 }

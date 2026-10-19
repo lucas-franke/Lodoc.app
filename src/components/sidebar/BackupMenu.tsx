@@ -1,7 +1,7 @@
 import { ArchiveRestore, Check, Download, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { notify } from '@/lib/notify'
-import { ImportDialog } from '@/components/ImportDialog'
+import { useImportFile } from '@/hooks/useImportFile'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { exportProject, getLastExport, readProjectFile, type ProjectFile } from '@/lib/project-file'
+import { exportProject, getLastExport } from '@/lib/project-file'
 import { useAppEvent } from '@/lib/app-events'
 import {
   autoBackupSupported,
@@ -33,10 +33,9 @@ const DAY = 24 * 60 * 60 * 1000
  */
 export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
   const [lastExport, setLastExport] = useState(getLastExport)
-  const [importing, setImporting] = useState<ProjectFile | null>(null)
   // "Now" for the status text; refreshed when the menu opens and after an export
   const [now, setNow] = useState(Date.now)
-  const fileInput = useRef<HTMLInputElement>(null)
+  const importFile = useImportFile()
   // An export from the command palette updates the status line too
   useAppEvent(
     'backup-exported',
@@ -59,15 +58,6 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
   const overdue = paused || autoError || (hasNotes && (!lastExport || now - lastExport > EXPORT_REMINDER_DAYS * DAY))
   const urgent = paused || autoError || (hasNotes && (!lastExport || now - lastExport > EXPORT_WARNING_DAYS * DAY))
   const persisted = usePersistedStorage()
-
-  const onFile = async (file: File | undefined) => {
-    if (!file) return
-    try {
-      setImporting(await readProjectFile(file))
-    } catch (error) {
-      notify(error instanceof Error ? error.message : 'Could not read the file.', { level: 'error' })
-    }
-  }
 
   return (
     <>
@@ -102,7 +92,7 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
           >
             <Download /> Export all notes (.json)
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => fileInput.current?.click()}>
+          <DropdownMenuItem onSelect={importFile.pick}>
             <Upload /> Import from file…
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -172,19 +162,7 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
           </p>
         </DropdownMenuContent>
       </DropdownMenu>
-      <input
-        ref={fileInput}
-        type="file"
-        accept=".json,application/json"
-        className="hidden"
-        aria-hidden
-        tabIndex={-1}
-        onChange={(e) => {
-          void onFile(e.target.files?.[0])
-          e.target.value = ''
-        }}
-      />
-      <ImportDialog project={importing} onClose={() => setImporting(null)} />
+      {importFile.element}
     </>
   )
 }
