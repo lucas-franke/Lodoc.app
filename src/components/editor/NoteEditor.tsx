@@ -25,6 +25,7 @@ import { arrowsExtension } from './arrows'
 import { emptyLinesExtension } from './empty-lines'
 import { NoteTags } from '@/components/note/NoteTags'
 import type { Note, StoredBlock } from '@/db/schema'
+import { cn } from '@/lib/utils'
 
 const SAVE_DELAY = 400
 
@@ -79,6 +80,14 @@ function useDebouncedSave(noteId: string) {
 export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: boolean }) {
   const { resolvedTheme } = useTheme()
   const [title, setTitle] = useState(note.title)
+  // Browsers without `field-sizing: content` (Safari, Firefox) get the title's height set by hand
+  const titleField = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    const field = titleField.current
+    if (!field || CSS.supports('field-sizing', 'content')) return
+    field.style.height = 'auto'
+    field.style.height = `${field.scrollHeight}px`
+  }, [title])
   const [startedUntitled] = useState(!note.title)
   const { save, isPending } = useDebouncedSave(note.id)
 
@@ -176,14 +185,20 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
       {!embedded && <CoverBanner note={note} />}
       <div className="group/title relative">
         {!embedded && <AddCoverButton note={note} />}
-        <input
+        {/* A textarea, so a long title wraps instead of being cut off; it stays one paragraph (no line breaks) */}
+        <textarea
+          ref={titleField}
+          rows={1}
           value={title}
           onChange={(e) => {
-            setTitle(e.target.value)
-            save({ title: e.target.value })
+            const value = e.target.value.replace(/\s*\n\s*/g, ' ')
+            setTitle(value)
+            save({ title: value })
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === 'ArrowDown') {
+            const field = e.currentTarget
+            const atEnd = field.selectionStart === field.value.length
+            if (e.key === 'Enter' || (e.key === 'ArrowDown' && atEnd)) {
               e.preventDefault()
               editor.setTextCursorPosition(editor.document[0], 'start')
               editor.focus()
@@ -192,11 +207,10 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
           placeholder="Untitled"
           aria-label="Note title"
           autoFocus={!note.title}
-          className={
-            embedded
-              ? 'mb-1 w-full bg-transparent px-3 font-page text-lg font-semibold tracking-tight outline-none placeholder:text-muted-foreground'
-              : 'mb-4 w-full bg-transparent px-(--page-gutter) font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground'
-          }
+          className={cn(
+            'block w-full resize-none overflow-hidden bg-transparent font-page tracking-tight text-balance outline-none placeholder:text-muted-foreground [field-sizing:content]',
+            embedded ? 'mb-1 px-3 text-lg font-semibold' : 'mb-4 px-(--page-gutter) text-4xl leading-tight font-bold',
+          )}
         />
         {!embedded && <PageInfo note={note} title={title} outline={outline} />}
         {!embedded && <NoteTags note={note} />}

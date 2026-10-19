@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 
 /** "Rename" on the page itself edits its title in place (after the menu has closed and handed focus back) */
 function selectTitle(label: string) {
-  setTimeout(() => document.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)?.select(), 50)
+  setTimeout(() => document.querySelector<HTMLInputElement | HTMLTextAreaElement>(`:is(input, textarea)[aria-label="${label}"]`)?.select(), 50)
 }
 
 export function NotePageActions({ note }: { note: Note }) {

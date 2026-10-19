@@ -32,6 +32,10 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
 
   const favorites = sortNotes(notes.filter((n) => n.favorite))
   const recent = [...notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, RECENT_COUNT)
+  // The note you had open last, or else the latest edit; an empty note isn't worth continuing
+  const hasSomething = (n: Note) => n.title !== '' || n.content.length > 0
+  const last = notes.find((n) => n.id === readLastNote())
+  const continueWith = last && hasSomething(last) ? last : recent.find(hasSomething)
   const topFolders = sortFolders(folders.filter((f) => f.parentId === null))
   const counts = (id: string) => ({
     notes: notes.filter((n) => n.folderId === id).length,
@@ -41,12 +45,12 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
-      <h2 className="font-page text-4xl font-bold tracking-tight">Overview</h2>
+      <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         {plural(notes.length, 'note')} · {plural(folders.length, 'folder')} · {plural(boards.length, 'board')}
       </p>
 
-      {recent.length > 0 && <ContinueCard note={notes.find((n) => n.id === readLastNote()) ?? recent[0]} />}
+      {continueWith && <ContinueCard note={continueWith} />}
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Button variant="outline" onClick={async () => openNote(await createNote())}>

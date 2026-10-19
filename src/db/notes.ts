@@ -7,8 +7,8 @@ import { coverAssetId, type Note } from './schema'
 /**
  * Notes created in this session, with the state they were created in. Leaving one that is still
  * exactly like that discards it (see `discardIfUntouched`), so "New note" followed by clicking
- * somewhere else doesn't leave an empty "Untitled" behind. Session-only on purpose: a note from an
- * earlier session is never removed automatically.
+ * somewhere else doesn't leave an empty "Untitled" behind. A reload or closing the app skips that, so
+ * `discardLeftoverNotes` removes such never-touched notes on the next start.
  */
 const freshNotes = new Map<string, { folderId: string | null; order: number }>()
 
@@ -45,21 +45,46 @@ export async function discardIfUntouched(id: string) {
   await db.transaction('rw', db.notes, db.boards, async () => {
     const note = await db.notes.get(id)
     if (!note) return
-    const untouched =
-      note.title === '' &&
-      note.content.length === 0 &&
-      note.updatedAt === note.createdAt &&
-      note.folderId === created.folderId &&
-      note.order === created.order &&
-      !note.favorite &&
-      !note.pinned &&
-      note.tags.length === 0 &&
-      note.cover === undefined
-    if (!untouched) return
+    if (!isUntouched(note) || note.folderId !== created.folderId || note.order !== created.order) return
     const usedOnBoard = (await db.boards.toArray()).some((b) => b.nodes.some((n) => n.type === 'note' && n.noteId === id))
     if (usedOnBoard) return
     await db.notes.delete(id)
     forgetItem(id)
+  })
+}
+
+/** Never touched since it was created: no title, no content, no edit, nothing set on it */
+function isUntouched(note: Note) {
+  return (
+    note.title === '' &&
+    note.content.length === 0 &&
+    note.updatedAt === note.createdAt &&
+    !note.favorite &&
+    !note.pinned &&
+    note.tags.length === 0 &&
+    note.cover === undefined
+  )
+}
+
+/**
+ * On start: removes notes left exactly as created by an earlier session that ended on them (a reload or
+ * a closed app). They hold nothing, so nothing is lost. A note on a board stays, and the note being
+ * opened right now (`openId`) gets the usual chance instead: it goes when it is left untouched.
+ */
+export async function discardLeftoverNotes(openId: string | null) {
+  await db.transaction('rw', db.notes, db.boards, async () => {
+    const leftovers = (await db.notes.toArray()).filter(isUntouched)
+    if (!leftovers.length) return
+    const onBoards = new Set((await db.boards.toArray()).flatMap((b) => b.nodes.flatMap((n) => (n.type === 'note' ? [n.noteId] : []))))
+    for (const note of leftovers) {
+      if (onBoards.has(note.id)) continue
+      if (note.id === openId) {
+        freshNotes.set(note.id, { folderId: note.folderId, order: note.order })
+        continue
+      }
+      await db.notes.delete(note.id)
+      forgetItem(note.id)
+    }
   })
 }
 

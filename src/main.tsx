@@ -9,6 +9,7 @@ import App from './App.tsx'
 import { applySavedAppearance } from '@/hooks/useAppearance'
 import { purgeOldTrash } from '@/db/trash'
 import { purgeOldActivity } from '@/db/activity'
+import { discardLeftoverNotes } from '@/db/notes'
 import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
 import { followThemeColor } from '@/lib/theme-color'
@@ -23,6 +24,9 @@ followThemeColor()
 void purgeOldTrash()
 // Activity keeps the last 90 days
 void purgeOldActivity()
+// Empty notes an earlier session ended on (a reload, a closed app) aren't kept
+const openNoteId = /^#\/note\/([^/]+)/.exec(location.hash)?.[1]
+void discardLeftoverNotes(openNoteId ? decodeURIComponent(openNoteId) : null)
 // Automatic backups into a folder, if the user set them up
 void startAutoBackup()
 // Images added to notes before uploads were compressed are shrunk once, in the background

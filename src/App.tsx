@@ -49,6 +49,10 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow())
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  // Once the page is scrolled, a hairline under the header marks where the content runs out of view
+  // (remembered per page, so a newly opened page starts without it)
+  const [scrolledPage, setScrolledPage] = useState<string | null>(null)
+  const scrolled = scrolledPage === location.hash
   useAppEvent('open-shortcuts', useCallback(() => setShortcutsOpen(true), []))
   useAppEvent('open-palette', useCallback(() => setPaletteOpen(true), []))
   // useLiveQuery keeps returning the previous result while a new route's query runs, so each
@@ -99,7 +103,13 @@ export default function App() {
 
   useEffect(() => {
     const onKeyDown = async (e: KeyboardEvent) => {
+      // An open menu has the keyboard (its own typeahead and Escape), so app shortcuts wait until it closes.
+      // Another dialog open (not the palette): only the palette toggle and the sidebar still work.
+      if (document.querySelector('[role="menu"]')) return
+      const dialog = document.querySelector('[role="dialog"], [role="alertdialog"]')
+      const otherDialog = !!dialog && !dialog.querySelector('[cmdk-input]')
       const mod = e.ctrlKey || e.metaKey
+      if (otherDialog && !(mod && (e.key === '\\' || e.key.toLowerCase() === 'k'))) return
       if (mod && e.altKey && e.key.toLowerCase() === 'n') {
         e.preventDefault()
         openNote(await createNote(newNoteFolderId))
@@ -144,19 +154,17 @@ export default function App() {
           // the texture covers the page; a board (header included) stays plain so it reads as one canvas with dots
           data-texture-surface={onBoard ? undefined : ''}
         >
-          {/* The visible titles are editable inputs, so give the page a real heading for screen readers */}
-          <h1 className="sr-only">
-            {current?.type === 'note'
-              ? noteTitle(current.note)
-              : current?.type === 'folder'
-                ? current.folder.name
-                : current?.type === 'board'
-                  ? boardTitle(current.board)
-                  : 'Lodoc'}
-          </h1>
+          {/* Notes, folders and boards show their titles as editable inputs, so they get a real heading for screen
+              readers; the other pages (overview, Activity, tags) have a visible h1 of their own */}
+          {current && (
+            <h1 className="sr-only">
+              {current.type === 'note' ? noteTitle(current.note) : current.type === 'folder' ? current.folder.name : boardTitle(current.board)}
+            </h1>
+          )}
           <header
             className={cn(
-              'flex h-12 shrink-0 items-center gap-1 px-3 text-sm',
+              'flex h-12 shrink-0 items-center gap-1 border-b border-transparent px-3 text-sm transition-colors',
+              scrolled && !onBoard && 'border-border',
               // On a board the canvas runs behind the header: it floats on top and only its controls take clicks
               onBoard && 'pointer-events-none absolute inset-x-0 top-0 z-10 *:pointer-events-auto md:floating:top-2',
             )}
@@ -184,7 +192,10 @@ export default function App() {
           </header>
 
           {/* Boards are full-bleed and pan/zoom themselves, so the page itself must not scroll */}
-          <div className={onBoard ? 'min-h-0 flex-1 overflow-hidden' : '@container min-h-0 flex-1 overflow-y-auto'}>
+          <div
+            className={onBoard ? 'min-h-0 flex-1 overflow-hidden' : '@container min-h-0 flex-1 overflow-y-auto'}
+            onScroll={(e) => setScrolledPage(e.currentTarget.scrollTop > 4 ? location.hash : null)}
+          >
             {loading ? null : current?.type === 'note' ? (
               <Suspense fallback={null}>
                 <NoteEditor key={current.note.id} note={current.note} />
@@ -217,6 +228,7 @@ export default function App() {
 function EmptyState({ missing }: { missing: RouteType | null }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+      <h1 className="sr-only">Lodoc</h1>
       <p className="text-sm text-muted-foreground">
         {missing ? `This ${missing} no longer exists.` : 'Select a note or create a new one.'}
       </p>

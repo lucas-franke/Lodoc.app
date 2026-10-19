@@ -18,10 +18,10 @@ export function TagView({ tag }: { tag: string }) {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
-      <h2 className="flex items-center gap-2 font-page text-4xl font-bold tracking-tight">
+      <h1 className="flex items-center gap-2 font-page text-4xl font-bold tracking-tight">
         <Hash aria-hidden className="size-8 shrink-0 text-muted-foreground" strokeWidth={1.5} />
         {tag}
-      </h2>
+      </h1>
       <p className="mt-2 text-sm text-muted-foreground">{plural(tagged.length, 'note')} with this tag</p>
       {others.length > 0 && (
         <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Other tags">

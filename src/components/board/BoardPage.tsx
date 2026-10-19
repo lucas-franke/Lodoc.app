@@ -8,6 +8,7 @@ import {
   ReactFlowProvider,
   applyEdgeChanges,
   applyNodeChanges,
+  useNodesInitialized,
   useReactFlow,
   type Connection,
   type EdgeChange,
@@ -110,6 +111,29 @@ function Canvas({ board }: { board: Board }) {
     nodesRef.current = nodes
     edgesRef.current = edges
   }, [nodes, edges])
+
+  // A saved view can show nothing on another screen (a board arranged on a wide desktop, opened on a phone):
+  // when no item is in view on opening, everything is fitted in once
+  const nodesInitialized = useNodesInitialized()
+  const viewChecked = useRef(false)
+  useEffect(() => {
+    if (viewChecked.current || !nodesInitialized || !container.current) return
+    viewChecked.current = true
+    if (!nodesRef.current.length) return
+    const r = container.current.getBoundingClientRect()
+    const from = rf.screenToFlowPosition({ x: r.left, y: r.top + HEADER_HEIGHT })
+    const to = rf.screenToFlowPosition({ x: r.right, y: r.bottom })
+    const inView = nodesRef.current.some((n) => {
+      const { x, y } = rf.getInternalNode(n.id)?.internals.positionAbsolute ?? n.position
+      const w = n.width ?? n.measured?.width ?? n.data.width
+      const h = n.height ?? n.measured?.height ?? n.data.height
+      // In view = its middle is on screen (a card peeking in at the edge doesn't count)
+      const cx = x + w / 2
+      const cy = y + h / 2
+      return cx > from.x && cx < to.x && cy > from.y && cy < to.y
+    })
+    if (!inView) void rf.fitView({ padding: 0.15, maxZoom: 1 })
+  }, [nodesInitialized, rf])
 
   /**
    * Shows the new state at once and saves it; the interaction ends when the save is done. Arrows whose
@@ -309,19 +333,45 @@ function Canvas({ board }: { board: Board }) {
     return rf.screenToFlowPosition({ x: r.left + r.width / 2, y: r.top + HEADER_HEIGHT + (r.height - HEADER_HEIGHT) / 2 })
   }, [rf])
 
-  /** Top-left for a new item, centered on `at` (default: the middle of the view) and nudged so it never lands exactly on another item. */
+  /**
+   * Top-left for a new item. Dropped somewhere (`at`): right there, nudged so it never lands exactly on
+   * another item. Added with a button: the free spot closest to the middle of the view, so items don't pile
+   * up; frames don't count as taken, since items are meant to go inside them.
+   */
   const place = useCallback(
     (size: { width: number; height: number }, at?: XYPosition) => {
-      const center = at ?? viewportCenter()
-      let x = center.x - size.width / 2
-      let y = center.y - size.height / 2
-      while (nodesRef.current.some((n) => Math.abs(n.position.x - x) < 12 && Math.abs(n.position.y - y) < 12)) {
-        x += 24
-        y += 24
+      if (at) {
+        let x = at.x - size.width / 2
+        let y = at.y - size.height / 2
+        while (nodesRef.current.some((n) => Math.abs(n.position.x - x) < 12 && Math.abs(n.position.y - y) < 12)) {
+          x += 24
+          y += 24
+        }
+        return { x, y }
       }
-      return { x, y }
+      const GAP = 24
+      const center = viewportCenter()
+      const taken = nodesRef.current
+        .filter((n) => n.type !== 'frame')
+        .map((n) => ({
+          x: n.position.x,
+          y: n.position.y,
+          // What is drawn (React Flow's measurement): a text item grows past its set height with its text
+          w: rf.getInternalNode(n.id)?.measured.width ?? n.width ?? n.data.width,
+          h: rf.getInternalNode(n.id)?.measured.height ?? n.height ?? n.data.height,
+        }))
+      const free = (x: number, y: number) =>
+        taken.every((t) => x + size.width + GAP <= t.x || t.x + t.w + GAP <= x || y + size.height + GAP <= t.y || t.y + t.h + GAP <= y)
+      // Candidate spots on a grid of the item's own size around the middle, nearest first
+      const stepX = size.width + GAP
+      const stepY = size.height + GAP
+      const spots: XYPosition[] = []
+      for (let i = -6; i <= 6; i++) for (let j = -6; j <= 6; j++) spots.push({ x: center.x - size.width / 2 + i * stepX, y: center.y - size.height / 2 + j * stepY })
+      const distance = (s: XYPosition) => Math.hypot(s.x + size.width / 2 - center.x, s.y + size.height / 2 - center.y)
+      spots.sort((a, b) => distance(a) - distance(b))
+      return spots.find((s) => free(s.x, s.y)) ?? { x: center.x - size.width / 2, y: center.y - size.height / 2 }
     },
-    [viewportCenter],
+    [viewportCenter, rf],
   )
 
   /** Adds an item, selects it (and only it). Text items are not saved until they have text. */
@@ -376,7 +426,8 @@ function Canvas({ board }: { board: Board }) {
     (at?: XYPosition) => {
       const size = { width: 240, height: 48 }
       const id = nanoid()
-      addNode({ id, type: 'text', text: '', size: 'm', ...place(size, at), ...size }, { persist: false })
+      // Room for a line of text: an empty text item is shorter than it will be once typed in
+      addNode({ id, type: 'text', text: '', size: 'm', ...place({ ...size, height: 80 }, at), ...size }, { persist: false })
       setEditingId(id)
     },
     [addNode, place],

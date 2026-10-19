@@ -30,7 +30,7 @@ export function ActivityView({ tab }: { tab: ActivityTab }) {
   const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
-      <h2 className="font-page text-4xl font-bold tracking-tight">Activity</h2>
+      <h1 className="font-page text-4xl font-bold tracking-tight">Activity</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         What changed, what was deleted and the messages you were shown, newest first.
       </p>

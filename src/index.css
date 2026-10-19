@@ -480,6 +480,27 @@
   border-left-color: var(--muted-foreground);
 }
 
+/* Table lines: BlockNote draws them in one fixed grey (1.4:1 on white, glaring on dark pages). Mixed from
+   the theme's text and background instead, they sit around 2.5–3.5:1 in every theme and tint. */
+.bn-root.bn-shadcn .bn-editor :is(td, th) {
+  border-color: color-mix(in oklch, var(--foreground) 38%, var(--background));
+}
+
+/* Suggestion menus (/ and @): as wide as the slash menu at most, so long note titles wrap instead of
+   stretching the @ menu to the window's edge */
+.bn-root .bn-suggestion-menu {
+  max-width: min(22.75rem, calc(100vw - 2rem));
+}
+/* Touch screens: no keyboard shortcuts to show, and a shorter list that stays clear of the format bar */
+@media (pointer: coarse) {
+  .bn-suggestion-menu-item [class*='group/badge'] {
+    display: none;
+  }
+  .bn-root .bn-suggestion-menu {
+    max-height: min(40dvh, 20rem);
+  }
+}
+
 /* Image captions: readable, and editable with a double click (CaptionEditor) */
 .bn-root.bn-shadcn [data-file-block] .bn-file-caption {
   cursor: text;
