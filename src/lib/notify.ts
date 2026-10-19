@@ -40,17 +40,18 @@ function rememberHint() {
 /**
  * Shows a message and keeps it in Activity, so a message that closes by itself is never lost: everything
  * but errors closes after a few seconds (paused while hovered or focused), errors stay until closed. The
- * very first message explains this and stays a little longer; it is shown once.
+ * first message that closes by itself explains this and stays a little longer; it is shown once.
  */
 export function notify(text: string, { level = 'info', action, id, logged = false }: Options = {}) {
   if (!logged) logActivity({ kind: 'message', text, level })
   const options: ExternalToast = { id, action, duration: level === 'error' ? Infinity : action ? WITH_ACTION : undefined }
 
-  if (!hintShowing && !hintSeen()) {
+  // Not on an error: those stay until closed, so "messages like this close by themselves" wouldn't be true
+  if (level !== 'error' && !hintShowing && !hintSeen()) {
     hintShowing = true
     Object.assign(options, {
       description: HINT,
-      duration: level === 'error' ? Infinity : WITH_HINT,
+      duration: WITH_HINT,
       action: action && {
         ...action,
         onClick: () => {
