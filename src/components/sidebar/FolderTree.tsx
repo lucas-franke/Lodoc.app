@@ -148,10 +148,10 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
           ))}
           {!hasChildren && (
             <div
-              className="flex h-9 items-center text-xs text-muted-foreground"
+              className="flex h-9 items-center text-xs text-muted-foreground italic"
               style={{ paddingLeft: `${2 + (depth + 1) * 0.75}rem` }}
             >
-              Empty
+              No notes yet
             </div>
           )}
         </>
