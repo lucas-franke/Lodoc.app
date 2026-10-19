@@ -47,6 +47,9 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
+      <p className="mb-1 text-sm text-muted-foreground" data-greeting>
+        {greeting(new Date().getHours())}
+      </p>
       <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         {plural(notes.length, 'note')} · {plural(folders.length, 'folder')} · {plural(boards.length, 'board')}
@@ -105,6 +108,14 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       )}
     </div>
   )
+}
+
+/** A word by time of day above the overview */
+function greeting(hour: number) {
+  if (hour >= 5 && hour < 12) return 'Good morning'
+  if (hour >= 12 && hour < 18) return 'Good afternoon'
+  if (hour >= 18 && hour < 23) return 'Good evening'
+  return 'Late night writing?'
 }
 
 /** The note you had open last (or else the one edited last), as the obvious way back into your work */
