@@ -14,6 +14,8 @@ import { MobileFormatBar } from './MobileFormatBar'
 import { useWideScreen } from '@/hooks/useWideScreen'
 import { useCaretNearTop } from './caret-scroll'
 import { useChecklistJoy } from './checklist-joy'
+import { takeArrived } from '@/lib/collect'
+import { playOnce } from '@/lib/joy'
 import { cleanCopiedText } from './clipboard'
 import { indentSelectedFile, nestImagesAddedInLists } from './list-images'
 import { registerFlush } from '@/lib/pending-saves'
@@ -158,6 +160,16 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   const pageRef = useRef<HTMLDivElement>(null)
   useCaretNearTop(pageRef, !embedded)
   useChecklistJoy(pageRef)
+
+  // Opened because something was shared into this note: the new line at the top drops in
+  useEffect(() => {
+    // Taken once (StrictMode runs effects twice), so the timer isn't cancelled by the cleanup in between
+    if (!takeArrived(note.id)) return
+    window.setTimeout(() => {
+      const first = editor.domElement?.querySelector('.bn-block-group > .bn-block-outer')
+      if (first) playOnce(first, 'joy-arrived')
+    }, 120)
+  }, [note.id, editor])
 
   useEffect(() => nestImagesAddedInLists(editor), [editor])
   const caption = useCaptionEditor(editor)

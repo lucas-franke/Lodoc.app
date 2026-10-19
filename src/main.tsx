@@ -13,7 +13,7 @@ import { discardLeftoverNotes } from '@/db/notes'
 import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
 import { followThemeColor } from '@/lib/theme-color'
-import { collectShared, takeSharedFromUrl } from '@/lib/collect'
+import { collectShared, markArrived, takeSharedFromUrl } from '@/lib/collect'
 import { openTodaysJournal, takeJournalFromUrl } from '@/lib/journal'
 import { notify } from '@/lib/notify'
 
@@ -73,6 +73,7 @@ if (shared) {
   void collectShared(shared)
     .then(({ noteId, title, created, added }) => {
       location.hash = `#/note/${encodeURIComponent(noteId)}`
+      if (added) markArrived(noteId)
       render()
       if (!added) notify('Nothing to add: the share had no text or link')
       else if (created) notify(`Things you share to Lodoc are collected in "${title}". To collect in another note, choose "Collect here" in its menu.`, { level: 'success' })

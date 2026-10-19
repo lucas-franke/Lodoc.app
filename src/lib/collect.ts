@@ -48,6 +48,15 @@ export function useCollectNoteId() {
 /** Only the installed app can receive shares, so that's the only place to choose the note */
 export const isInstalledApp = () => window.matchMedia('(display-mode: standalone)').matches
 
+/** The note something was just collected into, so it can show the new line arriving when it opens (once) */
+let arrivedIn: string | null = null
+export const markArrived = (noteId: string) => (arrivedIn = noteId)
+export function takeArrived(noteId: string) {
+  if (arrivedIn !== noteId) return false
+  arrivedIn = null
+  return true
+}
+
 export type Shared = { title: string; text: string; url: string }
 
 /** The names the manifest's share_target gives the shared fields in the URL */
