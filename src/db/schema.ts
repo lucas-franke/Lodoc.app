@@ -34,6 +34,8 @@ export interface Note {
   cover?: NoteCoverValue | null
   /** A daily journal note: the day it is for ("2026-10-20"), so "Today's journal" finds it again */
   journal?: string
+  /** Offered under "From template": new notes start as a copy of it (the note itself stays an ordinary note) */
+  template?: boolean
   createdAt: number
   updatedAt: number
 }

@@ -62,7 +62,8 @@ function isUntouched(note: Note) {
     !note.favorite &&
     !note.pinned &&
     note.tags.length === 0 &&
-    note.cover === undefined
+    note.cover === undefined &&
+    !note.template
   )
 }
 
@@ -109,6 +110,11 @@ export async function moveNote(id: string, folderId: string | null) {
 export async function toggleFavorite(id: string) {
   const note = await db.notes.get(id)
   if (note) await db.notes.update(id, { favorite: !note.favorite })
+}
+
+/** Offers the note under "From template", or stops offering it */
+export async function setTemplate(id: string, template: boolean) {
+  await db.notes.update(id, { template: template || undefined })
 }
 
 export async function togglePinned(id: string) {

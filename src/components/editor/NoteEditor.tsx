@@ -259,6 +259,8 @@ function PageInfo({ note, title, outline }: { note: Note; title: string; outline
           "Empty notes aren't kept when you leave them."
         ) : (
           <>
+            {/* Edits here change what new notes from it start with */}
+            {note.template && <span title="New notes from this template start as a copy of it">Template · </span>}
             <span title={formatDateTime(note.updatedAt)}>Edited {formatRelative(note.updatedAt)}</span> ·{' '}
             {plural(noteWordCount(note), 'word')}
           </>

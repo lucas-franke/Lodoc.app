@@ -1,4 +1,4 @@
-import { FileText, Inbox, MoreHorizontal, Pin } from 'lucide-react'
+import { FileText, Inbox, LayoutTemplate, MoreHorizontal, Pin } from 'lucide-react'
 import { useCollectNoteId } from '@/lib/collect'
 import { RowContextMenu, RowDropdownMenu } from '@/components/ItemMenu'
 import { Button } from '@/components/ui/button'
@@ -67,7 +67,7 @@ export function NoteItem({
         <DropLine position={indicator} indent={indentLeft} />
         {renaming ? (
           <div className="flex h-full min-w-0 flex-1 items-center gap-2" style={indent}>
-            <NoteIcon collecting={collecting} />
+            <NoteIcon collecting={collecting} template={!!note.template} />
             <RenameInput
               initial={note.title}
               onDone={(title) => {
@@ -86,7 +86,7 @@ export function NoteItem({
             draggable={false}
             onClick={(e) => selectClick(e, selectKey)}
           >
-            <NoteIcon collecting={collecting} />
+            <NoteIcon collecting={collecting} template={!!note.template} />
             <span className="min-w-0 flex-1 truncate">
               {noteTitle(note)}
               {hint && <span className="ml-1.5 text-xs font-normal text-muted-foreground">{hint}</span>}
@@ -113,7 +113,10 @@ export function NoteItem({
 }
 
 /** The note that collects what's shared from other apps (lib/collect.ts) shows an inbox instead of a page */
-function NoteIcon({ collecting }: { collecting: boolean }) {
+function NoteIcon({ collecting, template }: { collecting: boolean; template: boolean }) {
+  if (template && !collecting) {
+    return <LayoutTemplate className="size-4 shrink-0 text-muted-foreground" role="img" aria-label="Template" />
+  }
   if (!collecting) return <FileText className="size-4 shrink-0 text-muted-foreground" />
   return <Inbox className="size-4 shrink-0 text-muted-foreground" role="img" aria-label="Collects what you share to Lodoc" />
 }

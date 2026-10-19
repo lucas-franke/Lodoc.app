@@ -12,6 +12,7 @@ import {
   FolderPlus,
   Inbox,
   LayoutDashboard,
+  LayoutTemplate,
   Pencil,
   Pin,
   PinOff,
@@ -28,7 +29,7 @@ import { holdKeyboard } from '@/lib/keyboard'
 import { boardTitle, createBoard, moveBoard } from '@/db/boards'
 import { duplicateFolder, duplicateNote } from '@/db/duplicate'
 import { createFolder, descendantIds, moveFolder } from '@/db/folders'
-import { createNote, moveNote, noteTitle, toggleFavorite, togglePinned } from '@/db/notes'
+import { createNote, moveNote, noteTitle, setTemplate, toggleFavorite, togglePinned } from '@/db/notes'
 import { shiftFolder, shiftNote } from '@/db/order'
 import { restoreTrash, trashBoard, trashFolder, trashNote } from '@/db/trash'
 import type { Board, Folder, Note } from '@/db/schema'
@@ -140,6 +141,20 @@ export function useNoteMenuEntries(
       icon: Copy,
       onSelect: async () => {
         if (await duplicateNote(note.id)) notify(`Duplicated "${noteTitle(note)}"`, { level: 'success', logged: true })
+      },
+    },
+    {
+      type: 'item',
+      label: note.template ? 'Stop using as template' : 'Use as template',
+      icon: LayoutTemplate,
+      onSelect: async () => {
+        await setTemplate(note.id, !note.template)
+        notify(
+          note.template
+            ? `"${noteTitle(note)}" is no longer a template`
+            : `"${noteTitle(note)}" is now under From template. New notes from it start as a copy.`,
+          { level: 'success' },
+        )
       },
     },
     { type: 'item', label: 'Download as .md', icon: Download, onSelect: () => void downloadNoteAsMarkdown(note.id) },

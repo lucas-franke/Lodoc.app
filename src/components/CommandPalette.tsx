@@ -10,6 +10,7 @@ import {
   Hash,
   Keyboard,
   LayoutGrid,
+  LayoutTemplate,
   Moon,
   Palette,
   Sun,
@@ -38,7 +39,7 @@ import { openBoard, openFolder, openNote, openTag, openActivity, useRoute } from
 import { emitAppEvent } from '@/lib/app-events'
 import { openGuideNote } from '@/lib/guide'
 import { openTodaysJournal } from '@/lib/journal'
-import { createFromTemplate, TEMPLATES } from '@/lib/templates'
+import { createFromNote, createFromTemplate, TEMPLATES } from '@/lib/templates'
 import { exportProject } from '@/lib/project-file'
 
 type Action = { id: string; label: string; icon: LucideIcon; keywords?: string; shortcut?: string; run: () => void }
@@ -85,6 +86,7 @@ export function CommandPalette({
     { id: 'new-note', label: 'New note', icon: FilePlus, shortcut: 'Ctrl Alt N', run: async () => openNote(await createNote(newNoteFolderId)) },
     { id: 'journal', label: "Today's journal", icon: CalendarDays, keywords: 'daily diary today date', shortcut: 'Ctrl Alt J', run: async () => openNote(await openTodaysJournal()) },
     ...TEMPLATES.map((t) => ({ id: 'template-' + t.id, label: 'New ' + t.name.toLowerCase(), icon: t.icon, keywords: 'template ' + t.name, run: async () => openNote(await createFromTemplate(t.id, newNoteFolderId)) })),
+    ...(data?.notes ?? []).filter((n) => n.template).map((n) => ({ id: 'own-template-' + n.id, label: `New from "${noteTitle(n)}"`, icon: LayoutTemplate, keywords: 'template', run: async () => openNote(await createFromNote(n.id, newNoteFolderId)) })),
     { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder')) },
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
     ...(onBoard ? [{ id: 'tidy-board', label: 'Tidy up this board', icon: LayoutGrid, keywords: 'arrange grid align layout clean order', run: () => emitAppEvent('tidy-board') }] : []),
