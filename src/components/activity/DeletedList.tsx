@@ -1,3 +1,4 @@
+import { EmptyArt } from '@/components/EmptyArt'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { FileText, Folder, LayoutGrid, RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -56,7 +57,10 @@ export function DeletedList() {
       </div>
 
       {entries.length === 0 ? (
-        <p className="mt-16 text-center text-sm text-muted-foreground">The trash is empty.</p>
+        <div className="mt-16 flex flex-col items-center gap-3 text-center">
+          <EmptyArt kind="trash" />
+          <p className="text-sm font-medium">All clear</p>
+        </div>
       ) : (
         <ul className="mt-6 divide-y rounded-lg border" aria-label="Deleted items">
           {entries.map((entry) => {

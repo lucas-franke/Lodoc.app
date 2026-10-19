@@ -1,3 +1,4 @@
+import { EmptyArt } from '@/components/EmptyArt'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   FileText,
@@ -107,9 +108,12 @@ export function FolderView({ folder }: { folder: Folder }) {
       </div>
 
       {empty && (
-        <p className="mt-10 text-sm text-muted-foreground">
-          This folder is empty. Create a note or board here, or move notes and boards in from the sidebar (drag them onto this folder).
-        </p>
+        <div className="mt-10 flex flex-col items-start gap-3">
+          <EmptyArt kind="folder" className="-ml-6" />
+          <p className="text-sm text-muted-foreground">
+            This folder is empty. Create a note or board here, or move notes and boards in from the sidebar (drag them onto this folder).
+          </p>
+        </div>
       )}
       {!empty && q && subfolders.length === 0 && folderNotes.length === 0 && folderBoards.length === 0 && (
         <p className="mt-10 text-sm text-muted-foreground">Nothing in this folder matches "{filter.trim()}".</p>

@@ -1,3 +1,4 @@
+import { EmptyArt } from '@/components/EmptyArt'
 import { useStore } from '@xyflow/react'
 import { FileText, ImagePlus, Plus, SquareDashed, Type } from 'lucide-react'
 import { useRef, useState } from 'react'
@@ -45,6 +46,7 @@ export function BoardFab({
           data-testid="board-empty-hint"
           className="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-[calc(100%+2.5rem)] text-center"
         >
+          <EmptyArt kind="board" className="mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">This board is empty.</p>
           <p className="text-xs text-muted-foreground">Add a note, some text, an image or a frame, or drag a note here from the sidebar.</p>
         </div>
