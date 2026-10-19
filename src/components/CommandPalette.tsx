@@ -17,7 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Command,
   CommandDialog,
@@ -66,6 +66,7 @@ export function CommandPalette({
   // there when the palette is dismissed (a command that ran leaves focus to whatever it opened)
   const returnFocus = useRef<HTMLElement | null>(null)
   const ran = useRef(false)
+  const visibleHeight = useVisibleHeight(open)
   const close = (o: boolean) => {
     onOpenChange(o)
     if (!o) setQuery('')
@@ -123,7 +124,8 @@ export function CommandPalette({
       onOpenChange={close}
       title="Command palette"
       description="Search notes, folders and boards, or run a command"
-      className="sm:max-w-xl"
+      // Phones: at the top, so the keyboard doesn't cover it (the list below fits what the keyboard leaves free)
+      className="max-sm:top-[calc(env(safe-area-inset-top)+0.75rem)] sm:max-w-xl"
       onOpenAutoFocus={() => {
         // Runs before focus moves into the palette
         returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -138,7 +140,10 @@ export function CommandPalette({
     >
       <Command shouldFilter={false} loop>
         <CommandInput placeholder="Search notes or type a command…" value={query} onValueChange={setQuery} />
-        <CommandList className="max-h-[min(60vh,420px)]">
+        <CommandList
+          className="max-h-[min(60vh,420px)]"
+          style={visibleHeight ? { maxHeight: `min(60vh, 420px, ${visibleHeight}px - 5.5rem - env(safe-area-inset-top))` } : undefined}
+        >
           <CommandEmpty>Nothing found for "{query.trim()}"</CommandEmpty>
           {recent.length > 0 && (
             <CommandGroup heading="Recent">
@@ -267,4 +272,24 @@ function Highlight({ text, query }: { text: string; query: string }) {
       {text.slice(i + query.length)}
     </>
   )
+}
+
+/**
+ * On phones, the height of what the keyboard leaves visible (the visual viewport), while the palette is open;
+ * undefined elsewhere. The page itself doesn't shrink for the keyboard, so CSS alone can't tell.
+ */
+function useVisibleHeight(open: boolean) {
+  const [height, setHeight] = useState<number>()
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!open || !vv || !window.matchMedia('(max-width: 39.99rem)').matches) return
+    const update = () => setHeight(vv.height)
+    update()
+    vv.addEventListener('resize', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      setHeight(undefined)
+    }
+  }, [open])
+  return height
 }
