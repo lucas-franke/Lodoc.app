@@ -13,6 +13,7 @@ import { useCaptionEditor } from './CaptionEditor'
 import { MobileFormatBar } from './MobileFormatBar'
 import { useWideScreen } from '@/hooks/useWideScreen'
 import { useCaretNearTop } from './caret-scroll'
+import { useChecklistJoy } from './checklist-joy'
 import { cleanCopiedText } from './clipboard'
 import { indentSelectedFile, nestImagesAddedInLists } from './list-images'
 import { registerFlush } from '@/lib/pending-saves'
@@ -156,6 +157,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
 
   const pageRef = useRef<HTMLDivElement>(null)
   useCaretNearTop(pageRef, !embedded)
+  useChecklistJoy(pageRef)
 
   useEffect(() => nestImagesAddedInLists(editor), [editor])
   const caption = useCaptionEditor(editor)
