@@ -17,7 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import {
   Command,
   CommandDialog,
@@ -62,11 +62,16 @@ export function CommandPalette({
     null,
   )
   const { resolvedTheme, setTheme } = useTheme()
+  // Opened by a shortcut or a button that isn't its Radix trigger, so remember where focus was and go back
+  // there when the palette is dismissed (a command that ran leaves focus to whatever it opened)
+  const returnFocus = useRef<HTMLElement | null>(null)
+  const ran = useRef(false)
   const close = (o: boolean) => {
     onOpenChange(o)
     if (!o) setQuery('')
   }
   const run = (fn: () => void) => () => {
+    ran.current = true
     close(false)
     fn()
   }
@@ -119,6 +124,17 @@ export function CommandPalette({
       title="Command palette"
       description="Search notes, folders and boards, or run a command"
       className="sm:max-w-xl"
+      onOpenAutoFocus={() => {
+        // Runs before focus moves into the palette
+        returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+        ran.current = false
+      }}
+      onCloseAutoFocus={(e) => {
+        const el = returnFocus.current
+        if (ran.current || !el?.isConnected) return
+        e.preventDefault()
+        el.focus()
+      }}
     >
       <Command shouldFilter={false} loop>
         <CommandInput placeholder="Search notes or type a command…" value={query} onValueChange={setQuery} />

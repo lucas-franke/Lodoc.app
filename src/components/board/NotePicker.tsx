@@ -52,7 +52,7 @@ export function NotePicker({
       title="Add a note to the board"
       description="Search your notes and pick one to place on the board."
     >
-      {/* We filter ourselves (title and text, like the sidebar search), so cmdk only handles the keyboard navigation */}
+      {/* We filter ourselves (title and text, like the command palette), so cmdk only handles the keyboard navigation */}
       {/* `label` is what cmdk uses for the input's accessible name (via aria-labelledby, which beats aria-label) */}
       <Command shouldFilter={false} label="Search notes">
         <CommandInput placeholder="Search notes…" value={query} onValueChange={setQuery} />

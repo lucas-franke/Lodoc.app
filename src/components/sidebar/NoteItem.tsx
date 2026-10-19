@@ -44,7 +44,7 @@ export function NoteItem({
   const indent = { paddingLeft: indentLeft }
 
   // Every row can be dragged (e.g. onto a board), but only rows in the folder tree / "Notes" list are
-  // targets for reordering; Favorites and search results show a different order.
+  // targets for reordering; Favorites and Recent show a different order.
   const { setNodeRef, listeners, isDragging, indicator } = useTreeItem(
     section === 'tree' ? dndId('note', note.id) : `${section}:${note.id}`,
     { type: 'note', note },

@@ -50,6 +50,7 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   useAppEvent('open-shortcuts', useCallback(() => setShortcutsOpen(true), []))
+  useAppEvent('open-palette', useCallback(() => setPaletteOpen(true), []))
   // useLiveQuery keeps returning the previous result while a new route's query runs, so each
   // result carries the route it belongs to. Otherwise the old note's editor would briefly stay
   // on screen under the new URL, and anything typed in that moment would land in the wrong note.

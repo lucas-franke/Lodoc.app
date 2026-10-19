@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronRight, FolderPlus, Hash, History, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, X } from 'lucide-react'
+import { ChevronRight, FolderPlus, Hash, History, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { db } from '@/db/db'
 import { createBoard, sortBoards } from '@/db/boards'
 import { createFolder } from '@/db/folders'
-import { createNote, noteText, sortNotes, sortNotesManual, tagCounts } from '@/db/notes'
+import { createNote, sortNotes, sortNotesManual, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useActivityTab, useIsHome, useTagRoute } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils'
 import { holdKeyboard } from '@/lib/keyboard'
 import { plural } from '@/lib/format'
 import { useActivitySeen } from '@/db/activity'
+import { emitAppEvent } from '@/lib/app-events'
 
 const EXPANDED_KEY = 'localnotes:expanded'
 const NOT_LOADED: Folder[] = []
@@ -52,10 +53,8 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const activeFolderId = useActiveFolderId()
   const activeBoardId = useActiveBoardId()
 
-  const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState(loadExpanded)
   const [renamingId, setRenamingId] = useState<string | null>(null)
-  const searchInput = useRef<HTMLInputElement>(null)
 
   // Multi-select (Ctrl/⌘-click, Shift-click, or "Select" in a row menu)
   const [selected, setSelected] = useState<Set<string>>(() => new Set())
@@ -186,8 +185,6 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   // Tell the app-level drag layer how to plan and commit drops on the sidebar
   useRegisterSidebarDnd({ folders, notes, onExpand: (id) => toggleExpanded(id, true), selected: selectedItems, clearSelection })
 
-  const q = query.trim().toLowerCase()
-  const results = q ? sortNotes(notes.filter((n) => noteText(n).toLowerCase().includes(q))) : []
   const favorites = sortNotes(notes.filter((n) => n.favorite))
   const tags = tagCounts(notes)
   const recent = [...notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, RECENT_COUNT)
@@ -222,32 +219,20 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
         </div>
 
         <div className="space-y-1 px-2 pb-2">
-          <div className="relative">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              ref={searchInput}
-              type="search"
-              aria-label="Search notes"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Escape' && setQuery('')}
-              placeholder="Search"
-              className="h-9 w-full rounded-md bg-sidebar-accent/70 pr-9 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/60 [&::-webkit-search-cancel-button]:hidden"
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery('')
-                  searchInput.current?.focus()
-                }}
-                className="absolute top-1/2 right-1 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
-                aria-label="Clear search"
-              >
-                <X className="size-4" />
-              </button>
-            ) : null}
-          </div>
+          {/* Opens the command palette (one search for notes, folders, boards and commands) and shows its shortcut */}
+          <button
+            type="button"
+            onClick={() => emitAppEvent('open-palette')}
+            aria-label="Search and commands"
+            aria-keyshortcuts="Control+K"
+            className="flex h-9 w-full items-center gap-2 rounded-md bg-sidebar-accent/70 pr-1.5 pl-2.5 text-sm text-muted-foreground outline-none hover:bg-sidebar-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+          >
+            <Search aria-hidden className="size-4 shrink-0" />
+            <span className="flex-1 text-left">Search…</span>
+            <kbd aria-hidden className="rounded border bg-sidebar px-1.5 py-0.5 font-sans text-xs pointer-coarse:hidden">
+              Ctrl K
+            </kbd>
+          </button>
           <div className={rowClass(isHome)}>
             <a href="#/" aria-current={isHome ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
               <LayoutGrid className="size-4 shrink-0 text-muted-foreground" />
@@ -268,111 +253,103 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
         {/* Radix lays the content out as a table that grows with its widest row; make it a plain block so long names are cut off (truncate) and the buttons stay in view */}
         <ScrollArea className="min-h-0 flex-1 [&>[data-slot=scroll-area-viewport]>div]:block!">
           <nav ref={nav} aria-label="Notes and folders" className="px-2 pb-4">
-            {q ? (
-              <Section title={`${results.length} result${results.length === 1 ? '' : 's'}`}>
-                {results.map((note) => (
-                  <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="search" />
-                ))}
+            <>
+              {recent.length > 0 && (
+                <Section title="Recent" collapsible="recent" defaultCollapsed>
+                  {recent.map((note) => (
+                    <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="recent" />
+                  ))}
+                </Section>
+              )}
+              {favorites.length > 0 && (
+                <Section title="Favorites" collapsible="favorites">
+                  {favorites.map((note) => (
+                    <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="favorites" />
+                  ))}
+                </Section>
+              )}
+              <Section
+                title="Folders"
+                collapsible="folders"
+                drop="folders"
+                action={
+                  <Tip label="New folder">
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={async () => {
+                        holdKeyboard()
+                        setRenamingId(await createFolder('New folder'))
+                      }}
+                      aria-label="New folder"
+                    >
+                      <FolderPlus />
+                    </Button>
+                  </Tip>
+                }
+              >
+                {folders.length ? <FolderTree /> : <EmptyHint>No folders yet</EmptyHint>}
               </Section>
-            ) : (
-              <>
-                {recent.length > 0 && (
-                  <Section title="Recent" collapsible="recent" defaultCollapsed>
-                    {recent.map((note) => (
-                      <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="recent" />
-                    ))}
-                  </Section>
+              <Section
+                title="Boards"
+                collapsible="boards"
+                drop="boards"
+                action={
+                  <Tip label="New board">
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={async () => openBoard(await createBoard())}
+                      aria-label="New board"
+                    >
+                      <Plus />
+                    </Button>
+                  </Tip>
+                }
+              >
+                {topBoards.length ? (
+                  topBoards.map((board) => <BoardItem key={board.id} board={board} />)
+                ) : (
+                  <EmptyHint>{boards.length ? 'Boards outside folders appear here' : 'No boards yet'}</EmptyHint>
                 )}
-                {favorites.length > 0 && (
-                  <Section title="Favorites" collapsible="favorites">
-                    {favorites.map((note) => (
-                      <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="favorites" />
-                    ))}
-                  </Section>
+              </Section>
+              <Section
+                title="Unfiled"
+                collapsible="unfiled"
+                drop="notes"
+                action={
+                  <Tip label="New unfiled note">
+                    <Button variant="ghost" size="icon-xs" onClick={newUnfiledNote} aria-label="New unfiled note">
+                      <Plus />
+                    </Button>
+                  </Tip>
+                }
+              >
+                {unfiled.length ? (
+                  unfiled.map((note) => <NoteItem key={note.id} note={note} />)
+                ) : (
+                  <EmptyHint>Notes outside folders appear here</EmptyHint>
                 )}
-                <Section
-                  title="Folders"
-                  collapsible="folders"
-                  drop="folders"
-                  action={
-                    <Tip label="New folder">
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={async () => {
-                          holdKeyboard()
-                          setRenamingId(await createFolder('New folder'))
-                        }}
-                        aria-label="New folder"
+              </Section>
+              {tags.length > 0 && (
+                <Section title="Tags" collapsible="tags">
+                  {tags.map(({ tag, count }) => (
+                    <div key={tag} className={rowClass(activeTag === tag)}>
+                      <a
+                        href={`#/tag/${encodeURIComponent(tag)}`}
+                        aria-current={activeTag === tag ? 'page' : undefined}
+                        className={rowLinkClass}
+                        style={{ paddingLeft: '0.5rem' }}
                       >
-                        <FolderPlus />
-                      </Button>
-                    </Tip>
-                  }
-                >
-                  {folders.length ? <FolderTree /> : <EmptyHint>No folders yet</EmptyHint>}
+                        <Hash className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate">{tag}</span>
+                        <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
+                      </a>
+                    </div>
+                  ))}
                 </Section>
-                <Section
-                  title="Boards"
-                  collapsible="boards"
-                  drop="boards"
-                  action={
-                    <Tip label="New board">
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={async () => openBoard(await createBoard())}
-                        aria-label="New board"
-                      >
-                        <Plus />
-                      </Button>
-                    </Tip>
-                  }
-                >
-                  {topBoards.length ? (
-                    topBoards.map((board) => <BoardItem key={board.id} board={board} />)
-                  ) : (
-                    <EmptyHint>{boards.length ? 'Boards outside folders appear here' : 'No boards yet'}</EmptyHint>
-                  )}
-                </Section>
-                <Section
-                  title="Unfiled"
-                  collapsible="unfiled"
-                  drop="notes"
-                  action={
-                    <Tip label="New unfiled note">
-                      <Button variant="ghost" size="icon-xs" onClick={newUnfiledNote} aria-label="New unfiled note">
-                        <Plus />
-                      </Button>
-                    </Tip>
-                  }
-                >
-                  {unfiled.length ? (
-                    unfiled.map((note) => <NoteItem key={note.id} note={note} />)
-                  ) : (
-                    <EmptyHint>Notes outside folders appear here</EmptyHint>
-                  )}
-                </Section>
-                {tags.length > 0 && (
-                  <Section title="Tags" collapsible="tags">
-                    {tags.map(({ tag, count }) => (
-                      <div key={tag} className={rowClass(activeTag === tag)}>
-                        <a
-                          href={`#/tag/${encodeURIComponent(tag)}`}
-                          aria-current={activeTag === tag ? 'page' : undefined}
-                          className={rowLinkClass}
-                          style={{ paddingLeft: '0.5rem' }}
-                        >
-                          <Hash className="size-4 shrink-0 text-muted-foreground" />
-                          <span className="min-w-0 flex-1 truncate">{tag}</span>
-                          <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
-                        </a>
-                      </div>
-                    ))}
-                  </Section>
-                )}
-              </>
-            )}
+              )}
+            </>
           </nav>
         </ScrollArea>
 

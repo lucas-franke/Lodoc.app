@@ -18,7 +18,7 @@ const CONTENT: StoredBlock[] = [
   li('Type ', { text: '@', code: true }, ' to link to another note. The linked note lists this one under "Linked from".'),
   li('Add tags under the title (like #ideas) to find related notes on one page.'),
   h(2, 'Finding things'),
-  li({ text: 'Ctrl+K', bold: true }, ' opens the command palette: search every note by title and text, and run commands.'),
+  li({ text: 'Ctrl+K', bold: true }, ' (or Search at the top of the sidebar) opens the command palette: search every note by title and text, and run commands.'),
   li('Folders, favorites (the star at the top right) and pinned notes keep the sidebar tidy.'),
   li('Press ', { text: '?', code: true }, ' to see all keyboard shortcuts.'),
   h(2, 'Boards'),
