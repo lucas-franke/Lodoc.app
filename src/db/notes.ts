@@ -3,6 +3,7 @@ import { addImageAsset, pruneAssets } from './assets'
 import { forgetItem, logChange, logMove, logRename } from './activity'
 import { db } from './db'
 import { coverAssetId, type Note } from './schema'
+import { noteWritingDay } from '@/lib/writing-days'
 
 /**
  * Notes created in this session, with the state they were created in. Leaving one that is still
@@ -95,6 +96,7 @@ export async function discardLeftoverNotes(openId: string | null) {
 }
 
 export function updateNote(id: string, changes: Partial<Pick<Note, 'title' | 'content'>>) {
+  noteWritingDay()
   return db.notes.update(id, { ...changes, updatedAt: Date.now() })
 }
 

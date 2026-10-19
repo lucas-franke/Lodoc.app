@@ -5,6 +5,7 @@ import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folde
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { TemplateMenu } from '@/components/TemplateMenu'
 import { QuickCapture } from './QuickCapture'
+import { WritingDays } from './WritingDays'
 import { NoteCover } from '@/components/note/NoteCover'
 import { Button } from '@/components/ui/button'
 import { createBoard, sortBoards } from '@/db/boards'
@@ -53,9 +54,12 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
         {hello}
       </p>
       <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        {plural(notes.length, 'note')} · {plural(folders.length, 'folder')} · {plural(boards.length, 'board')}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="text-sm text-muted-foreground">
+          {plural(notes.length, 'note')} · {plural(folders.length, 'folder')} · {plural(boards.length, 'board')}
+        </p>
+        <WritingDays notes={notes} />
+      </div>
 
       <QuickCapture />
 

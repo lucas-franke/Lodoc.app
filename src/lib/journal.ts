@@ -1,17 +1,12 @@
 import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
+import { dayKey } from './format'
 import { createFromTemplate } from './templates'
 
 // "Today's journal": one note per day, made from the journal template and found again by its date. New days go
 // where the last journal note is (so moving them to another folder is remembered), or at first into "Journal".
 
 const FOLDER_NAME = 'Journal'
-
-/** "2026-10-20", in local time */
-function dayKey(date = new Date()) {
-  const two = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`
-}
 
 async function journalFolder(): Promise<string | null> {
   const journals = await db.notes.filter((note) => !!note.journal).toArray()

@@ -18,6 +18,12 @@ export function formatRelative(time: number, now = Date.now()) {
   return formatDate(time)
 }
 
+/** "2026-10-20" in local time: a calendar day as a key */
+export function dayKey(time: number | Date = new Date()) {
+  const d = new Date(time)
+  return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}`
+}
+
 /** "20.10.2026" */
 export function formatDate(time: number | Date) {
   const d = new Date(time)
