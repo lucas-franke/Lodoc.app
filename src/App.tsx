@@ -23,6 +23,7 @@ import { db } from '@/db/db'
 import { createNote, noteTitle } from '@/db/notes'
 import { useSidebarSwipe } from '@/hooks/useSidebarSwipe'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
+import { useMilestones } from '@/hooks/useMilestones'
 import { openNote, useActivityTab, useRoute, useTagRoute, type RouteType } from '@/hooks/useRoute'
 import { useAppEvent } from '@/lib/app-events'
 import { cn } from '@/lib/utils'
@@ -47,6 +48,8 @@ export default function App() {
   const tagRoute = useTagRoute()
   // A new note that was left untouched isn't kept when you move on
   useDiscardUntouchedNote(route?.type === 'note' ? route.id : null)
+  // A quiet word at the 10th, 100th… note and each year of writing here
+  useMilestones()
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow())
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
