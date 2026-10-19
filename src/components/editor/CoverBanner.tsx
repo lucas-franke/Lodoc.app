@@ -1,4 +1,4 @@
-import { Check, ImagePlus, Trash2 } from 'lucide-react'
+import { Check, ImagePlus, Shuffle, Trash2 } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { notify } from '@/lib/notify'
 import { NoteCover } from '@/components/note/NoteCover'
@@ -84,6 +84,12 @@ function CoverMenu({ note, children }: { note: Note; children: ReactNode }) {
   )
 }
 
+/** A gradient from the palette other than this one, picked at random */
+function otherGradient(current: string) {
+  const others = COVER_GRADIENTS.filter((g) => g.id !== current)
+  return others[Math.floor(Math.random() * others.length)].id
+}
+
 /** The cover above a note's title; click it to change it (gradient, image or remove). Image files can be dropped on it. */
 export function CoverBanner({ note }: { note: Note }) {
   const [over, setOver] = useState(false)
@@ -118,6 +124,16 @@ export function CoverBanner({ note }: { note: Note }) {
         />
       </CoverMenu>
       <div className="pointer-events-none absolute right-2 bottom-2 flex gap-1 opacity-0 group-focus-within/cover:opacity-100 group-hover/cover:opacity-100 pointer-coarse:opacity-100">
+        {cover.kind === 'gradient' && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="pointer-events-auto"
+            onClick={() => void setNoteGradient(note.id, otherGradient(cover.id))}
+          >
+            <Shuffle /> Shuffle
+          </Button>
+        )}
         <span aria-hidden className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary px-3 text-sm font-medium text-secondary-foreground">
           <ImagePlus className="size-4" /> Change cover
         </span>

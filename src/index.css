@@ -636,6 +636,10 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
 :root[data-tint]:not([data-tint='neutral']) {
   --joy: oklch(0.7 0.15 var(--tint-h));
 }
+/* The old cover gradient on top while the new one fades in; invisible when motion is reduced (no animation) */
+.joy-fade-out {
+  opacity: 0;
+}
 .joy-dot {
   position: fixed;
   z-index: 60;
@@ -666,6 +670,10 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
     border-radius: 6px;
     animation: joy-arrived 900ms cubic-bezier(0.2, 0.9, 0.3, 1);
   }
+  /* A note cover that changed gradient (NoteCover): the old one fades out on top */
+  .joy-fade-out {
+    animation: joy-fade-out 450ms ease-out forwards;
+  }
   /* A typed arrow that just became → (editor/arrows.ts) */
   .joy-flash {
     border-radius: 3px;
@@ -691,4 +699,8 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
   0% { transform: translateY(-10px); opacity: 0; background-color: color-mix(in oklch, var(--joy) 28%, transparent); }
   35% { transform: none; opacity: 1; }
   100% { background-color: transparent; }
+}
+@keyframes joy-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
