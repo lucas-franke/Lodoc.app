@@ -54,6 +54,9 @@ export async function discardIfUntouched(id: string) {
 }
 
 /** Never touched since it was created: no title, no content, no edit, nothing set on it */
+/** When this page loaded */
+const SESSION_START = Date.now()
+
 function isUntouched(note: Note) {
   return (
     note.title === '' &&
@@ -70,11 +73,13 @@ function isUntouched(note: Note) {
 /**
  * On start: removes notes left exactly as created by an earlier session that ended on them (a reload or
  * a closed app). They hold nothing, so nothing is lost. A note on a board stays, and the note being
- * opened right now (`openId`) gets the usual chance instead: it goes when it is left untouched.
+ * opened right now (`openId`) gets the usual chance instead: it goes when it is left untouched. Notes created
+ * since this page loaded are never leftovers: one being filled in on start (a share, the journal) is still
+ * empty for a moment.
  */
 export async function discardLeftoverNotes(openId: string | null) {
   await db.transaction('rw', db.notes, db.boards, async () => {
-    const leftovers = (await db.notes.toArray()).filter(isUntouched)
+    const leftovers = (await db.notes.toArray()).filter((n) => n.createdAt < SESSION_START && isUntouched(n))
     if (!leftovers.length) return
     const onBoards = new Set((await db.boards.toArray()).flatMap((b) => b.nodes.flatMap((n) => (n.type === 'note' ? [n.noteId] : []))))
     for (const note of leftovers) {
