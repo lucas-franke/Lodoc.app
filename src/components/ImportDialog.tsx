@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatDateTime } from '@/lib/format'
 import { describeProject, importProject, type ImportMode, type ProjectFile } from '@/lib/project-file'
 import { openNote } from '@/hooks/useRoute'
 import { replaceAppearance } from '@/hooks/useAppearance'
@@ -44,7 +45,7 @@ export function ImportDialog({ project, onClose }: { project: ProjectFile | null
           <DialogTitle>Import project</DialogTitle>
           <DialogDescription>
             {project &&
-              `${describeProject(project)}, exported ${new Date(project.exportedAt).toLocaleString()}.`}
+              `${describeProject(project)}, exported ${formatDateTime(project.exportedAt)}.`}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2 text-sm text-muted-foreground">

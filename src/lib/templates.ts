@@ -3,11 +3,12 @@ import { createNote } from '@/db/notes'
 import { db } from '@/db/db'
 import type { StoredBlock } from '@/db/schema'
 import { h, li, p, todo } from './blocks'
+import { formatDate, formatLongDate } from './format'
 
 // Ready-made starting points for common notes. A template only fills a new note; nothing links back to it.
 
-const today = () => new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())
-const shortDate = () => new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())
+const today = () => formatLongDate(new Date())
+const shortDate = () => formatDate(new Date())
 
 export const TEMPLATES: { id: string; name: string; icon: LucideIcon; title: () => string; content: () => StoredBlock[] }[] = [
   {

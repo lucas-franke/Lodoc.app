@@ -3,7 +3,9 @@ const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
 const relative = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
-const date = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' })
+// One date style everywhere: day first, in numbers (20.10.2026), the same in every browser language
+const two = (n: number) => String(n).padStart(2, '0')
+const weekday = new Intl.DateTimeFormat('en', { weekday: 'long' })
 
 /** "just now", "5 minutes ago", "yesterday", "3 days ago"; older than a week → a date. */
 export function formatRelative(time: number, now = Date.now()) {
@@ -16,14 +18,21 @@ export function formatRelative(time: number, now = Date.now()) {
   return formatDate(time)
 }
 
-/** "30 Sep 2026" */
-export function formatDate(time: number) {
-  return date.format(time)
+/** "20.10.2026" */
+export function formatDate(time: number | Date) {
+  const d = new Date(time)
+  return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()}`
 }
 
-/** Full date and time, for tooltips. */
-export function formatDateTime(time: number) {
-  return new Date(time).toLocaleString()
+/** "Tuesday, 20.10.2026" */
+export function formatLongDate(time: number | Date) {
+  return `${weekday.format(time)}, ${formatDate(time)}`
+}
+
+/** "20.10.2026, 14:05": full date and time, for tooltips. */
+export function formatDateTime(time: number | Date) {
+  const d = new Date(time)
+  return `${formatDate(d)}, ${two(d.getHours())}:${two(d.getMinutes())}`
 }
 
 /** "1 note", "3 notes" */

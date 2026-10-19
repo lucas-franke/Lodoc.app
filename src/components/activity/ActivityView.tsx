@@ -8,7 +8,7 @@ import { db } from '@/db/db'
 import { noteTitle } from '@/db/notes'
 import type { ActivityEntry } from '@/db/schema'
 import { activityHash, type ActivityTab } from '@/hooks/useRoute'
-import { formatDateTime, formatRelative } from '@/lib/format'
+import { formatDateTime, formatLongDate, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { DeletedList, restoreWithMessage } from './DeletedList'
 
@@ -90,7 +90,7 @@ function dayLabel(time: number, now: number) {
   const day = new Date(time).toDateString()
   if (day === new Date(now).toDateString()) return 'Today'
   if (day === new Date(now - 24 * 60 * 60 * 1000).toDateString()) return 'Yesterday'
-  return new Date(time).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+  return formatLongDate(time)
 }
 
 function Timeline({ tab }: { tab: Exclude<ActivityTab, 'deleted'> }) {

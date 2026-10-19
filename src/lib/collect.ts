@@ -3,6 +3,7 @@ import { logChange } from '@/db/activity'
 import { db } from '@/db/db'
 import { createNote, noteTitle, updateNote } from '@/db/notes'
 import type { StoredBlock } from '@/db/schema'
+import { formatDate } from './format'
 
 // "Share to Lodoc": the installed app is a share target (manifest.webmanifest, share_target), so text and links
 // shared from other apps on Android open Lodoc with them in the URL. Each share becomes a dated bullet at the top
@@ -95,10 +96,7 @@ function hostname(url: string) {
 }
 
 /** 19.10.2026 */
-function today(now = new Date()) {
-  const two = (n: number) => String(n).padStart(2, '0')
-  return `${two(now.getDate())}.${two(now.getMonth() + 1)}.${now.getFullYear()}`
-}
+const today = () => formatDate(new Date())
 
 const text = (t: string) => ({ type: 'text', text: t, styles: {} })
 
