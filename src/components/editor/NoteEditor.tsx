@@ -22,6 +22,7 @@ import { NoteOutline, OutlineButton } from './NoteOutline'
 import { outlineOf, type OutlineItem } from '@/lib/outline'
 import { editorSchema } from './schema'
 import { arrowsExtension } from './arrows'
+import { emptyLinesExtension } from './empty-lines'
 import { NoteTags } from '@/components/note/NoteTags'
 import type { Note, StoredBlock } from '@/db/schema'
 
@@ -90,7 +91,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
     schema: editorSchema,
     initialContent: note.content.length ? (note.content as PartialBlock<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema>[]) : undefined,
     uploadFile,
-    extensions: [arrowsExtension],
+    extensions: [arrowsExtension, emptyLinesExtension],
     // Accessible name for the editable area (screen readers otherwise announce just "edit text")
     domAttributes: { editor: { 'aria-label': 'Note content' } },
   })
