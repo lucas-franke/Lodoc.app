@@ -2,6 +2,7 @@ import { isTouchDevice, type PartialBlock } from '@blocknote/core'
 import { SuggestionMenuController, useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/shadcn'
 import '@blocknote/shadcn/style.css'
+import { en } from '@blocknote/core/locales'
 import { useTheme } from 'next-themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isImageFile } from '@/db/assets'
@@ -23,11 +24,15 @@ import { outlineOf, type OutlineItem } from '@/lib/outline'
 import { editorSchema } from './schema'
 import { arrowsExtension } from './arrows'
 import { emptyLinesExtension } from './empty-lines'
+import { templateHintsExtension } from './template-hints'
 import { NoteTags } from '@/components/note/NoteTags'
 import type { Note, StoredBlock } from '@/db/schema'
 import { cn } from '@/lib/utils'
 
 const SAVE_DELAY = 400
+
+/** BlockNote's texts, with an empty checklist item saying "To-do" rather than "List" */
+const dictionary = { ...en, placeholders: { ...en.placeholders, checkListItem: 'To-do' } }
 
 /** Stores files inline as data URLs, since there is no server to upload to. Images are compressed first. */
 async function uploadFile(file: File): Promise<string> {
@@ -100,7 +105,8 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
     schema: editorSchema,
     initialContent: note.content.length ? (note.content as PartialBlock<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema>[]) : undefined,
     uploadFile,
-    extensions: [arrowsExtension, emptyLinesExtension],
+    dictionary,
+    extensions: [arrowsExtension, emptyLinesExtension, templateHintsExtension],
     // Accessible name for the editable area (screen readers otherwise announce just "edit text")
     domAttributes: { editor: { 'aria-label': 'Note content' } },
   })

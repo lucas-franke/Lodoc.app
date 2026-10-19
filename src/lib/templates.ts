@@ -40,6 +40,20 @@ export const TEMPLATES: { id: string; name: string; icon: LucideIcon; title: () 
   },
 ]
 
+/** What the empty line under each template heading is for (shown as its placeholder, see template-hints.ts) */
+export const HEADING_HINTS: Record<string, string> = {
+  attendees: "Who's there",
+  agenda: 'Topic',
+  notes: 'Anything worth remembering',
+  'action items': 'Who does what by when',
+  'grateful for': 'Something small counts too',
+  'what would make today great': 'One thing for today',
+  goal: 'What does done look like?',
+  milestones: 'The first step',
+  'open questions': "What's still unclear?",
+  links: 'Paste a link',
+}
+
 /** A new note filled from a template, in the given folder. Returns its id. */
 export async function createFromTemplate(templateId: string, folderId: string | null = null) {
   const template = TEMPLATES.find((t) => t.id === templateId) ?? TEMPLATES[0]
