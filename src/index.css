@@ -440,6 +440,8 @@
    don't fit. Below the sidebar overlay (z-30/40) and dialogs. */
 .bn-mobile-formatting-toolbar.note-format-bar {
   z-index: 20;
+  /* BlockNote pads the bar above a phone's gesture bar; fill that strip like the bar, not with the page */
+  background-color: var(--popover);
 }
 .bn-mobile-formatting-toolbar.note-format-bar .bn-toolbar {
   width: 100%;
@@ -587,4 +589,14 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
   html [data-sonner-toaster] [data-sonner-toast] [data-button] {
     height: 2.75rem;
   }
+}
+
+/* Phones draw the app behind their system bars (viewport-fit=cover in index.html): surfaces reach under the
+   bars, their content stays clear of them. env() is 0 where there are no bars, so desktops are unchanged. */
+@utility safe-area-padding {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+@utility safe-area-padding-y {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }

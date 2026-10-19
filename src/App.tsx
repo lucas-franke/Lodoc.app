@@ -124,7 +124,7 @@ export default function App() {
   return (
     // On a narrow screen the sidebar covers the board, so close it once a note has been dropped there
     <AppDnd onNoteDroppedOnCanvas={() => isNarrow() && setSidebarOpen(false)}>
-      <div data-app-shell className="flex h-dvh overflow-hidden bg-background text-foreground">
+      <div data-app-shell className="flex h-dvh overflow-hidden bg-background text-foreground safe-area-padding">
         {sidebarOpen && (
           <>
             <div

@@ -11,12 +11,12 @@ export function Notifications() {
   const many = toasts.length >= 2
   return (
     <>
-      <Toaster position="bottom-center" closeButton offset={{ bottom: many ? 60 : 24 }} mobileOffset={{ bottom: many ? 52 : 16 }} />
+      <Toaster position="bottom-center" closeButton offset={{ bottom: many ? 60 : 24 }} mobileOffset={{ bottom: `calc(${many ? 52 : 16}px + env(safe-area-inset-bottom))` }} />
       {many && (
         <button
           type="button"
           onClick={() => toast.dismiss()}
-          className="fixed bottom-4 left-1/2 z-[999999999] -translate-x-1/2 rounded-full border bg-popover px-3 py-1 text-xs text-popover-foreground shadow-sm outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 max-sm:bottom-3"
+          className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 z-[999999999] -translate-x-1/2 rounded-full border bg-popover px-3 py-1 text-xs text-popover-foreground shadow-sm outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 max-sm:bottom-3"
         >
           Clear all ({toasts.length})
         </button>

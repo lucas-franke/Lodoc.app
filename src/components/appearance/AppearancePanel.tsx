@@ -144,7 +144,7 @@ export function AppearancePanel({
       <SheetContent
         side="right"
         overlayClassName="bg-transparent supports-backdrop-filter:backdrop-blur-none"
-        className="gap-0 data-[side=right]:w-full sm:data-[side=right]:w-[380px] data-[side=right]:sm:max-w-[380px] floating:inset-y-2 floating:right-2 floating:h-auto floating:overflow-hidden floating:rounded-xl floating:border floating:shadow-lg max-sm:floating:left-2 max-sm:floating:w-auto"
+        className="gap-0 safe-area-padding-y data-[side=right]:w-full sm:data-[side=right]:w-[380px] data-[side=right]:sm:max-w-[380px] floating:inset-y-2 floating:right-2 floating:h-auto floating:overflow-hidden floating:rounded-xl floating:border floating:shadow-lg max-sm:floating:left-2 max-sm:floating:w-auto"
         onCloseAutoFocus={(e) => {
           e.preventDefault()
           returnFocus()

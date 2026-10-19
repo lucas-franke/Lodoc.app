@@ -11,9 +11,12 @@ import { purgeOldTrash } from '@/db/trash'
 import { purgeOldActivity } from '@/db/activity'
 import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
+import { followThemeColor } from '@/lib/theme-color'
 
 // Appearance settings (font, corners, …) are applied before the first render, so nothing jumps
 applySavedAppearance()
+// The phone's status bar matches the page background (tint, dark mode)
+followThemeColor()
 // Deleted items older than the trash period are removed for good
 void purgeOldTrash()
 // Activity keeps the last 90 days
