@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import { BoardItem } from './BoardItem'
 import { NoteItem } from './NoteItem'
 import { RenameInput } from './RenameInput'
-import { rowActionsClass, rowClass, rowLinkClass } from './row-styles'
+import { rowActionButtonClass, rowActionsClass, rowClass, rowLinkClass } from './row-styles'
 import { useSidebar, withSelectEntry } from './sidebar-context'
 import { DropLine } from './DropLine'
 import { dndId, useTreeItem } from './tree-dnd'
@@ -82,7 +82,7 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
             onClick={() => toggleExpanded(folder.id)}
             aria-expanded={open}
             aria-label={`${open ? 'Collapse' : 'Expand'} ${folder.name}`}
-            className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-sidebar-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none pointer-coarse:size-8 hover:bg-sidebar-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <ChevronRight
               className={cn('size-4 motion-safe:transition-transform', open && 'rotate-90', !hasChildren && 'opacity-50')}
@@ -118,14 +118,14 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
             <RowDropdownMenu
               entries={entries}
               trigger={
-                <Button variant="ghost" size="icon-xs" aria-label={`Actions for ${folder.name}`}>
+                <Button variant="ghost" size="icon-xs" className={rowActionButtonClass} aria-label={`Actions for ${folder.name}`}>
                   <MoreHorizontal />
                 </Button>
               }
             />
             <Button
               variant="ghost"
-              size="icon-xs"
+              size="icon-xs" className={rowActionButtonClass}
               onClick={async () => {
                 expand()
                 openNote(await createNote(folder.id))

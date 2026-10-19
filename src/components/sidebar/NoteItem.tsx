@@ -8,7 +8,7 @@ import { useNoteMenuEntries } from '@/hooks/useItemMenus'
 import { canReorderNote } from '@/lib/reorder'
 import { cn } from '@/lib/utils'
 import { RenameInput } from './RenameInput'
-import { rowActionsClass, rowClass, rowLinkClass, rowStatusClass } from './row-styles'
+import { rowActionButtonClass, rowActionsClass, rowClass, rowLinkClass, rowStatusClass } from './row-styles'
 import { useSidebar, withSelectEntry } from './sidebar-context'
 import { DropLine } from './DropLine'
 import { dndId, useTreeItem } from './tree-dnd'
@@ -101,7 +101,7 @@ export function NoteItem({
           <RowDropdownMenu
             entries={entries}
             trigger={
-              <Button variant="ghost" size="icon-xs" aria-label={`Actions for ${noteTitle(note)}`}>
+              <Button variant="ghost" size="icon-xs" className={rowActionButtonClass} aria-label={`Actions for ${noteTitle(note)}`}>
                 <MoreHorizontal />
               </Button>
             }

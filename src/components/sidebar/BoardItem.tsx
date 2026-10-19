@@ -5,7 +5,7 @@ import { boardTitle, renameBoard } from '@/db/boards'
 import type { Board } from '@/db/schema'
 import { useBoardMenuEntries } from '@/hooks/useItemMenus'
 import { RenameInput } from './RenameInput'
-import { rowActionsClass, rowClass, rowLinkClass } from './row-styles'
+import { rowActionButtonClass, rowActionsClass, rowClass, rowLinkClass } from './row-styles'
 import { useSidebar, withSelectEntry } from './sidebar-context'
 import { dndId, useTreeItem } from './tree-dnd'
 
@@ -74,7 +74,7 @@ export function BoardItem({ board, depth = 0 }: { board: Board; depth?: number }
           <RowDropdownMenu
             entries={entries}
             trigger={
-              <Button variant="ghost" size="icon-xs" aria-label={`Actions for ${boardTitle(board)}`}>
+              <Button variant="ghost" size="icon-xs" className={rowActionButtonClass} aria-label={`Actions for ${boardTitle(board)}`}>
                 <MoreHorizontal />
               </Button>
             }

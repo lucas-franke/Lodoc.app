@@ -20,7 +20,7 @@ import { NoteItem } from './NoteItem'
 import { useSidebarWidth } from '@/hooks/useSidebarWidth'
 import { SidebarResizer } from './SidebarResizer'
 import { SidebarContext, type SidebarContextValue } from './sidebar-context'
-import { rowClass, rowLinkClass } from './row-styles'
+import { rowActionButtonClass, rowClass, rowLinkClass } from './row-styles'
 import { SelectionBar } from './SelectionBar'
 import { parseItemKey } from '@/db/bulk'
 import { dndId, useDropIndicator } from './tree-dnd'
@@ -200,7 +200,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
         onKeyDown={(e) => {
           if (e.key === 'Escape' && selected.size && !(e.target as HTMLElement).closest('input')) clearSelection()
         }}
-        className="relative flex h-full w-64 shrink-0 flex-col border-r bg-sidebar max-md:safe-area-padding-y text-sidebar-foreground floating:rounded-xl floating:border floating:shadow-sm md:w-(--sidebar-width)"
+        className="relative flex h-full w-64 shrink-0 flex-col pointer-coarse:max-md:w-72 border-r bg-sidebar max-md:safe-area-padding-y text-sidebar-foreground floating:rounded-xl floating:border floating:shadow-sm md:w-(--sidebar-width)"
         style={{ '--sidebar-width': `${sidebarWidth.width}px` } as React.CSSProperties}
       >
         {/* Same height and padding as the page header, so this toggle and "Show sidebar" sit on the same spot */}
@@ -276,7 +276,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                   <Tip label="New folder">
                     <Button
                       variant="ghost"
-                      size="icon-xs"
+                      size="icon-xs" className={rowActionButtonClass}
                       onClick={async () => {
                         holdKeyboard()
                         setRenamingId(await createFolder('New folder'))
@@ -298,7 +298,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                   <Tip label="New board">
                     <Button
                       variant="ghost"
-                      size="icon-xs"
+                      size="icon-xs" className={rowActionButtonClass}
                       onClick={async () => openBoard(await createBoard())}
                       aria-label="New board"
                     >
@@ -319,7 +319,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                 drop="notes"
                 action={
                   <Tip label="New unfiled note">
-                    <Button variant="ghost" size="icon-xs" onClick={newUnfiledNote} aria-label="New unfiled note">
+                    <Button variant="ghost" size="icon-xs" className={rowActionButtonClass} onClick={newUnfiledNote} aria-label="New unfiled note">
                       <Plus />
                     </Button>
                   </Tip>
