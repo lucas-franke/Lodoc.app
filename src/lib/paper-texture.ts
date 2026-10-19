@@ -1,6 +1,7 @@
-// The "Paper" page texture: the paper-texture shader from Paper Shaders (https://shaders.paper.design),
-// rendered once into a seamless greyscale tile that index.css repeats like the other textures. The library
-// loads only when Paper is chosen, and the WebGL context is thrown away right after the one frame.
+// The "Paper" and "Laid paper" page textures: the paper-texture shader from Paper Shaders
+// (https://shaders.paper.design), rendered once into a seamless greyscale tile that index.css repeats like a
+// background image. The library loads only when one of them is shown, and the WebGL context is thrown away
+// right after the one frame.
 
 /** Tile size in pixels; shown at half that (PAPER_TILE_SIZE), so it stays crisp on 2× screens */
 const TILE = 1024
@@ -9,12 +10,33 @@ const BLEND = 160
 /** The tile's size on the page */
 export const PAPER_TILE_SIZE = `${TILE / 2}px`
 
-let rendering: Promise<string | null> | null = null
+export type PaperVariant = 'paper' | 'laid'
 
-/** An object URL of the tile, or null where WebGL2 is missing (index.css then keeps its SVG paper) */
-export function renderPaperTexture(): Promise<string | null> {
-  rendering ??= render().catch(() => null)
-  return rendering
+/** What sets each variant apart from the shared uniforms below */
+const VARIANTS: Record<PaperVariant, Record<string, number>> = {
+  // Fibers and soft wrinkles
+  paper: {},
+  // The fine ribbing of writing paper: grain lined up in rows, no wrinkles
+  laid: { u_roughness: 0.6, u_roughnessRows: 1, u_roughnessSize: 0.65, u_fiber: 0.3, u_wrinkles: 0, u_angle: 90, u_rotation: 90 },
+}
+
+const rendering = new Map<PaperVariant, Promise<string | null>>()
+
+/** An object URL of the variant's tile, or null where WebGL2 is missing (index.css then keeps a CSS stand-in) */
+function renderPaperTexture(variant: PaperVariant): Promise<string | null> {
+  let tile = rendering.get(variant)
+  if (!tile) rendering.set(variant, (tile = render(VARIANTS[variant]).catch(() => null)))
+  return tile
+}
+
+/** Renders the variant (once) and hands it to index.css as --texture-<variant>-image */
+export function showPaperTexture(variant: PaperVariant) {
+  void renderPaperTexture(variant).then((url) => {
+    if (!url) return
+    const root = document.documentElement
+    root.style.setProperty(`--texture-${variant}-image`, `url("${url}")`)
+    root.style.setProperty('--paper-size', PAPER_TILE_SIZE)
+  })
 }
 
 async function loaded(src: string) {
@@ -24,7 +46,7 @@ async function loaded(src: string) {
   return img
 }
 
-async function render(): Promise<string | null> {
+async function render(variant: Record<string, unknown>): Promise<string | null> {
   const { ShaderMount, paperTextureFragmentShader, getShaderNoiseTexture, getShaderColorFromString, emptyPixel, ShaderFitOptions } =
     await import('@paper-design/shaders')
   const noise = getShaderNoiseTexture()
@@ -81,6 +103,7 @@ async function render(): Promise<string | null> {
         u_originY: 0.5,
         u_worldWidth: 0,
         u_worldHeight: 0,
+        ...variant,
       },
       { preserveDrawingBuffer: true, premultipliedAlpha: false },
       0,
@@ -135,4 +158,9 @@ function seamless(src: ImageData): ImageData {
     }
   }
   return out
+}
+
+/** The Appearance panel's preview tiles show every variant, not just the chosen one */
+export function showPaperTextureSamples() {
+  for (const variant of Object.keys(VARIANTS) as PaperVariant[]) showPaperTexture(variant)
 }

@@ -1,6 +1,6 @@
-import { Check, FileText, LayoutGrid, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun, type LucideIcon } from 'lucide-react'
+import { Check, Dices, FileText, LayoutGrid, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun, type LucideIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { AppearancePreview, type PreviewArea, type PreviewFlash, type PreviewView } from '@/components/appearance/AppearancePreview'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ import { openNote, useRoute } from '@/hooks/useRoute'
 import {
   APPEARANCE_SECTIONS,
   DEFAULT_APPEARANCE,
+  randomAppearance,
   RADIUS_PRESETS,
   TEXTURE_STRENGTH_DEFAULT,
   TEXTURES,
@@ -32,6 +33,7 @@ import {
   tintColor,
   type Appearance,
 } from '@/lib/appearance'
+import { showPaperTextureSamples } from '@/lib/paper-texture'
 import { cn } from '@/lib/utils'
 
 const TEXT_SIZE_OPTIONS = [
@@ -75,8 +77,13 @@ export function AppearancePanel({
   const [flash, setFlash] = useState<PreviewFlash>(null)
   const highlight = (area: PreviewArea) => setFlash((f) => ({ area, n: (f?.n ?? 0) + 1 }))
 
-  // After "Reset all": what to bring back with Undo (offered in the footer until the next change)
-  const [undo, setUndo] = useState<{ appearance: Appearance; theme: string | undefined } | null>(null)
+  // After "Reset all" or "Randomize": what to bring back with Undo (offered in the footer until the next change)
+  const [undo, setUndo] = useState<{ appearance: Appearance; theme: string | undefined; status: string } | null>(null)
+
+  // The texture tiles below show the shader-rendered papers, not only the chosen one
+  useEffect(() => {
+    if (open) showPaperTextureSamples()
+  }, [open])
 
   const change = (patch: Partial<Appearance>, area: PreviewArea) => {
     updateAppearance(patch)
@@ -104,7 +111,14 @@ export function AppearancePanel({
     resetAppearance()
     setTheme('system')
     highlight('shell')
-    setUndo({ appearance: before, theme: beforeTheme })
+    setUndo({ appearance: before, theme: beforeTheme, status: 'Back to defaults' })
+  }
+  const randomize = () => {
+    const before = getAppearance()
+    // Undo keeps the look from before the first of several rolls in a row
+    updateAppearance(randomAppearance(before))
+    highlight('shell')
+    setUndo((u) => (u?.status === 'Randomized' ? u : { appearance: before, theme, status: 'Randomized' }))
   }
   const undoReset = () => {
     if (!undo) return
@@ -392,9 +406,12 @@ export function AppearancePanel({
           <Button variant="ghost" size="sm" onClick={resetAll}>
             <RotateCcw /> Reset all
           </Button>
+          <Button variant="ghost" size="sm" onClick={randomize}>
+            <Dices /> Randomize
+          </Button>
           {undo && (
             <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground" role="status">
-              Back to defaults
+              {undo.status}
               <Button variant="outline" size="xs" onClick={undoReset}>
                 Undo
               </Button>

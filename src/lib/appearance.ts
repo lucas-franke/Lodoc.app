@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PAPER_TILE_SIZE, renderPaperTexture } from './paper-texture'
+import { showPaperTexture } from './paper-texture'
 
 // Appearance settings: one object, remembered in this browser and applied to <html> as data attributes
 // and CSS variables. index.css turns them into the look (tinted surfaces, gradient, floating sidebar, grain).
@@ -45,9 +45,9 @@ export type Corners = (typeof RADIUS_PRESETS)[number]['id']
 
 export const TEXTURES = [
   { id: 'none', name: 'None' },
-  { id: 'grain', name: 'Grain' },
   { id: 'paper', name: 'Paper' },
-  { id: 'linen', name: 'Linen' },
+  { id: 'laid', name: 'Laid paper' },
+  { id: 'dots', name: 'Dot grid' },
 ] as const
 export type Texture = (typeof TEXTURES)[number]['id']
 /** Texture strength in percent; 50 is each texture's tuned default, 100 twice as strong */
@@ -69,19 +69,19 @@ const schema = z.object({
   autoCover: z.boolean().catch(true),
   sidebar: z.enum(['connected', 'floating']).catch('connected'),
   corners: z.enum(['sharp', 'rounded', 'round']).catch('rounded'),
-  texture: z.enum(['none', 'grain', 'paper', 'linen']).catch('none'),
+  /** Grain and Linen were page textures until they were replaced; saved ones fall back to none */
+  texture: z.enum(['none', 'paper', 'laid', 'dots']).catch('none'),
   textureStrength: z.number().int().min(0).max(100).catch(TEXTURE_STRENGTH_DEFAULT),
   /** Grain on the interface (sidebar, menus, panels), separate from the page texture */
   uiGrain: z.boolean().catch(false),
   uiGrainStrength: z.number().int().min(0).max(100).catch(TEXTURE_STRENGTH_DEFAULT),
 })
 
-/** Earlier versions stored a free corner radius (px) and a grain on/off switch */
+/** Earlier versions stored a free corner radius (px) and a grain on/off switch (its texture no longer exists) */
 function migrate(saved: Record<string, unknown>): Record<string, unknown> {
   const out = { ...saved }
   if (typeof saved.radius === 'number' && !('corners' in saved))
     out.corners = saved.radius <= 4 ? 'sharp' : saved.radius <= 12 ? 'rounded' : 'round'
-  if (typeof saved.grain === 'boolean' && !('texture' in saved)) out.texture = saved.grain ? 'grain' : 'none'
   delete out.radius
   delete out.grain
   return out
@@ -138,13 +138,8 @@ export function applyAppearance(a: Appearance) {
   root.dataset.gradient = String(a.gradient)
   root.dataset.sidebar = a.sidebar === 'floating' && window.matchMedia(WIDE_SCREEN).matches ? 'floating' : 'connected'
   root.dataset.texture = a.texture
-  // Paper is rendered by a shader on first use; until then (or without WebGL) index.css shows an SVG paper
-  if (a.texture === 'paper')
-    void renderPaperTexture().then((url) => {
-      if (!url) return
-      root.style.setProperty('--paper-image', `url("${url}")`)
-      root.style.setProperty('--paper-size', PAPER_TILE_SIZE)
-    })
+  // The paper textures are rendered by a shader on first use; until then (or without WebGL) index.css shows a stand-in
+  if (a.texture === 'paper' || a.texture === 'laid') showPaperTexture(a.texture)
   root.style.setProperty('--texture-strength', String(a.textureStrength / TEXTURE_STRENGTH_DEFAULT))
   root.dataset.uiGrain = String(a.uiGrain)
   root.style.setProperty('--ui-grain-strength', String(a.uiGrainStrength / TEXTURE_STRENGTH_DEFAULT))
@@ -160,4 +155,31 @@ export function applyAppearance(a: Appearance) {
   const corners = RADIUS_PRESETS.find((p) => p.id === a.corners) ?? RADIUS_PRESETS[1]
   root.style.setProperty('--radius', `${corners.px / 16}rem`)
   root.style.setProperty('--page-text-size', TEXT_SIZES[a.textSize])
+}
+
+const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]
+
+/**
+ * A random look for "Randomize": colors, fonts, texture and interface shape. Text size, generated covers,
+ * strengths and the light/dark mode stay as they are, since those are about reading comfort, not style.
+ */
+export function randomAppearance(current: Appearance): Appearance {
+  for (;;) {
+    const tint = pick(TINTS).id
+    const next: Appearance = {
+      ...current,
+      tint,
+      gradient: Math.random() < 0.5,
+      // Neutral text stays the most common, colored text is the accent
+      textColor: pick(['neutral', 'neutral', 'tint', 'custom'] as const),
+      textTint: pick(TINTS.filter((t) => t.id !== 'neutral')).id,
+      pageFont: pick(['sans', 'serif'] as const),
+      texture: pick(TEXTURES).id,
+      sidebar: pick(['connected', 'floating'] as const),
+      corners: pick(RADIUS_PRESETS).id,
+      uiGrain: Math.random() < 0.3,
+    }
+    const keys = Object.keys(next) as (keyof Appearance)[]
+    if (keys.some((k) => next[k] !== current[k])) return next
+  }
 }

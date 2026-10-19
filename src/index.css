@@ -205,59 +205,55 @@
     --xy-background-color-default: transparent;
 }
 
-/* Textures (Appearance panel): a noise layer that never takes clicks. The page texture is drawn over each
+/* Textures (Appearance panel): a layer that never takes clicks. The page texture is drawn over each
    [data-texture-surface] (the page; never on a board, which keeps just its dots); the
    interface grain over the sidebar, menus, panels and dialogs. Each texture sets
    its image, tile size, strength and blend; the preview tiles in the panel use the same variables. */
 :root {
-    /* Shared by the page texture "Grain" and the interface grain */
+    /* The interface grain */
     --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-:root[data-texture='grain'],
-[data-texture-sample='grain'] {
-    --texture: var(--grain-image);
-    --texture-size: 160px;
-    --texture-opacity: 0.06;
-}
-:root[data-texture='paper'],
-[data-texture-sample='paper'] {
-    /* --paper-image: the shader-rendered tile (lib/paper-texture.ts); the SVG is its stand-in */
-    --texture: var(--paper-image, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23fff' surfaceScale='1.6'%3E%3CfeDistantLight azimuth='45' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"));
-    --texture-size: var(--paper-size, 320px);
-    --texture-opacity: 0.18;
-}
-:root[data-texture='linen'],
-[data-texture-sample='linen'] {
-    --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='l'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7 0.012' numOctaves='2' seed='3' stitchTiles='stitch' result='a'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.7' numOctaves='2' seed='8' stitchTiles='stitch' result='b'/%3E%3CfeBlend in='a' in2='b' mode='multiply'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23l)'/%3E%3C/svg%3E");
-    --texture-size: 200px;
-    --texture-opacity: 0.08;
-}
-[data-texture-sample='none'] {
-    --texture: none;
-}
-:root {
     --texture-blend: multiply;
 }
 :root.dark {
     --texture-blend: soft-light;
 }
-:root.dark[data-texture='grain'],
-.dark [data-texture-sample='grain'] {
-    --texture-opacity: 0.1;
+/* Paper and Laid paper: tiles rendered by a shader (lib/paper-texture.ts sets --texture-paper-image,
+   --texture-laid-image and --paper-size); until then, or without WebGL, a CSS stand-in */
+:root[data-texture='paper'],
+[data-texture-sample='paper'] {
+    --texture: var(--texture-paper-image, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23fff' surfaceScale='1.6'%3E%3CfeDistantLight azimuth='45' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"));
+    --texture-size: var(--paper-size, 320px);
+    --texture-opacity: 0.18;
 }
-:root.dark[data-texture='paper'],
-.dark [data-texture-sample='paper'] {
+:root[data-texture='laid'],
+[data-texture-sample='laid'] {
+    --texture: var(--texture-laid-image, repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.35) 0 1px, transparent 1px 5px));
+    --texture-size: var(--paper-size, 100% 5px);
+    --texture-opacity: 0.18;
+}
+:root.dark:is([data-texture='paper'], [data-texture='laid']),
+.dark :is([data-texture-sample='paper'], [data-texture-sample='laid']) {
     --texture-opacity: 0.22;
 }
-/* Paper is mostly light: in dark mode invert it and add only its highlights, so the page does not wash out */
-:root.dark[data-texture='paper'] [data-texture-surface]::after,
-.dark [data-texture-sample='paper']::after {
+/* The papers are mostly light: in dark mode invert them and add only their highlights, so the page does not wash out */
+:root.dark:is([data-texture='paper'], [data-texture='laid']) [data-texture-surface]::after,
+.dark :is([data-texture-sample='paper'], [data-texture-sample='laid'])::after {
     filter: invert(1);
     mix-blend-mode: screen;
 }
-:root.dark[data-texture='linen'],
-.dark [data-texture-sample='linen'] {
+/* Dot grid: plain CSS, crisp at any zoom; drawn in the text color, so it follows tint and dark mode */
+:root[data-texture='dots'],
+[data-texture-sample='dots'] {
+    --texture: radial-gradient(circle, var(--foreground) 0.9px, transparent 1.4px);
+    --texture-size: 20px 20px;
     --texture-opacity: 0.14;
+    --texture-blend: normal;
+}
+[data-texture-sample='dots'] {
+    --texture-size: 7px 7px;
+}
+[data-texture-sample='none'] {
+    --texture: none;
 }
 [data-texture-surface] {
     isolation: isolate;
