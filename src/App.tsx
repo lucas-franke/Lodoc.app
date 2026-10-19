@@ -233,7 +233,7 @@ function EmptyState({ missing }: { missing: RouteType | null }) {
         {missing ? `This ${missing} no longer exists.` : 'Select a note or create a new one.'}
       </p>
       <div className="flex flex-wrap justify-center gap-2">
-        <Button variant="outline" onClick={async () => openNote(await createNote())}>
+        <Button onClick={async () => openNote(await createNote())}>
           <FilePlus /> New note
         </Button>
         {!missing && (

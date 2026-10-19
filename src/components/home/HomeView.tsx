@@ -53,7 +53,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       {continueWith && <ContinueCard note={continueWith} />}
 
       <div className="mt-6 flex flex-wrap gap-2">
-        <Button variant="outline" onClick={async () => openNote(await createNote())}>
+        <Button onClick={async () => openNote(await createNote())}>
           <Plus /> New note
         </Button>
         <TemplateMenu />
