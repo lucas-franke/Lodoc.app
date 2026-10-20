@@ -26,3 +26,6 @@ dist-ssr
 # The website (site/, Astro)
 site/dist
 site/.astro
+
+# Wrangler (Cloudflare) local state
+.wrangler

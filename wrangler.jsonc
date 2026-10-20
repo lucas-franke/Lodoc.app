@@ -1,0 +1,12 @@
+// Cloudflare (lodoc.app): its build runs `npm run build` (the app and the website into dist/), then
+// `npx wrangler deploy`, which reads this file and uploads dist/ as static files. Without it, wrangler guesses
+// the project type and, seeing Astro, tries to set up a server adapter the site doesn't need.
+{
+  "name": "localnotes",
+  "compatibility_date": "2026-10-20",
+  "assets": {
+    "directory": "./dist",
+    // Addresses that aren't a file get the app, as before (it routes with #/…, so this only matters for typos)
+    "not_found_handling": "single-page-application"
+  }
+}
