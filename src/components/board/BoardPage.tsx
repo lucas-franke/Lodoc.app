@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { useAppEvent } from '@/lib/app-events'
+import { playOnce, reducedMotion } from '@/lib/joy'
 import { notify } from '@/lib/notify'
 import { useRegisterCanvasDrop } from '@/components/dnd/dnd-registry'
 import type { DndData } from '@/components/sidebar/tree-dnd'
@@ -144,6 +145,36 @@ function Canvas({ board }: { board: Board }) {
     if (!inView) void rf.fitView({ padding: FIT_PADDING, maxZoom: 1 })
   }, [nodesInitialized, rf])
 
+  // ---- sparks of joy: items settle where they land, new arrows draw themselves in ---------
+
+  /** A soft spring on items that were just dropped or added */
+  const settle = useCallback((ids: string[]) => {
+    requestAnimationFrame(() => {
+      for (const id of ids) {
+        const el = container.current?.querySelector(`.react-flow__node[data-id="${CSS.escape(id)}"] > *`)
+        if (el) playOnce(el, 'joy-settle')
+      }
+    })
+  }, [])
+
+  /** A new arrow's line draws from its start to its end, then the head appears */
+  const drawIn = useCallback((edgeId: string) => {
+    if (reducedMotion()) return
+    // Two frames: the arrow is rendered and measured by then
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const edge = container.current?.querySelector(`.react-flow__edge[data-id="${CSS.escape(edgeId)}"]`)
+        const line = edge?.querySelector<SVGPathElement>('.react-flow__edge-path')
+        if (!edge || !line) return
+        const length = line.getTotalLength()
+        const timing = { duration: 380, easing: 'cubic-bezier(0.3, 0.7, 0.4, 1)' }
+        const dash = `${length}`
+        line.animate([{ strokeDasharray: dash, strokeDashoffset: length }, { strokeDasharray: dash, strokeDashoffset: 0 }], timing)
+        edge.querySelector('path:not(.react-flow__edge-path):not(.react-flow__edge-interaction)')?.animate([{ opacity: 0 }, { opacity: 0, offset: 0.7 }, { opacity: 1 }], timing)
+      }),
+    )
+  }, [])
+
   /**
    * Shows the new state at once and saves it; the interaction ends when the save is done. Arrows whose
    * items are gone are dropped here, whichever way the items were removed.
@@ -250,12 +281,14 @@ function Canvas({ board }: { board: Board }) {
     (source: string, target: string) => {
       if (source === target) return
       if (edgesRef.current.some((e) => e.source === source && e.target === target)) return
+      const id = nanoid()
       commitEdges([
         ...edgesRef.current.map((e) => (e.selected ? { ...e, selected: false } : e)),
-        { ...toFlowEdge({ id: nanoid(), source, target }), selected: true },
+        { ...toFlowEdge({ id, source, target }), selected: true },
       ])
+      drawIn(id)
     },
-    [commitEdges],
+    [commitEdges, drawIn],
   )
 
   const setEdgeLabel = useCallback(
@@ -330,8 +363,9 @@ function Canvas({ board }: { board: Board }) {
       carried.current = null
       for (const n of dragged) positions.set(n.id, n.position)
       void commit(nodesRef.current.map((n) => (positions.has(n.id) ? { ...n, position: positions.get(n.id)! } : n)))
+      settle(dragged.map((n) => n.id))
     },
-    [carriedPositions, commit],
+    [carriedPositions, commit, settle],
   )
 
   // ---- adding items ----------------------------------------------------------------------
@@ -395,8 +429,9 @@ function Canvas({ board }: { board: Board }) {
         nodesRef.current = next
         setNodes(next)
       }
+      settle([node.id])
     },
-    [commit],
+    [commit, settle],
   )
 
   /** Selects an item (only it) and zooms to it, also when it is far outside the view. */
