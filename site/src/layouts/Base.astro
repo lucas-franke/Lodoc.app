@@ -6,12 +6,16 @@ interface Props {
   description: string
   /** A wider page (the docs, with their navigation beside the text) */
   wide?: boolean
+  /** The picture shown when the page is shared (a path inside the site, like "about/overview-light.png") */
+  image?: string
 }
-const { title, description, wide = false } = Astro.props
+const { title, description, wide = false, image } = Astro.props
 const width = wide ? 'max-w-5xl' : 'max-w-3xl'
 const base = import.meta.env.BASE_URL
 // The app is at the root of the site, wherever that is (lodoc.app/ or the GitHub Pages folder)
 const app = base
+const about = `${base}about/`
+const imageUrl = image && Astro.site ? new URL(`${base}${image}`, Astro.site).href : undefined
 const nav = [
   { href: `${base}docs/`, label: 'Docs' },
   { href: `${base}changelog/`, label: "What's new" },
@@ -27,6 +31,9 @@ const nav = [
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    {imageUrl && <meta property="og:image" content={imageUrl} />}
+    {imageUrl && <meta name="twitter:card" content="summary_large_image" />}
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title="Lodoc: what's new" href={`${base}changelog/rss.xml`} />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
@@ -44,7 +51,8 @@ const nav = [
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2">Skip to content</a>
     <header class="sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
       <div class:list={['mx-auto flex h-14 items-center gap-2 px-4 sm:gap-4', width]}>
-        <a href={app} class="flex items-center gap-2 rounded-md font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60">
+        <!-- The name leads to the page about Lodoc; "Open Lodoc" opens the app -->
+        <a href={about} aria-current={Astro.url.pathname === about ? 'page' : undefined} class="flex items-center gap-2 rounded-md font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60">
           <img src={`${base}favicon.svg`} alt="" width="22" height="22" />
           Lodoc
         </a>
@@ -74,8 +82,14 @@ const nav = [
     </main>
     <footer class="border-t">
       <div class:list={['mx-auto flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-6 text-sm text-muted-foreground', width]}>
-        <span>Lodoc: notes that stay in your browser.</span>
-        <a href={`${base}changelog/rss.xml`} class="ml-auto underline-offset-4 hover:underline">RSS</a>
+        <span>Lodoc: notes that stay on your device.</span>
+        <nav aria-label="Footer" class="flex flex-wrap gap-x-4 gap-y-2 sm:ml-auto">
+          <a href={about} class="underline-offset-4 hover:underline">About</a>
+          <a href={`${base}docs/`} class="underline-offset-4 hover:underline">Docs</a>
+          <a href={`${base}changelog/`} class="underline-offset-4 hover:underline">What's new</a>
+          <a href={`${base}docs/privacy/`} class="underline-offset-4 hover:underline">Privacy</a>
+          <a href={`${base}changelog/rss.xml`} class="underline-offset-4 hover:underline">RSS</a>
+        </nav>
       </div>
     </footer>
   </body>

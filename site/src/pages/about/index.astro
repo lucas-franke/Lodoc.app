@@ -1,0 +1,173 @@
+---
+import { getCollection } from 'astro:content'
+import Icon from '../../components/Icon.astro'
+import Base from '../../layouts/Base.astro'
+import { byVersion, formatDate } from '../../lib/changelog'
+import { __iconData as archive } from 'lucide-react/dist/esm/icons/archive-restore.mjs'
+import { __iconData as arrow } from 'lucide-react/dist/esm/icons/arrow-right.mjs'
+import { __iconData as calendar } from 'lucide-react/dist/esm/icons/calendar-days.mjs'
+import { __iconData as command } from 'lucide-react/dist/esm/icons/command.mjs'
+import { __iconData as fileInput } from 'lucide-react/dist/esm/icons/file-input.mjs'
+import { __iconData as hash } from 'lucide-react/dist/esm/icons/hash.mjs'
+// "history" is an alias of rotate-ccw-clock
+import { __iconData as history } from 'lucide-react/dist/esm/icons/rotate-ccw-clock.mjs'
+import { __iconData as template } from 'lucide-react/dist/esm/icons/layout-template.mjs'
+import { __iconData as shield } from 'lucide-react/dist/esm/icons/shield-check.mjs'
+import { __iconData as userX } from 'lucide-react/dist/esm/icons/user-x.mjs'
+import { __iconData as wifiOff } from 'lucide-react/dist/esm/icons/wifi-off.mjs'
+
+const base = import.meta.env.BASE_URL
+const latest = (await getCollection('changelog')).sort(byVersion)[0]
+const img = (name: string) => `${base}${name}`
+
+/** The big four, each with a screenshot from the docs */
+const features = [
+  {
+    title: 'Write without friction',
+    text: 'A block editor that keeps out of the way: type / for headings, lists, checklists, tables and images, or just use Markdown shortcuts. Link notes with @, tag them with #, and go back to any earlier version.',
+    image: 'docs/img/editor',
+    alt: 'A note being written, with the menu of blocks open',
+    docs: 'docs/writing/',
+  },
+  {
+    title: 'Think on a board',
+    text: 'Lay a topic out on an endless canvas: your notes as live cards, text, images, arrows between them and frames to group them. One click tidies it all into neat rows.',
+    image: 'docs/img/board',
+    alt: 'A board with note cards in a frame and an arrow between two of them',
+    docs: 'docs/boards/',
+  },
+  {
+    title: 'On your phone, too',
+    text: 'Install Lodoc like an app. Share links, text and photos to it from any other app on Android, and they land in one note with the date. Press and hold the app icon for your journal.',
+    image: 'docs/img/collected',
+    alt: 'The Collected note on a phone, with shared things listed by date',
+    docs: 'docs/phone/',
+    phone: true,
+  },
+  {
+    title: 'Make it yours',
+    text: 'Soft colour tints, paper textures, a serif or sans font, and a floating sidebar. Or press Randomize and be surprised.',
+    image: 'docs/img/appearance',
+    ext: 'jpg',
+    alt: 'The Appearance panel with a sage tint and a paper texture',
+    docs: 'docs/appearance/',
+  },
+]
+
+const trust = [
+  { icon: userX, title: 'No account', text: 'Open it and start writing. There is nothing to sign up for.' },
+  { icon: shield, title: 'Stays on your device', text: 'Notes are stored in your browser. Nothing you write is sent anywhere.' },
+  { icon: wifiOff, title: 'Works offline', text: 'Once opened, Lodoc keeps working without a connection.' },
+]
+
+const more = [
+  { icon: calendar, title: "Today's journal", text: 'One note per day, a keystroke away.' },
+  { icon: history, title: 'Note history', text: 'Look at earlier versions and bring one back.' },
+  { icon: hash, title: 'Tags and links', text: '#tags in the text, @links between notes.' },
+  { icon: template, title: 'Templates', text: 'Ready-made ones, or turn any note into one.' },
+  { icon: command, title: 'Command palette', text: 'Ctrl+K finds any note and runs any command.' },
+  { icon: fileInput, title: 'Import Markdown', text: 'From Obsidian, Notion or plain .md files.' },
+  { icon: archive, title: 'Backups', text: 'One file, automatic backups, or send it to your phone.' },
+]
+---
+
+<Base
+  title="Lodoc: notes that stay on your device"
+  description="A calm place for notes and boards that lives in your browser. No account, works offline, and nothing you write leaves your device."
+  image="about/overview-light.png"
+  wide
+>
+  <section class="text-center" aria-labelledby="hero">
+    <p class="text-sm font-medium text-muted-foreground">Notes and boards, in your browser</p>
+    <h1 id="hero" class="mx-auto mt-3 max-w-2xl font-page text-4xl leading-[1.1] font-bold tracking-tight text-balance sm:text-6xl">
+      Notes that stay on your device.
+    </h1>
+    <p class="mx-auto mt-5 max-w-xl text-lg text-pretty text-muted-foreground">
+      Lodoc is a calm place for notes and boards. No account, it works offline, and nothing you write ever leaves your browser.
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href={base} class="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/60">
+        Open Lodoc <Icon icon={arrow} class="size-4" />
+      </a>
+      <a href={`${base}docs/getting-started/`} class="inline-flex h-11 items-center rounded-lg border px-5 font-medium outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
+        How it works
+      </a>
+    </div>
+    <p class="mt-4 text-sm text-muted-foreground">Free · Nothing to install · On computers and phones</p>
+    <figure class="shot mx-auto mt-12 max-w-4xl">
+      <img src={img('about/overview-light.png')} class="dark:hidden" alt="Lodoc's overview: a field to write something down, the note to continue with, and recently edited notes as cards" width="1280" height="800" />
+      <img src={img('about/overview-dark.png')} class="hidden dark:block" alt="" width="1280" height="800" />
+    </figure>
+  </section>
+
+  <section aria-label="Why Lodoc" class="mt-20 grid gap-6 sm:grid-cols-3">
+    {
+      trust.map(({ icon, title, text }) => (
+        <div>
+          <Icon icon={icon} class="size-6 text-(--joy)" />
+          <h2 class="mt-3 font-semibold">{title}</h2>
+          <p class="mt-1 text-sm text-muted-foreground">{text}</p>
+        </div>
+      ))
+    }
+  </section>
+
+  <div class="mt-24 space-y-24">
+    {
+      features.map((f, i) => (
+        <section class="grid items-center gap-8 md:grid-cols-2 md:gap-12" aria-labelledby={`feature-${i}`}>
+          <div class:list={[i % 2 === 1 && 'md:order-2']}>
+            <h2 id={`feature-${i}`} class="font-page text-3xl font-bold tracking-tight">{f.title}</h2>
+            <p class="mt-3 text-lg text-muted-foreground">{f.text}</p>
+            <a href={`${base}${f.docs}`} class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline">
+              More about it <Icon icon={arrow} class="size-3.5" />
+            </a>
+          </div>
+          <figure class:list={['shot my-0', f.phone ? 'shot-phone' : 'shot-main']}>
+            <img src={img(`${f.image}-light.${f.ext ?? 'png'}`)} class="dark:hidden" alt={f.alt} width={f.phone ? 390 : 1280} height={f.phone ? 844 : 800} loading="lazy" />
+            <img src={img(`${f.image}-dark.${f.ext ?? 'png'}`)} class="hidden dark:block" alt="" width={f.phone ? 390 : 1280} height={f.phone ? 844 : 800} loading="lazy" />
+          </figure>
+        </section>
+      ))
+    }
+  </div>
+
+  <section class="mt-24" aria-labelledby="more">
+    <h2 id="more" class="font-page text-3xl font-bold tracking-tight">And a few more things</h2>
+    <ul class="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        more.map(({ icon, title, text }) => (
+          <li class="flex gap-3">
+            <Icon icon={icon} class="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+            <span>
+              <span class="block font-medium">{title}</span>
+              <span class="block text-sm text-muted-foreground">{text}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {
+    latest && (
+      <section class="mt-24 rounded-xl border bg-card p-6" aria-labelledby="new">
+        <p class="text-sm text-muted-foreground">
+          New in {latest.data.version} · {formatDate(latest.data.date)}
+        </p>
+        <h2 id="new" class="mt-1 text-xl font-semibold">{latest.data.summary}</h2>
+        <a href={`${base}changelog/`} class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline">
+          See what's new <Icon icon={arrow} class="size-3.5" />
+        </a>
+      </section>
+    )
+  }
+
+  <section class="mt-24 text-center" aria-labelledby="start">
+    <h2 id="start" class="font-page text-3xl font-bold tracking-tight">It's already there.</h2>
+    <p class="mt-3 text-muted-foreground">Open Lodoc and write your first note. No sign-up, no download.</p>
+    <a href={base} class="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/60">
+      Open Lodoc <Icon icon={arrow} class="size-4" />
+    </a>
+  </section>
+</Base>

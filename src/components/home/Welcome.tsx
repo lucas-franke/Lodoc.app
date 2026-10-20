@@ -13,7 +13,10 @@ export function Welcome() {
     <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col justify-center px-6 py-12" data-welcome>
       <h1 className="font-page text-4xl font-bold tracking-tight text-balance">Welcome to Lodoc</h1>
       <p className="mt-3 max-w-prose text-muted-foreground">
-        Notes, boards and images, kept right here in this browser. No account needed, and it works offline.
+        Notes, boards and images, kept right here in this browser. No account needed, and it works offline.{' '}
+        <a href="./about/" className="rounded-sm whitespace-nowrap text-foreground underline underline-offset-4 outline-none hover:no-underline focus-visible:ring-2 focus-visible:ring-ring/60">
+          What is Lodoc?
+        </a>
       </p>
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <StartCard

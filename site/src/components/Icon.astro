@@ -1,0 +1,23 @@
+---
+// A lucide icon (the app's icon set) as plain SVG, no script. `icon` is a lucide icon's data, e.g.
+// import { __iconData as shield } from 'lucide-react/dist/esm/icons/shield-check.mjs'
+interface Props {
+  icon: { node: [string, Record<string, string>][] }
+  class?: string
+}
+const { icon, class: className } = Astro.props
+const shapes = icon.node.map(([tag, { key: _key, ...attrs }]) => ({ Tag: tag, attrs }))
+---
+
+<svg
+  aria-hidden="true"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class={className}
+>
+  {shapes.map(({ Tag, attrs }) => <Tag {...attrs} />)}
+</svg>
