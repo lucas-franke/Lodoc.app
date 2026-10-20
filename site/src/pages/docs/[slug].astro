@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from 'astro:content'
+import Docs from '../../layouts/Docs.astro'
+// The same list the app shows with "?" (one source for both)
+import { SHORTCUT_GROUPS } from '../../../../src/lib/shortcuts'
+
+export async function getStaticPaths() {
+  return (await getCollection('docs')).map((page) => ({ params: { slug: page.id }, props: { page } }))
+}
+
+const { page } = Astro.props
+const { Content } = await render(page)
+---
+
+<Docs title={page.data.title} description={page.data.description} current={page.id}>
+  <article class="prose-lodoc max-w-prose">
+    <h1 class="font-page text-4xl leading-tight font-bold tracking-tight">{page.data.title}</h1>
+    <p class="mt-3 text-lg text-muted-foreground">{page.data.description}</p>
+    <Content />
+    {
+      page.id === 'shortcuts' &&
+        SHORTCUT_GROUPS.map((group) => (
+          <section aria-labelledby={`group-${group.title}`}>
+            <h2 id={`group-${group.title}`}>{group.title}</h2>
+            <dl class="divide-y rounded-lg border not-prose">
+              {group.items.map(([keys, what]) => (
+                <div class="flex items-center justify-between gap-4 px-3 py-2 text-sm">
+                  <dt>{what}</dt>
+                  <dd class="flex shrink-0 gap-1">
+                    {keys.map((key) => (
+                      <kbd class="min-w-6 rounded border bg-muted px-1.5 py-0.5 text-center font-sans text-xs">{key}</kbd>
+                    ))}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ))
+    }
+  </article>
+</Docs>

@@ -29,7 +29,7 @@ const rendered = await Promise.all(releases.map(async (release) => ({ release, C
               </time>
             </div>
             <p class="mt-2 text-lg">{release.data.summary}</p>
-            <div class="prose-lodoc mt-2">
+            <div class="prose-lodoc changelog-entry mt-2">
               <Content />
             </div>
           </article>

@@ -27,7 +27,7 @@ const CONTENT: StoredBlock[] = [
   li('A board is an infinite canvas: add notes as cards, text and images with the round + button.'),
   li('Drag a note from the sidebar onto a board. Double-click a card to edit the note right there.'),
   h(2, 'Make it yours'),
-  li('Appearance (bottom of the sidebar) changes colors, font, text size, page width, corners and textures.'),
+  li('Appearance (bottom of the sidebar) changes colors, font, text size, the sidebar, corners and textures.'),
   h(2, 'Keep your notes safe'),
   li('Everything lives in this browser. Use Backup (bottom of the sidebar) to export a copy now and then.'),
   li('Deleted notes go to the Trash for 30 days, so a slip is easy to undo.'),

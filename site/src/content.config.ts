@@ -14,4 +14,14 @@ const changelog = defineCollection({
   }),
 })
 
-export const collections = { changelog }
+/** The docs: one Markdown file per page; "order" sets their place in the navigation */
+const docs = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/docs' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    order: z.number(),
+  }),
+})
+
+export const collections = { changelog, docs }

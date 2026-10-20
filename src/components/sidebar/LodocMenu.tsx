@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, Keyboard, Sparkles } from 'lucide-react'
+import { BookOpen, BookText, ChevronDown, Keyboard, Sparkles } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import { openGuideNote } from '@/lib/guide'
 const release = __LODOC_RELEASE__
 
 /**
- * "Lodoc ⌄" at the top of the sidebar: the website's pages (the changelog for now; docs and about later), help
+ * "Lodoc ⌄" at the top of the sidebar: the website's pages (docs and the changelog; the about page later), help
  * inside the app, and which version this is. The pages sit beside the app ("./changelog/"), so the links work on
  * lodoc.app and on GitHub Pages alike; in the installed app they open in its window.
  */
@@ -33,6 +33,11 @@ export function LodocMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-60">
+        <DropdownMenuItem asChild>
+          <a href="./docs/">
+            <BookText /> Docs
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="./changelog/">
             <Sparkles /> What's new

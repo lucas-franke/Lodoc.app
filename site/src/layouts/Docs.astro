@@ -1,0 +1,68 @@
+---
+import { getCollection } from 'astro:content'
+import Base from './Base.astro'
+
+interface Props {
+  title: string
+  description: string
+  /** The page's id ("writing"), or null for the docs' front page */
+  current: string | null
+}
+const { title, description, current } = Astro.props
+const base = import.meta.env.BASE_URL
+const pages = (await getCollection('docs')).sort((a, b) => a.data.order - b.data.order)
+const index = pages.findIndex((p) => p.id === current)
+const previous = index > 0 ? pages[index - 1] : null
+const next = index >= 0 && index < pages.length - 1 ? pages[index + 1] : null
+const href = (id: string) => `${base}docs/${id}/`
+---
+
+<Base title={current ? `${title} · Lodoc docs` : title} description={description} wide>
+  <div class="grid grid-cols-[minmax(0,1fr)] gap-10 md:grid-cols-[12rem_minmax(0,1fr)]">
+    <nav aria-label="Docs" class="min-w-0 md:sticky md:top-20 md:self-start">
+      <a href={`${base}docs/`} aria-current={current === null ? 'page' : undefined} class="mb-2 block text-sm font-semibold aria-[current=page]:underline">Docs</a>
+      <ul class="flex gap-1 overflow-x-auto pb-1 text-sm [scrollbar-width:none] max-md:-mx-4 max-md:px-4 md:flex-col md:overflow-visible">
+        {
+          pages.map((page) => (
+            <li class="shrink-0">
+              <a
+                href={href(page.id)}
+                aria-current={page.id === current ? 'page' : undefined}
+                class="block rounded-md px-2.5 py-1.5 whitespace-nowrap text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-foreground max-md:border"
+              >
+                {page.data.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    {/* Phones: the list of pages scrolls sideways; the open one is brought into view */}
+    <script is:inline>
+      document.querySelector('nav[aria-label="Docs"] li [aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' })
+    </script>
+    <div class="min-w-0">
+      <slot />
+      {
+        current && (
+          <nav aria-label="More docs" class="mt-16 grid gap-3 border-t pt-6 text-sm sm:grid-cols-2">
+            {previous ? (
+              <a href={href(previous.id)} class="rounded-lg border p-3 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
+                <span class="block text-xs text-muted-foreground">Previous</span>
+                {previous.data.title}
+              </a>
+            ) : (
+              <span />
+            )}
+            {next && (
+              <a href={href(next.id)} class="rounded-lg border p-3 text-right outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
+                <span class="block text-xs text-muted-foreground">Next</span>
+                {next.data.title}
+              </a>
+            )}
+          </nav>
+        )
+      }
+    </div>
+  </div>
+</Base>

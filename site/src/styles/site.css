@@ -28,29 +28,40 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Text written in Markdown (changelog entries, docs) */
+/* Text written in Markdown (docs, changelog entries) */
 .prose-lodoc {
-  line-height: 1.65;
+  line-height: 1.7;
 }
 .prose-lodoc h2 {
-  margin: 1.75rem 0 0.5rem;
-  font-size: 0.8125rem;
+  margin: 2.5rem 0 0.75rem;
+  font-size: 1.375rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted-foreground);
+  letter-spacing: -0.01em;
 }
-.prose-lodoc ul {
+.prose-lodoc h3 {
+  margin: 1.75rem 0 0.5rem;
+  font-weight: 600;
+}
+.prose-lodoc :is(ul, ol) {
   display: grid;
   gap: 0.45rem;
-  padding-left: 1.15rem;
+  margin: 0.75rem 0;
+  padding-left: 1.25rem;
+}
+.prose-lodoc ul {
   list-style: disc;
+}
+.prose-lodoc ol {
+  list-style: decimal;
+}
+.prose-lodoc li > :is(ul, ol) {
+  margin: 0.4rem 0 0;
 }
 .prose-lodoc li::marker {
   color: var(--muted-foreground);
 }
 .prose-lodoc p {
-  margin: 0.75rem 0;
+  margin: 0.85rem 0;
 }
 .prose-lodoc a {
   text-decoration: underline;
@@ -67,4 +78,32 @@ body {
 }
 .prose-lodoc strong {
   font-weight: 600;
+}
+.prose-lodoc kbd {
+  font-family: inherit;
+}
+
+/* The changelog's sections (New, Improved, Fixed): small labels above the lists */
+.changelog-entry h2 {
+  margin: 1.75rem 0 0.5rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Screenshots in the docs: a light and a dark one, the one for the current theme is shown */
+.shot {
+  margin: 1.75rem 0;
+}
+.shot img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 1.2);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 6%, transparent), 0 8px 24px -12px color-mix(in oklch, var(--foreground) 18%, transparent);
+}
+.shot-phone img {
+  max-width: 18rem;
+  margin-inline: auto;
 }
