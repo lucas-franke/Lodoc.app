@@ -13,8 +13,6 @@ import { Welcome } from '@/components/home/Welcome'
 import { openTodaysJournal } from '@/lib/journal'
 import { rememberLastNote } from '@/lib/last-note'
 import { useNoteHistoryOpen } from '@/lib/note-history'
-import { setPendingImport, usePendingImport } from '@/lib/pending-import'
-import { ImportDialog } from '@/components/ImportDialog'
 import { ActivityView } from '@/components/activity/ActivityView'
 import { TagView } from '@/components/tags/TagView'
 import { ShortcutsDialog } from '@/components/ShortcutsDialog'
@@ -59,8 +57,6 @@ export default function App() {
   useMilestones()
   const markdownImport = useMarkdownImport()
   const historyFor = useNoteHistoryOpen()
-  // A backup shared to the app from another device
-  const pendingImport = usePendingImport()
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow())
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -240,7 +236,6 @@ export default function App() {
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} newNoteFolderId={newNoteFolderId} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       {markdownImport.element}
-      <ImportDialog project={pendingImport} onClose={() => setPendingImport(null)} />
       {historyFor && (
         <Suspense fallback={null}>
           <NoteHistoryDialog key={historyFor} noteId={historyFor} />

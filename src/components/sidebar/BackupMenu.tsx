@@ -1,4 +1,4 @@
-import { ArchiveRestore, Check, Download, FileText, FolderInput, FolderSync, PauseCircle, RefreshCw, Send, ShieldCheck, Upload, X } from 'lucide-react'
+import { ArchiveRestore, Check, Download, FileText, FolderInput, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { notify } from '@/lib/notify'
 import { useImportFile } from '@/hooks/useImportFile'
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { backupSendFailed, canShareBackup, exportProject, getLastExport, prepareBackupFile, shareProject } from '@/lib/project-file'
+import { exportProject, getLastExport } from '@/lib/project-file'
 import { emitAppEvent, useAppEvent } from '@/lib/app-events'
 import {
   autoBackupSupported,
@@ -61,14 +61,7 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
 
   return (
     <>
-      <DropdownMenu
-        onOpenChange={(open) => {
-          if (!open) return
-          setNow(Date.now())
-          // "Send backup…" needs the file at the moment of the tap (the share sheet opens only right after one)
-          if (canShareBackup()) prepareBackupFile()
-        }}
-      >
+      <DropdownMenu onOpenChange={(open) => open && setNow(Date.now())}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
@@ -98,27 +91,6 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
           >
             <Download /> Export all notes (.json)
           </DropdownMenuItem>
-          {/* To another device: the backup through the share sheet; there it is imported with Merge */}
-          {canShareBackup() && (
-            <DropdownMenuItem
-              onSelect={async () => {
-                try {
-                  if ((await shareProject()) !== 'sent') return
-                  const time = Date.now()
-                  setLastExport(time)
-                  setNow(time)
-                } catch (error) {
-                  backupSendFailed(error)
-                }
-              }}
-            >
-              <Send />
-              <span className="flex flex-col">
-                <span>Send backup…</span>
-                <span className="text-xs text-muted-foreground">To your other device; import it there with Merge</span>
-              </span>
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem onSelect={importFile.pick}>
             <Upload /> Import from file…
           </DropdownMenuItem>

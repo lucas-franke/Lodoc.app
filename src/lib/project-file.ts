@@ -1,8 +1,6 @@
 import { z } from 'zod'
 import { db } from '@/db/db'
 import { saveFile } from './save-file'
-import { emitAppEvent } from './app-events'
-import { notify } from './notify'
 import { logChange } from '@/db/activity'
 import { parseAppearance, type Appearance } from './appearance'
 import { getAppearance } from '@/hooks/useAppearance'
@@ -175,79 +173,6 @@ export async function exportProject() {
 
 /** The backup file's name for a day: lodoc-2026-10-20.json */
 const backupName = (time: number, ext = 'json') => 'lodoc-' + new Date(time).toISOString().slice(0, 10) + '.' + ext
-
-/** Whether this browser can hand a backup file to the share sheet (phones, and Chrome or Edge on desktop) */
-export function canShareBackup() {
-  return typeof navigator !== 'undefined' && !!navigator.canShare?.({ files: [new File(['{}'], 'x.txt', { type: 'text/plain' })] })
-}
-
-/**
- * The backup as a file for the share sheet. Some browsers only share certain file types and JSON is often not
- * one of them: then it goes as a .txt file with the same content, which Import reads just the same.
- */
-async function backupFile(): Promise<File> {
-  const blob = await buildProjectBlob()
-  const now = Date.now()
-  const asJson = new File([blob], backupName(now), { type: 'application/json' })
-  return navigator.canShare?.({ files: [asJson] }) ? asJson : new File([blob], backupName(now, 'txt'), { type: 'text/plain' })
-}
-
-/** Built ahead by prepareBackupFile, taken by the next shareProject */
-let prepared: Promise<File> | null = null
-
-/**
- * Starts building the backup file before it is asked for (when the Backup menu opens). The browser only opens
- * the share sheet right after a tap, and on a phone building the backup can take longer than that.
- */
-export function prepareBackupFile() {
-  prepared = backupFile()
-  prepared.catch(() => undefined)
-}
-
-export type ShareResult = 'sent' | 'cancelled' | 'waiting'
-
-/**
- * Sends a backup through the share sheet (to yourself by Quick Share, mail, a drive…), to bring the notes to
- * another device. If the browser refuses because the tap was too long ago, a message offers "Send" (a new tap)
- * and the result is "waiting". Throws on any other failure (see backupSendFailed).
- */
-export async function shareProject(): Promise<ShareResult> {
-  const file = await (prepared ?? backupFile())
-  prepared = null
-  return sendBackupFile(file)
-}
-
-async function sendBackupFile(file: File): Promise<ShareResult> {
-  try {
-    await navigator.share({ files: [file], title: 'Lodoc backup' })
-  } catch (error) {
-    const name = error instanceof DOMException ? error.name : ''
-    if (name === 'AbortError') return 'cancelled'
-    if (name === 'NotAllowedError') {
-      notify('Your backup is ready to send', {
-        logged: true,
-        action: {
-          label: 'Send',
-          onClick: () =>
-            void sendBackupFile(file)
-              .then((result) => result === 'sent' && emitAppEvent('backup-exported'))
-              .catch(backupSendFailed),
-        },
-      })
-      return 'waiting'
-    }
-    throw error
-  }
-  setLastExport(Date.now())
-  logChange('Backup sent')
-  return 'sent'
-}
-
-/** The message when sending fails, with the browser's reason (so a failure can be told apart from another) */
-export function backupSendFailed(error: unknown) {
-  const reason = error instanceof DOMException ? error.name : error instanceof Error ? error.message : ''
-  notify(`Could not send the backup${reason ? ` (${reason})` : ''}. Export it instead and send the file yourself.`, { level: 'error' })
-}
 
 /** Remembers when the last backup was made (for the reminder in the sidebar) */
 export function setLastExport(time: number) {

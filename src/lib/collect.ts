@@ -58,15 +58,13 @@ export function takeArrived(noteId: string) {
   return true
 }
 
-export type SharedFile = { blob: Blob; name: string }
-/** `files`: shared files that are not images (a backup sent from another device, lib/project-file.ts) */
-export type Shared = { title: string; text: string; url: string; images?: SharedFile[]; files?: SharedFile[] }
+export type Shared = { title: string; text: string; url: string; images?: { blob: Blob; name: string }[] }
 
 /** The names the manifest's share_target gives the shared fields in the URL */
 const PARAMS = { title: 'shared_title', text: 'shared_text', url: 'shared_url' } as const
 
 /**
- * Where the service worker leaves a share that came with files (sw.js in vite.config.ts): the manifest's
+ * Where the service worker leaves a share that came with images (sw.js in vite.config.ts): the manifest's
  * share_target posts it, the worker keeps it here and opens the app with ?shared. Read once, then removed.
  */
 const SHARE_CACHE = 'share-target'
@@ -77,16 +75,13 @@ async function readSharedCache(): Promise<Shared | null> {
   const meta = await cache.match('shared/meta')
   if (!meta) return null
   const { title = '', text = '', url = '', files = 0 } = (await meta.json()) as Partial<Shared> & { files?: number }
-  const images: SharedFile[] = []
-  const others: SharedFile[] = []
+  const images: { blob: Blob; name: string }[] = []
   for (let i = 0; i < files; i++) {
     const file = await cache.match(`shared/${i}`)
-    if (!file) continue
-    const shared = { blob: await file.blob(), name: decodeURIComponent(file.headers.get('x-name') ?? '') }
-    ;(shared.blob.type.startsWith('image/') ? images : others).push(shared)
+    if (file) images.push({ blob: await file.blob(), name: decodeURIComponent(file.headers.get('x-name') ?? '') })
   }
   await caches.delete(SHARE_CACHE)
-  return { title, text, url, images, files: others }
+  return { title, text, url, images }
 }
 
 /**

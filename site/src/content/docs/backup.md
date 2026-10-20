@@ -19,13 +19,13 @@ In Chrome and Edge on a computer, **Back up automatically…** writes a backup i
 
 ## Moving notes between phone and computer
 
-1. On one device, choose **Send backup…**. The share sheet opens: send the file to yourself by Quick Share, email, a drive or a chat.
-2. On the other device:
-   - **Phone:** share the file to Lodoc, and the import opens with it.
-   - **Computer:** use **Import from file…**.
-3. Choose **Merge**.
+Each device keeps its own notes. To bring them to another one:
 
-On some phones the backup is sent as a `.txt` file. Import reads it just the same.
+1. On the first device, **Export all notes**.
+2. Get the file to the other device however suits you: a cable, email to yourself, a cloud drive, a chat with yourself.
+3. There, use **Import from file…** and choose **Merge**.
+
+It's a copy, not a sync: after that, each device carries on on its own. A note deleted on the first device stays on the other until you delete it there too.
 
 ## Keep data safe in this browser
 

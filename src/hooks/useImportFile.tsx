@@ -23,8 +23,7 @@ export function useImportFile() {
       <input
         ref={input}
         type="file"
-        // .txt too: a backup sent from a phone can arrive as one (lib/project-file.ts, shareProject)
-        accept=".json,.txt,application/json,text/plain"
+        accept=".json,application/json"
         className="hidden"
         aria-hidden
         tabIndex={-1}

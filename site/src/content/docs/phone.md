@@ -18,7 +18,7 @@ On Android and on computers, the installed app uses the same notes as the browse
 
 In the installed app on Android, Lodoc appears in the share sheet of other apps. Share text, a link or images, and they land at the top of one note, *Collected*, each as a dated line: "20.10.2026: …". Lodoc opens that note so you can see it arrive.
 
-To collect somewhere else, choose **Collect here** in any note's menu. Sharing a Lodoc backup file opens the import instead (see [Backups and moving devices](../backup/)).
+To collect somewhere else, choose **Collect here** in any note's menu.
 
 <figure class="shot shot-phone">
   <img src="../img/collected-light.png" class="dark:hidden" alt="The Collected note on a phone, with shared text and a link, each with the date" width="390" height="844" loading="lazy" />
@@ -32,4 +32,4 @@ To collect somewhere else, choose **Collect here** in any note's menu. Sharing a
 - Press and hold a note, folder or board in the sidebar for its menu.
 - On Android, press and hold the Lodoc icon on your home screen for **Today's journal**.
 
-Sharing images and files to Lodoc works in the installed app on Android. iPhones don't let web apps receive shares.
+Sharing to Lodoc works in the installed app on Android. iPhones don't let web apps receive shares.

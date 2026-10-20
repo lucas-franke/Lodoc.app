@@ -19,11 +19,7 @@
         {
           "name": "shared_files",
           "accept": [
-            "image/*",
-            "application/json",
-            "text/plain",
-            ".json",
-            ".txt"
+            "image/*"
           ]
         }
       ]

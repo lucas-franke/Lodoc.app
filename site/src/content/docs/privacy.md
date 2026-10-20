@@ -24,7 +24,7 @@ Each browser and each device has its own notes. On Android and on computers, the
 
 ## Your files
 
-Backups, downloads and automatic backups go only where you put them. When you send a backup with **Send backup…**, it goes wherever you choose in the share sheet.
+Backups, downloads and automatic backups go only where you put them.
 
 ## Removing everything
 
