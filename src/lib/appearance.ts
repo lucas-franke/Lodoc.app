@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { showPaperTexture } from './paper-texture'
-import { APPEARANCE_KEY, RADIUS_PRESETS, TEXTURE_STRENGTH_DEFAULT, TEXTURES, TINTS, type Tint } from './appearance-options'
+import { RADIUS_PRESETS, TEXTURE_STRENGTH_DEFAULT, TEXTURES, TINTS, type Tint } from './appearance-options'
 
 export * from './appearance-options'
 
@@ -51,7 +51,7 @@ export const APPEARANCE_SECTIONS = {
   interface: ['sidebar', 'corners', 'uiGrain', 'uiGrainStrength'],
 } as const satisfies Record<string, readonly (keyof Appearance)[]>
 
-const KEY = APPEARANCE_KEY
+const KEY = 'localnotes:appearance'
 /** The page font used to live in its own key (with a "mono" option that no longer exists) */
 const OLD_FONT_KEY = 'localnotes:pageFont'
 

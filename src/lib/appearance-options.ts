@@ -2,9 +2,6 @@
 // appearance demo uses them too (site/), so it offers exactly what the app does. lib/appearance.ts re-exports
 // them along with the stored settings.
 
-/** Where the settings are stored (the website's demo writes it too, "Use this look": same site, same storage) */
-export const APPEARANCE_KEY = 'localnotes:appearance'
-
 /** Tints as oklch hue and chroma; index.css derives every surface color from --tint-h / --tint-c */
 export const TINTS = [
   { id: 'neutral', name: 'Neutral', hue: 0, chroma: 0 },

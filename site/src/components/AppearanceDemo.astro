@@ -1,11 +1,10 @@
 ---
 // "Make it yours", live: a small mock-up of Lodoc that takes the same looks as the app (the app's own tints,
 // textures and corners, src/lib/appearance-options.ts, and its colour rules for [data-look] in tokens.css).
-// Only the mock-up changes; the page around it keeps its plain look. "Use this look" saves it for the app.
+// Only the mock-up changes; the page around it keeps its plain look, and nothing is carried over to the app.
 import { RADIUS_PRESETS, TEXTURES, TINTS, tintColor } from '../../../src/lib/appearance-options'
 import Icon from './Icon.astro'
 import { __iconData as dice } from 'lucide-react/dist/esm/icons/dices.mjs'
-import { __iconData as arrow } from 'lucide-react/dist/esm/icons/arrow-right.mjs'
 import { __iconData as chevron } from 'lucide-react/dist/esm/icons/chevron-down.mjs'
 
 const groups = [
@@ -97,15 +96,11 @@ const segment =
     <button type="button" data-demo-random class="inline-flex h-9 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
       <Icon icon={dice} class="size-4" /> Randomize
     </button>
-    <button type="button" data-demo-use class="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/60">
-      Use this look <Icon icon={arrow} class="size-4" />
-    </button>
   </div>
-  <p class="mt-2 text-xs text-muted-foreground">Opens Lodoc with this look, in place of the one you have there now.</p>
 </div>
 
 <script>
-  import { APPEARANCE_KEY, RADIUS_PRESETS, TEXTURES, TINTS } from '../../../src/lib/appearance-options'
+  import { RADIUS_PRESETS, TEXTURES, TINTS } from '../../../src/lib/appearance-options'
   import { showPaperTexture } from '../../../src/lib/paper-texture'
 
   type Look = { mode: 'light' | 'dark'; tint: string; texture: string; pageFont: string; corners: string; sidebar: string }
@@ -164,19 +159,6 @@ const segment =
       const icon = (e.currentTarget as HTMLElement).querySelector('svg')
       if (icon && !matchMedia('(prefers-reduced-motion: reduce)').matches) icon.animate([{ transform: 'rotate(-90deg) scale(0.85)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.3, 1.4, 0.5, 1)' })
       apply()
-    })
-
-    // The app reads its look from the same storage (same site): keep its other settings, take these
-    root.querySelector('[data-demo-use]')?.addEventListener('click', () => {
-      try {
-        const saved = JSON.parse(localStorage.getItem(APPEARANCE_KEY) ?? '{}')
-        const { mode, ...style } = look
-        localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ ...saved, ...style }))
-        localStorage.setItem('theme', mode)
-      } catch {
-        // storage unavailable: the app just opens with its own look
-      }
-      location.href = import.meta.env.BASE_URL
     })
 
     apply()
