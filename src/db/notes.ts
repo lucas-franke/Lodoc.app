@@ -4,6 +4,7 @@ import { forgetItem, logChange, logMove, logRename } from './activity'
 import { db } from './db'
 import { coverAssetId, type Note } from './schema'
 import { noteWritingDay } from '@/lib/writing-days'
+import { keepVersion, versionDue } from './versions'
 
 /**
  * Notes created in this session, with the state they were created in. Leaving one that is still
@@ -95,9 +96,17 @@ export async function discardLeftoverNotes(openId: string | null) {
   })
 }
 
+/**
+ * Saves a change to a note. The state it had before goes into its history (db/versions.ts): read just before
+ * the write (IndexedDB runs them in order, so the read sees the old state), kept in the background. The write
+ * itself starts right away, so nothing waits on the history when the page is closing.
+ */
 export function updateNote(id: string, changes: Partial<Pick<Note, 'title' | 'content'>>) {
   noteWritingDay()
-  return db.notes.update(id, { ...changes, updatedAt: Date.now() })
+  const before = versionDue(id) ? db.notes.get(id) : undefined
+  const written = db.notes.update(id, { ...changes, updatedAt: Date.now() })
+  if (before) void keepVersion(id, { before })
+  return written
 }
 
 /** Renaming from a menu (titles typed on the page itself are edits, not logged as renames) */

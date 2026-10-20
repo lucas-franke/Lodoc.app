@@ -12,6 +12,7 @@ import { purgeOldActivity } from '@/db/activity'
 import { discardLeftoverNotes } from '@/db/notes'
 import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
+import { pruneVersions } from '@/db/versions'
 import { followThemeColor } from '@/lib/theme-color'
 import { collectShared, markArrived, takeShared } from '@/lib/collect'
 import { openTodaysJournal, takeJournalFromUrl } from '@/lib/journal'
@@ -32,6 +33,8 @@ void discardLeftoverNotes(openNoteId ? decodeURIComponent(openNoteId) : null)
 void startAutoBackup()
 // Images added to notes before uploads were compressed are shrunk once, in the background
 void shrinkNoteImages()
+// Note history: versions past their time, or of notes that are gone, are cleared a little after start
+window.setTimeout(() => void pruneVersions().catch(() => undefined), 5000)
 
 // Works offline once loaded (and can be installed as an app); only in the built app, not during development
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

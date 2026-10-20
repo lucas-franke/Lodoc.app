@@ -10,6 +10,7 @@ import {
   FolderInput,
   FolderOpen,
   FolderPlus,
+  History,
   Inbox,
   LayoutDashboard,
   LayoutTemplate,
@@ -22,6 +23,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { notify } from '@/lib/notify'
+import { openNoteHistory } from '@/lib/note-history'
 import { isInstalledApp, setCollectNoteId, useCollectNoteId } from '@/lib/collect'
 import type { MenuEntry } from '@/components/ItemMenu'
 import { db } from '@/db/db'
@@ -157,6 +159,7 @@ export function useNoteMenuEntries(
         )
       },
     },
+    { type: 'item', label: 'History…', icon: History, onSelect: () => openNoteHistory(note.id) },
     { type: 'item', label: 'Download as .md', icon: Download, onSelect: () => void downloadNoteAsMarkdown(note.id) },
     // Text and links shared to the installed app from other apps land in one note (lib/collect.ts)
     ...(isInstalledApp()

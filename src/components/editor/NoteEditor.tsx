@@ -15,6 +15,7 @@ import { useWideScreen } from '@/hooks/useWideScreen'
 import { useCaretNearTop } from './caret-scroll'
 import { useChecklistJoy } from './checklist-joy'
 import { takeArrived } from '@/lib/collect'
+import { onNoteRestored } from '@/db/versions'
 import { playOnce } from '@/lib/joy'
 import { cleanCopiedText } from './clipboard'
 import { indentSelectedFile, nestImagesAddedInLists } from './list-images'
@@ -160,6 +161,17 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   const pageRef = useRef<HTMLDivElement>(null)
   useCaretNearTop(pageRef, !embedded)
   useChecklistJoy(pageRef)
+
+  // An earlier version was put back (note history): the editor only reads the note when it opens, so it's told
+  useEffect(
+    () =>
+      onNoteRestored(({ noteId, title: restoredTitle, content }) => {
+        if (noteId !== note.id) return
+        setTitle(restoredTitle)
+        editor.replaceBlocks(editor.document, content.length ? (content as never) : [{ type: 'paragraph' }])
+      }),
+    [note.id, editor],
+  )
 
   // Opened because something was shared into this note: the new line at the top drops in
   useEffect(() => {

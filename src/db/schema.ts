@@ -117,6 +117,24 @@ export interface Asset {
  * Something deleted, kept for a while so it can be restored: the deleted items themselves plus the cards their
  * notes had on other boards (those are put back too). Images stay in `assets` while an entry still uses them.
  */
+/**
+ * An earlier state of a note (its history, db/versions.ts): what it looked like at `at`. Images in it are
+ * stored once in versionImages and referenced as "version-image:<hash>". On this device only; not in backups.
+ */
+export interface NoteVersion {
+  id: string
+  noteId: string
+  at: number
+  title: string
+  content: StoredBlock[]
+}
+
+/** An image used by note versions, stored once however many versions show it */
+export interface VersionImage {
+  hash: string
+  dataUrl: string
+}
+
 export interface TrashEntry {
   id: string
   kind: 'note' | 'folder' | 'board'

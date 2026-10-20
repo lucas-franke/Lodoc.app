@@ -12,6 +12,7 @@ import { HomeView } from '@/components/home/HomeView'
 import { Welcome } from '@/components/home/Welcome'
 import { openTodaysJournal } from '@/lib/journal'
 import { rememberLastNote } from '@/lib/last-note'
+import { useNoteHistoryOpen } from '@/lib/note-history'
 import { ActivityView } from '@/components/activity/ActivityView'
 import { TagView } from '@/components/tags/TagView'
 import { ShortcutsDialog } from '@/components/ShortcutsDialog'
@@ -37,6 +38,9 @@ const NoteEditor = lazy(() =>
 // The canvas (React Flow) is its own chunk, loaded only when a board is opened
 const BoardPage = lazy(() => import('@/components/board/BoardPage'))
 
+// A note's history (with a read-only editor for the preview), loaded when it is first opened
+const NoteHistoryDialog = lazy(() => import('@/components/note/NoteHistoryDialog'))
+
 const isNarrow = () => window.matchMedia('(max-width: 767px)').matches
 /** Typing "?" in a field or the editor must not open the shortcut list */
 const isTyping = (target: EventTarget | null) =>
@@ -52,6 +56,7 @@ export default function App() {
   // A quiet word at the 10th, 100th… note and each year of writing here
   useMilestones()
   const markdownImport = useMarkdownImport()
+  const historyFor = useNoteHistoryOpen()
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow())
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -231,6 +236,11 @@ export default function App() {
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} newNoteFolderId={newNoteFolderId} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       {markdownImport.element}
+      {historyFor && (
+        <Suspense fallback={null}>
+          <NoteHistoryDialog key={historyFor} noteId={historyFor} />
+        </Suspense>
+      )}
     </AppDnd>
   )
 }
