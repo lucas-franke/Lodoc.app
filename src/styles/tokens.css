@@ -1,5 +1,7 @@
 /* The design tokens, shared by the app (index.css) and the website (site/): colors, fonts, corners.
-   Tailwind maps them to its utilities (bg-background, text-muted-foreground, rounded-lg, …). */
+   Tailwind maps them to its utilities (bg-background, text-muted-foreground, rounded-lg, …).
+   They apply to the page (:root, classes and data attributes set by lib/appearance.ts) and to any element
+   with [data-look]: a look shown inside a page with its own attributes (the website's appearance demo). */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -48,7 +50,8 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+:root,
+[data-look] {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -85,7 +88,8 @@
 }
 
 /* :root only: React Flow also puts a "dark" class on the canvas, which must not reset the tinted colors */
-:root.dark {
+:root.dark,
+[data-look].dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
@@ -117,4 +121,60 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Color tints (Appearance panel). lib/appearance.ts sets data-tint plus --tint-h / --tint-c (oklch hue and
+   chroma); every surface is derived from them. Neutral keeps the tokens above. Text has its own setting below. */
+:root:not(.dark)[data-tint]:not([data-tint='neutral']),
+[data-look]:not(.dark)[data-tint]:not([data-tint='neutral']) {
+    --background: oklch(0.985 var(--tint-c) var(--tint-h));
+    --card: oklch(0.993 calc(var(--tint-c) * 0.5) var(--tint-h));
+    --popover: oklch(0.993 calc(var(--tint-c) * 0.5) var(--tint-h));
+    --secondary: oklch(0.945 calc(var(--tint-c) * 1.3) var(--tint-h));
+    --muted: oklch(0.945 calc(var(--tint-c) * 1.3) var(--tint-h));
+    --accent: oklch(0.945 calc(var(--tint-c) * 1.3) var(--tint-h));
+    --muted-foreground: oklch(0.48 calc(var(--tint-c) * 0.8) var(--tint-h));
+    --border: oklch(0.9 var(--tint-c) var(--tint-h));
+    --input: oklch(0.9 var(--tint-c) var(--tint-h));
+    --sidebar: oklch(0.965 var(--tint-c) var(--tint-h));
+    --sidebar-accent: oklch(0.93 calc(var(--tint-c) * 1.4) var(--tint-h));
+    --sidebar-border: oklch(0.9 var(--tint-c) var(--tint-h));
+}
+:root.dark[data-tint]:not([data-tint='neutral']),
+[data-look].dark[data-tint]:not([data-tint='neutral']) {
+    --background: oklch(0.17 calc(var(--tint-c) * 0.8) var(--tint-h));
+    --card: oklch(0.21 calc(var(--tint-c) * 0.8) var(--tint-h));
+    --popover: oklch(0.21 calc(var(--tint-c) * 0.8) var(--tint-h));
+    --secondary: oklch(0.27 calc(var(--tint-c) * 0.9) var(--tint-h));
+    --muted: oklch(0.27 calc(var(--tint-c) * 0.9) var(--tint-h));
+    --accent: oklch(0.27 calc(var(--tint-c) * 0.9) var(--tint-h));
+    --muted-foreground: oklch(0.72 calc(var(--tint-c) * 0.6) var(--tint-h));
+    --sidebar: oklch(0.205 calc(var(--tint-c) * 0.8) var(--tint-h));
+    --sidebar-accent: oklch(0.27 calc(var(--tint-c) * 0.9) var(--tint-h));
+}
+
+/* Text color (Appearance panel: Match tint / Custom). lib/appearance.ts sets data-text-tint plus --text-h /
+   --text-c. The tint shows clearly but the lightness stays close to the neutral text, so contrast holds. Text on
+   primary buttons keeps its colors. After the tint rules, so it also wins over their muted text. */
+:root:not(.dark)[data-text-tint]:not([data-text-tint='neutral']),
+[data-look]:not(.dark)[data-text-tint]:not([data-text-tint='neutral']) {
+    --foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --card-foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --popover-foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --sidebar-foreground: oklch(0.3 calc(var(--text-c) * 4) var(--text-h));
+    --secondary-foreground: oklch(0.32 calc(var(--text-c) * 4) var(--text-h));
+    --accent-foreground: oklch(0.32 calc(var(--text-c) * 4) var(--text-h));
+    --sidebar-accent-foreground: oklch(0.32 calc(var(--text-c) * 4) var(--text-h));
+    --muted-foreground: oklch(0.47 calc(var(--text-c) * 3) var(--text-h));
+}
+:root.dark[data-text-tint]:not([data-text-tint='neutral']),
+[data-look].dark[data-text-tint]:not([data-text-tint='neutral']) {
+    --foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --card-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --popover-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --sidebar-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --secondary-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --accent-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --sidebar-accent-foreground: oklch(0.92 calc(var(--text-c) * 2) var(--text-h));
+    --muted-foreground: oklch(0.73 calc(var(--text-c) * 2.5) var(--text-h));
 }

@@ -1,6 +1,8 @@
 /* Only the site's own files are scanned for classes, not the app's */
 @import "tailwindcss" source("../");
 @import "@fontsource-variable/geist";
+/* For the appearance demo (Font: Serif); the browser only loads it when it is shown */
+@import "@fontsource-variable/source-serif-4";
 /* The app's colors, fonts and corners, so the site looks like Lodoc */
 @import "../../../src/styles/tokens.css";
 
@@ -112,4 +114,74 @@ body {
 .shot-phone img {
   max-width: 18rem;
   margin-inline: auto;
+}
+
+/* The appearance demo on the About page (components/AppearanceDemo.astro). Its colours come from the app's
+   rules for [data-look] (tokens.css); the textures and the floating sidebar are drawn like the app draws them
+   (index.css), here limited to the mock-up. */
+[data-look] {
+  --texture-blend: multiply;
+}
+[data-look].dark {
+  --texture-blend: soft-light;
+}
+[data-look][data-texture='paper'] {
+  --texture: var(--texture-paper-image, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23fff' surfaceScale='1.6'%3E%3CfeDistantLight azimuth='45' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"));
+  --texture-size: var(--paper-size, 320px);
+  --texture-opacity: 0.18;
+}
+[data-look][data-texture='laid'] {
+  --texture: var(--texture-laid-image, repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.35) 0 1px, transparent 1px 5px));
+  --texture-size: var(--paper-size, 100% 5px);
+  --texture-opacity: 0.18;
+}
+[data-look].dark:is([data-texture='paper'], [data-texture='laid']) {
+  --texture-opacity: 0.22;
+}
+[data-look][data-texture='dots'] {
+  --texture: radial-gradient(circle, var(--foreground) 0.9px, transparent 1.4px);
+  --texture-size: 16px 16px;
+  --texture-opacity: 0.14;
+  --texture-blend: normal;
+}
+/* The texture lies over the whole window; the sidebar stays plain above it */
+.demo-window {
+  isolation: isolate;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+[data-look]:not([data-texture='none']) .demo-window::after,
+[data-look].demo-window:not([data-texture='none'])::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: var(--texture);
+  background-size: var(--texture-size);
+  opacity: var(--texture-opacity);
+  mix-blend-mode: var(--texture-blend);
+}
+[data-look].dark.demo-window:is([data-texture='paper'], [data-texture='laid'])::after {
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+.demo-sidebar {
+  transition: margin 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease;
+}
+[data-look][data-sidebar='floating'] .demo-sidebar {
+  margin: 0.5rem 0 0.5rem 0.5rem;
+  border: 1px solid var(--sidebar-border);
+  border-radius: calc(var(--radius) * 1.2);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+/* Tint swatches show the colour of the mode the mock-up is in */
+.demo-swatch-dark {
+  background: var(--swatch-dark) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-window,
+  .demo-sidebar {
+    transition: none;
+  }
 }

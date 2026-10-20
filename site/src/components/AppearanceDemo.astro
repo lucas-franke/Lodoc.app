@@ -1,0 +1,184 @@
+---
+// "Make it yours", live: a small mock-up of Lodoc that takes the same looks as the app (the app's own tints,
+// textures and corners, src/lib/appearance-options.ts, and its colour rules for [data-look] in tokens.css).
+// Only the mock-up changes; the page around it keeps its plain look. "Use this look" saves it for the app.
+import { RADIUS_PRESETS, TEXTURES, TINTS, tintColor } from '../../../src/lib/appearance-options'
+import Icon from './Icon.astro'
+import { __iconData as dice } from 'lucide-react/dist/esm/icons/dices.mjs'
+import { __iconData as arrow } from 'lucide-react/dist/esm/icons/arrow-right.mjs'
+import { __iconData as chevron } from 'lucide-react/dist/esm/icons/chevron-down.mjs'
+
+const groups = [
+  { name: 'mode', label: 'Mode', options: [{ id: 'light', name: 'Light' }, { id: 'dark', name: 'Dark' }] },
+  { name: 'texture', label: 'Texture', options: TEXTURES.map((t) => ({ id: t.id, name: t.id === 'laid' ? 'Laid' : t.id === 'dots' ? 'Dots' : t.name })) },
+  { name: 'pageFont', label: 'Font', options: [{ id: 'sans', name: 'Sans' }, { id: 'serif', name: 'Serif' }] },
+  { name: 'corners', label: 'Corners', options: RADIUS_PRESETS.map((r) => ({ id: r.id, name: r.name })) },
+  { name: 'sidebar', label: 'Sidebar', options: [{ id: 'connected', name: 'Connected' }, { id: 'floating', name: 'Floating' }] },
+]
+const segment =
+  'h-8 rounded-md px-2.5 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm'
+---
+
+<div data-demo class="not-prose">
+  <!-- The mock-up: its look comes from these attributes, exactly as the app's comes from <html> -->
+  <div
+    data-look
+    data-demo-window
+    data-tint="neutral"
+    data-texture="none"
+    data-page-font="sans"
+    data-sidebar="connected"
+    style="--tint-h: 0; --tint-c: 0; --radius: 0.625rem; --page-font: 'Geist Variable', sans-serif;"
+    class="demo-window relative flex h-72 overflow-hidden rounded-xl border bg-background text-foreground shadow-sm sm:h-80"
+    role="img"
+    aria-label="A small model of Lodoc showing the chosen look"
+  >
+    <div data-demo-sidebar class="demo-sidebar relative z-[2] flex w-[34%] max-w-44 shrink-0 flex-col gap-1 border-r bg-sidebar p-2.5 text-[11px] text-sidebar-foreground">
+      <span class="mb-1 flex items-center gap-1 px-1 font-semibold">Lodoc <Icon icon={chevron} class="size-3 text-muted-foreground" /></span>
+      <span class="mb-1 rounded-md bg-sidebar-accent px-2 py-1 text-muted-foreground">Search…</span>
+      <span class="truncate rounded-md px-2 py-1">Overview</span>
+      <span class="truncate rounded-md px-2 py-1">Activity</span>
+      <span class="mt-2 px-2 text-[10px] text-muted-foreground">Folders</span>
+      <span class="truncate rounded-md px-2 py-1">Work</span>
+      <span class="truncate rounded-md bg-sidebar-accent px-2 py-1 pl-4 font-medium">Morning pages</span>
+      <span class="truncate rounded-md px-2 py-1 pl-4">Trip plan</span>
+    </div>
+    <div class="relative min-w-0 flex-1 overflow-hidden px-5 pt-4 sm:px-7">
+      <div class="h-14 rounded-lg sm:h-16" style="background-image: linear-gradient(135deg, #43cea2, #185a9d)"></div>
+      <p class="mt-3 font-page text-lg leading-tight font-bold tracking-tight sm:text-xl">Morning pages</p>
+      <p class="mt-1 text-[10px] text-muted-foreground">Edited just now · 42 words</p>
+      <p class="mt-2.5 font-page text-[13px] leading-relaxed">Write a little every day. Small notes turn into ideas, and ideas into plans worth keeping.</p>
+      <ul class="mt-2 space-y-1.5 font-page text-[13px]">
+        <li class="flex items-center gap-2"><span class="size-3 shrink-0 rounded-[3px] border border-muted-foreground/60"></span>Three things I'm grateful for</li>
+        <li class="flex items-center gap-2"><span class="size-3 shrink-0 rounded-[3px] border border-muted-foreground/60"></span>One thing for today</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- The choices -->
+  <div class="mt-4 space-y-2" data-demo-controls>
+    <div class="flex items-center gap-3" role="radiogroup" aria-label="Tint">
+      <span class="w-14 shrink-0 text-xs text-muted-foreground">Tint</span>
+      <div class="flex flex-wrap gap-1.5">
+        {
+          TINTS.map((t) => (
+            <button
+              type="button"
+              role="radio"
+              data-choice="tint"
+              data-value={t.id}
+              aria-checked={t.id === 'neutral' ? 'true' : 'false'}
+              title={t.name}
+              aria-label={t.name}
+              class="size-7 rounded-full border outline-none focus-visible:ring-2 focus-visible:ring-ring/60 aria-checked:ring-2 aria-checked:ring-foreground/70 aria-checked:ring-offset-2 aria-checked:ring-offset-background"
+              style={`background: ${tintColor(t, 'light')}; --swatch-dark: ${tintColor(t, 'dark')}`}
+            />
+          ))
+        }
+      </div>
+    </div>
+    {
+      groups.map((g) => (
+        <div class="flex items-center gap-3">
+          <span class="w-14 shrink-0 text-xs text-muted-foreground">{g.label}</span>
+          <div class="inline-flex gap-0.5 rounded-lg bg-muted p-0.5" role="group" aria-label={g.label}>
+            {g.options.map((o, i) => (
+              <button type="button" data-choice={g.name} data-value={o.id} aria-pressed={i === 0 ? 'true' : 'false'} class={segment}>
+                {o.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="mt-5 flex flex-wrap items-center gap-2">
+    <button type="button" data-demo-random class="inline-flex h-9 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
+      <Icon icon={dice} class="size-4" /> Randomize
+    </button>
+    <button type="button" data-demo-use class="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/60">
+      Use this look <Icon icon={arrow} class="size-4" />
+    </button>
+  </div>
+  <p class="mt-2 text-xs text-muted-foreground">Opens Lodoc with this look, in place of the one you have there now.</p>
+</div>
+
+<script>
+  import { APPEARANCE_KEY, RADIUS_PRESETS, TEXTURES, TINTS } from '../../../src/lib/appearance-options'
+  import { showPaperTexture } from '../../../src/lib/paper-texture'
+
+  type Look = { mode: 'light' | 'dark'; tint: string; texture: string; pageFont: string; corners: string; sidebar: string }
+  const root = document.querySelector<HTMLElement>('[data-demo]')
+  const view = root?.querySelector<HTMLElement>('[data-demo-window]')
+  if (root && view) {
+    // Starts in the page's own mode
+    const look: Look = {
+      mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+      tint: 'neutral',
+      texture: 'none',
+      pageFont: 'sans',
+      corners: 'rounded',
+      sidebar: 'connected',
+    }
+
+    const apply = () => {
+      view.classList.toggle('dark', look.mode === 'dark')
+      const tint = TINTS.find((t) => t.id === look.tint) ?? TINTS[0]
+      view.dataset.tint = tint.id
+      view.style.setProperty('--tint-h', String(tint.hue))
+      view.style.setProperty('--tint-c', String(tint.chroma))
+      view.dataset.texture = look.texture
+      if (look.texture === 'paper' || look.texture === 'laid') showPaperTexture(look.texture)
+      view.dataset.pageFont = look.pageFont
+      view.style.setProperty('--page-font', look.pageFont === 'serif' ? "'Source Serif 4 Variable', serif" : "'Geist Variable', sans-serif")
+      const corners = RADIUS_PRESETS.find((r) => r.id === look.corners) ?? RADIUS_PRESETS[1]
+      view.style.setProperty('--radius', `${corners.px / 16}rem`)
+      view.dataset.sidebar = look.sidebar
+      // The swatches show their colour in the mode the mock-up is in
+      root.querySelectorAll<HTMLElement>('[data-choice="tint"]').forEach((b) => b.classList.toggle('demo-swatch-dark', look.mode === 'dark'))
+      root.querySelectorAll<HTMLElement>('[data-choice]').forEach((b) => {
+        const on = look[b.dataset.choice as keyof Look] === b.dataset.value
+        b.setAttribute(b.getAttribute('role') === 'radio' ? 'aria-checked' : 'aria-pressed', String(on))
+      })
+    }
+
+    root.addEventListener('click', (e) => {
+      const button = (e.target as HTMLElement).closest<HTMLElement>('[data-choice]')
+      if (!button) return
+      ;(look as Record<string, string>)[button.dataset.choice!] = button.dataset.value!
+      apply()
+    })
+
+    // Like Randomize in the app: style only, the light/dark mode stays
+    const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]
+    root.querySelector('[data-demo-random]')?.addEventListener('click', (e) => {
+      const before = JSON.stringify(look)
+      while (JSON.stringify(look) === before) {
+        look.tint = pick(TINTS).id
+        look.texture = pick(TEXTURES).id
+        look.pageFont = pick(['sans', 'serif'])
+        look.corners = pick(RADIUS_PRESETS).id
+        look.sidebar = pick(['connected', 'floating'])
+      }
+      const icon = (e.currentTarget as HTMLElement).querySelector('svg')
+      if (icon && !matchMedia('(prefers-reduced-motion: reduce)').matches) icon.animate([{ transform: 'rotate(-90deg) scale(0.85)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.3, 1.4, 0.5, 1)' })
+      apply()
+    })
+
+    // The app reads its look from the same storage (same site): keep its other settings, take these
+    root.querySelector('[data-demo-use]')?.addEventListener('click', () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(APPEARANCE_KEY) ?? '{}')
+        const { mode, ...style } = look
+        localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ ...saved, ...style }))
+        localStorage.setItem('theme', mode)
+      } catch {
+        // storage unavailable: the app just opens with its own look
+      }
+      location.href = import.meta.env.BASE_URL
+    })
+
+    apply()
+  }
+</script>

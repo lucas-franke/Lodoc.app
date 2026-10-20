@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import AppearanceDemo from '../../components/AppearanceDemo.astro'
 import Icon from '../../components/Icon.astro'
 import Base from '../../layouts/Base.astro'
 import { byVersion, formatDate } from '../../lib/changelog'
@@ -46,11 +47,10 @@ const features = [
   },
   {
     title: 'Make it yours',
-    text: 'Soft colour tints, paper textures, a serif or sans font, and a floating sidebar. Or press Randomize and be surprised.',
-    image: 'docs/img/appearance',
-    ext: 'jpg',
-    alt: 'The Appearance panel with a sage tint and a paper texture',
+    text: 'Soft colour tints, paper textures, a serif or sans font, and a floating sidebar. Try them right here, or press Randomize and be surprised.',
     docs: 'docs/appearance/',
+    // A live demo instead of a screenshot
+    demo: true,
   },
 ]
 
@@ -123,10 +123,14 @@ const more = [
               More about it <Icon icon={arrow} class="size-3.5" />
             </a>
           </div>
-          <figure class:list={['shot my-0', f.phone ? 'shot-phone' : 'shot-main']}>
-            <img src={img(`${f.image}-light.${f.ext ?? 'png'}`)} class="dark:hidden" alt={f.alt} width={f.phone ? 390 : 1280} height={f.phone ? 844 : 800} loading="lazy" />
-            <img src={img(`${f.image}-dark.${f.ext ?? 'png'}`)} class="hidden dark:block" alt="" width={f.phone ? 390 : 1280} height={f.phone ? 844 : 800} loading="lazy" />
-          </figure>
+          {f.demo ? (
+            <AppearanceDemo />
+          ) : (
+            <figure class:list={['shot my-0', f.phone ? 'shot-phone' : 'shot-main']}>
+              <img src={img(`${f.image}-light.png`)} class="dark:hidden" alt={f.alt} width={f.phone ? 390 : 1280} height={f.phone ? 844 : 800} loading="lazy" />
+              <img src={img(`${f.image}-dark.png`)} class="hidden dark:block" alt="" width={f.phone ? 390 : 1280} height={f.phone ? 844 : 800} loading="lazy" />
+            </figure>
+          )}
         </section>
       ))
     }

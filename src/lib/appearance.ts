@@ -1,57 +1,11 @@
 import { z } from 'zod'
 import { showPaperTexture } from './paper-texture'
+import { APPEARANCE_KEY, RADIUS_PRESETS, TEXTURE_STRENGTH_DEFAULT, TEXTURES, TINTS, type Tint } from './appearance-options'
+
+export * from './appearance-options'
 
 // Appearance settings: one object, remembered in this browser and applied to <html> as data attributes
 // and CSS variables. index.css turns them into the look (tinted surfaces, gradient, floating sidebar, grain).
-
-/** Tints as oklch hue and chroma; index.css derives every surface color from --tint-h / --tint-c */
-export const TINTS = [
-  { id: 'neutral', name: 'Neutral', hue: 0, chroma: 0 },
-  { id: 'sand', name: 'Sand', hue: 80, chroma: 0.02 },
-  { id: 'rose', name: 'Rose', hue: 10, chroma: 0.018 },
-  { id: 'sky', name: 'Sky', hue: 240, chroma: 0.018 },
-  { id: 'sage', name: 'Sage', hue: 150, chroma: 0.018 },
-  { id: 'lavender', name: 'Lavender', hue: 295, chroma: 0.02 },
-] as const
-
-export type Tint = (typeof TINTS)[number]['id']
-
-/** The page background a tint produces (same numbers as the --background rules in index.css) */
-export function tintColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
-  if (t.id === 'neutral') return mode === 'light' ? 'oklch(1 0 0)' : 'oklch(0.145 0 0)'
-  return mode === 'light' ? `oklch(0.985 ${t.chroma} ${t.hue})` : `oklch(0.17 ${t.chroma * 0.8} ${t.hue})`
-}
-
-/** Text in a tint's color (same numbers as the data-text-tint rules in index.css), for the swatches */
-export function textTintColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
-  if (t.id === 'neutral') return mode === 'light' ? 'oklch(0.145 0 0)' : 'oklch(0.985 0 0)'
-  return mode === 'light' ? `oklch(0.3 ${t.chroma * 4} ${t.hue})` : `oklch(0.92 ${t.chroma * 2} ${t.hue})`
-}
-
-/** Text color: neutral grey, the page tint, or a tint of its own */
-export const TEXT_COLORS = [
-  { id: 'neutral', name: 'Neutral' },
-  { id: 'tint', name: 'Match tint' },
-  { id: 'custom', name: 'Custom' },
-] as const
-export type TextColor = (typeof TEXT_COLORS)[number]['id']
-
-export const RADIUS_PRESETS = [
-  { id: 'sharp', name: 'Sharp', px: 0 },
-  { id: 'rounded', name: 'Rounded', px: 10 },
-  { id: 'round', name: 'Round', px: 16 },
-] as const
-export type Corners = (typeof RADIUS_PRESETS)[number]['id']
-
-export const TEXTURES = [
-  { id: 'none', name: 'None' },
-  { id: 'paper', name: 'Paper' },
-  { id: 'laid', name: 'Laid paper' },
-  { id: 'dots', name: 'Dot grid' },
-] as const
-export type Texture = (typeof TEXTURES)[number]['id']
-/** Texture strength in percent; 50 is each texture's tuned default, 100 twice as strong */
-export const TEXTURE_STRENGTH_DEFAULT = 50
 
 const TEXT_SIZES = { s: '0.9375rem', m: '1rem', l: '1.125rem' } as const
 /** The floating sidebar is a desktop look: on narrow screens the sidebar lies over the page, so it stays connected there */
@@ -97,7 +51,7 @@ export const APPEARANCE_SECTIONS = {
   interface: ['sidebar', 'corners', 'uiGrain', 'uiGrainStrength'],
 } as const satisfies Record<string, readonly (keyof Appearance)[]>
 
-const KEY = 'localnotes:appearance'
+const KEY = APPEARANCE_KEY
 /** The page font used to live in its own key (with a "mono" option that no longer exists) */
 const OLD_FONT_KEY = 'localnotes:pageFont'
 
