@@ -2,7 +2,7 @@
 // "Make it yours", live: a small mock-up of Lodoc that takes the same looks as the app (the app's own tints,
 // textures and corners, src/lib/appearance-options.ts, and its colour rules for [data-look] in tokens.css).
 // Only the mock-up changes; the page around it keeps its plain look, and nothing is carried over to the app.
-import { RADIUS_PRESETS, TEXTURES, TINTS, tintColor } from '../../../src/lib/appearance-options'
+import { RADIUS_PRESETS, TEXTURES, TINTS, tintSwatchColor } from '../../../src/lib/appearance-options'
 import Icon from './Icon.astro'
 import { __iconData as dice } from 'lucide-react/dist/esm/icons/dices.mjs'
 import { __iconData as chevron } from 'lucide-react/dist/esm/icons/chevron-down.mjs'
@@ -70,7 +70,7 @@ const segment =
               title={t.name}
               aria-label={t.name}
               class="size-7 rounded-full border outline-none focus-visible:ring-2 focus-visible:ring-ring/60 aria-checked:ring-2 aria-checked:ring-foreground/70 aria-checked:ring-offset-2 aria-checked:ring-offset-background"
-              style={`background: ${tintColor(t, 'light')}; --swatch-dark: ${tintColor(t, 'dark')}`}
+              style={`background: ${tintSwatchColor(t, 'light')}; --swatch-dark: ${tintSwatchColor(t, 'dark')}`}
             />
           ))
         }

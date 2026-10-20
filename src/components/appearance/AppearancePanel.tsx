@@ -31,7 +31,7 @@ import {
   TEXT_COLORS,
   textTintColor,
   TINTS,
-  tintColor,
+  tintSwatchColor,
   type Appearance,
 } from '@/lib/appearance'
 import { showPaperTextureSamples } from '@/lib/paper-texture'
@@ -218,7 +218,7 @@ export function AppearancePanel({
                       aria-label={t.name}
                       data-tint-swatch={t.id}
                       className="size-9 rounded-full border p-0 aria-checked:ring-2 aria-checked:ring-ring aria-checked:ring-offset-2 aria-checked:ring-offset-popover"
-                      style={{ backgroundColor: tintColor(t, mode) }}
+                      style={{ backgroundColor: tintSwatchColor(t, mode) }}
                     >
                       {a.tint === t.id && <Check className="text-foreground" />}
                     </ToggleGroupItem>

@@ -20,6 +20,17 @@ export function tintColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
   return mode === 'light' ? `oklch(0.985 ${t.chroma} ${t.hue})` : `oklch(0.17 ${t.chroma * 0.8} ${t.hue})`
 }
 
+/**
+ * A tint's swatch in the Appearance panel (and the website's demo). In light mode the page colour itself; in dark
+ * mode a lighter, more saturated version of its hue, since the tinted darks are all too close to black to tell
+ * apart. Only the swatch: the page keeps the colours above.
+ */
+export function tintSwatchColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
+  if (mode === 'light') return tintColor(t, 'light')
+  if (t.id === 'neutral') return 'oklch(0.32 0 0)'
+  return `oklch(0.42 ${t.chroma * 4} ${t.hue})`
+}
+
 /** Text in a tint's color (same numbers as the data-text-tint rules in index.css), for the swatches */
 export function textTintColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
   if (t.id === 'neutral') return mode === 'light' ? 'oklch(0.145 0 0)' : 'oklch(0.985 0 0)'
