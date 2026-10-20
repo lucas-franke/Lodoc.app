@@ -4,6 +4,7 @@ import { db } from '@/db/db'
 import { createNote, noteTitle, updateNote } from '@/db/notes'
 import type { StoredBlock } from '@/db/schema'
 import { formatDate } from './format'
+import { blobToDataUrl, compressImage, NOTE_IMAGE } from './image-compress'
 
 // "Share to Lodoc": the installed app is a share target (manifest.webmanifest, share_target), so text and links
 // shared from other apps on Android open Lodoc with them in the URL. Each share becomes a dated bullet at the top
@@ -57,16 +58,44 @@ export function takeArrived(noteId: string) {
   return true
 }
 
-export type Shared = { title: string; text: string; url: string }
+export type Shared = { title: string; text: string; url: string; images?: { blob: Blob; name: string }[] }
 
 /** The names the manifest's share_target gives the shared fields in the URL */
 const PARAMS = { title: 'shared_title', text: 'shared_text', url: 'shared_url' } as const
 
-/** What was shared to the app (null for a normal start); taken out of the URL so a reload doesn't add it again */
-export function takeSharedFromUrl(): Shared | null {
+/**
+ * Where the service worker leaves a share that came with images (sw.js in vite.config.ts): the manifest's
+ * share_target posts it, the worker keeps it here and opens the app with ?shared. Read once, then removed.
+ */
+const SHARE_CACHE = 'share-target'
+
+async function readSharedCache(): Promise<Shared | null> {
+  if (!('caches' in window)) return null
+  const cache = await caches.open(SHARE_CACHE)
+  const meta = await cache.match('shared/meta')
+  if (!meta) return null
+  const { title = '', text = '', url = '', files = 0 } = (await meta.json()) as Partial<Shared> & { files?: number }
+  const images: { blob: Blob; name: string }[] = []
+  for (let i = 0; i < files; i++) {
+    const file = await cache.match(`shared/${i}`)
+    if (file) images.push({ blob: await file.blob(), name: decodeURIComponent(file.headers.get('x-name') ?? '') })
+  }
+  await caches.delete(SHARE_CACHE)
+  return { title, text, url, images }
+}
+
+/**
+ * What was shared to the app (null for a normal start): from the URL, or, for a share with images, from the
+ * service worker's cache. Taken out of the URL so a reload doesn't add it again.
+ */
+export async function takeShared(): Promise<Shared | null> {
   const params = new URLSearchParams(location.search)
-  if (!Object.values(PARAMS).some((p) => params.has(p))) return null
-  const shared = { title: params.get(PARAMS.title) ?? '', text: params.get(PARAMS.text) ?? '', url: params.get(PARAMS.url) ?? '' }
+  const fromWorker = params.has('shared')
+  if (!fromWorker && !Object.values(PARAMS).some((p) => params.has(p))) return null
+  const shared = fromWorker
+    ? await readSharedCache().catch(() => null)
+    : { title: params.get(PARAMS.title) ?? '', text: params.get(PARAMS.text) ?? '', url: params.get(PARAMS.url) ?? '' }
+  params.delete('shared')
   for (const p of Object.values(PARAMS)) params.delete(p)
   const rest = params.toString()
   history.replaceState(null, '', location.pathname + (rest ? `?${rest}` : '') + location.hash)
@@ -109,11 +138,21 @@ const today = () => formatDate(new Date())
 
 const text = (t: string) => ({ type: 'text', text: t, styles: {} })
 
-/** The shared item as a bullet: "19.10.2026: the text the page", the page linked */
-function sharedBlock(shared: Shared): StoredBlock | null {
+/** The shared item as a bullet: "19.10.2026: the text the page", the page linked, shared images under it */
+async function sharedBlock(shared: Shared): Promise<StoredBlock | null> {
   const { text: body, link, label } = readShared(shared)
-  if (!body && !link) return null
-  const content: unknown[] = [text(`${today()}: ${body}`)]
+  const images = await Promise.all(
+    (shared.images ?? []).map(async ({ blob, name }) => {
+      try {
+        return { id: crypto.randomUUID(), type: 'image', props: { url: await blobToDataUrl(await compressImage(blob, NOTE_IMAGE)), name }, children: [] }
+      } catch {
+        return null // not an image the browser can read
+      }
+    }),
+  ).then((all) => all.filter((i) => i !== null))
+  if (!body && !link && !images.length) return null
+  const what = body || (link ? '' : images.length === 1 ? 'Image' : `${images.length} images`)
+  const content: unknown[] = [text(`${today()}: ${what}`)]
   if (link) {
     if (body) content.push(text(' '))
     content.push({ type: 'link', href: link, content: [text(label)] })
@@ -123,8 +162,9 @@ function sharedBlock(shared: Shared): StoredBlock | null {
     type: 'bulletListItem',
     props: { textColor: 'default', backgroundColor: 'default', textAlignment: 'left' },
     content,
-    children: [],
-  }
+    // The images inside the bullet, like images added to a list in the editor
+    children: images,
+  } as StoredBlock
 }
 
 /**
@@ -132,7 +172,7 @@ function sharedBlock(shared: Shared): StoredBlock | null {
  * deleted). Returns the note, whether it was just created, and whether anything was added.
  */
 export async function collectShared(shared: Shared): Promise<{ noteId: string; title: string; created: boolean; added: boolean }> {
-  const block = sharedBlock(shared)
+  const block = await sharedBlock(shared)
   const savedId = getCollectNoteId()
   const existing = savedId ? await db.notes.get(savedId) : undefined
   if (existing) {

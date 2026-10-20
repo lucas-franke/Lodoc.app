@@ -13,7 +13,7 @@ import { discardLeftoverNotes } from '@/db/notes'
 import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
 import { followThemeColor } from '@/lib/theme-color'
-import { collectShared, markArrived, takeSharedFromUrl } from '@/lib/collect'
+import { collectShared, markArrived, takeShared } from '@/lib/collect'
 import { openTodaysJournal, takeJournalFromUrl } from '@/lib/journal'
 import { notify } from '@/lib/notify'
 
@@ -67,27 +67,30 @@ const render = () =>
     </StrictMode>,
   )
 
-// Opened from another app's share sheet: the shared text or link goes into the collect note first, which then opens
-const shared = takeSharedFromUrl()
-if (shared) {
-  void collectShared(shared)
-    .then(({ noteId, title, created, added }) => {
+// Opened from another app's share sheet: what was shared (text, a link, images) goes into the collect note
+// first, which then opens
+async function start() {
+  const shared = await takeShared().catch(() => null)
+  if (shared) {
+    try {
+      const { noteId, title, created, added } = await collectShared(shared)
       location.hash = `#/note/${encodeURIComponent(noteId)}`
       if (added) markArrived(noteId)
       render()
-      if (!added) notify('Nothing to add: the share had no text or link')
+      if (!added) notify('Nothing to add: the share had no text, link or image')
       else if (created) notify(`Things you share to Lodoc are collected in "${title}". To collect in another note, choose "Collect here" in its menu.`, { level: 'success' })
       else notify(`Added to "${title}"`, { level: 'success' })
-    })
-    .catch(() => {
+    } catch {
       render()
       notify('Could not add what was shared', { level: 'error' })
-    })
-} else if (takeJournalFromUrl()) {
-  // The app icon's "Today's journal" shortcut
-  void openTodaysJournal()
-    .then((id) => (location.hash = `#/note/${encodeURIComponent(id)}`))
-    .finally(render)
-} else {
-  render()
+    }
+  } else if (takeJournalFromUrl()) {
+    // The app icon's "Today's journal" shortcut
+    await openTodaysJournal()
+      .then((id) => (location.hash = `#/note/${encodeURIComponent(id)}`))
+      .finally(render)
+  } else {
+    render()
+  }
 }
+void start()

@@ -37,8 +37,31 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+// Shared from another app (manifest share_target): the share is posted here. It is kept in the
+// "share-target" cache and the app opened with ?shared, which reads it from there (lib/collect.ts).
+// Handled on the device, so a static host is enough.
+async function receiveShare(request) {
+  const form = await request.formData()
+  const files = form.getAll('shared_files').filter((f) => typeof f !== 'string')
+  await caches.delete('share-target')
+  const cache = await caches.open('share-target')
+  await Promise.all(
+    files.map((file, i) =>
+      cache.put('shared/' + i, new Response(file, { headers: { 'content-type': file.type || 'application/octet-stream', 'x-name': encodeURIComponent(file.name || '') } })),
+    ),
+  )
+  const field = (name) => String(form.get(name) || '')
+  const meta = { title: field('shared_title'), text: field('shared_text'), url: field('shared_url'), files: files.length }
+  await cache.put('shared/meta', new Response(JSON.stringify(meta), { headers: { 'content-type': 'application/json' } }))
+  return Response.redirect(new URL('./?shared', self.registration.scope).href, 303)
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request
+  if (request.method === 'POST' && new URL(request.url).pathname === new URL('./share', self.registration.scope).pathname) {
+    event.respondWith(receiveShare(request).catch(() => Response.redirect(new URL('./', self.registration.scope).href, 303)))
+    return
+  }
   if (request.method !== 'GET' || new URL(request.url).origin !== location.origin) return
   // Pages: the network first (so a new version shows up), the cached app when offline
   if (request.mode === 'navigate') {
