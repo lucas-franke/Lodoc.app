@@ -25,6 +25,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # GitHub Pages serves the repository under /<name>/; the website's links need to know (site/astro.config.mjs).
+          # Cloudflare (lodoc.app) builds without it, at the root.
+          SITE_BASE: /${{ github.event.repository.name }}/
+          SITE_URL: https://${{ github.repository_owner }}.github.io
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist

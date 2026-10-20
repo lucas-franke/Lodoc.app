@@ -1,0 +1,40 @@
+---
+import { getCollection, render } from 'astro:content'
+import Base from '../../layouts/Base.astro'
+import { byVersion, formatDate } from '../../lib/changelog'
+
+const releases = (await getCollection('changelog')).sort(byVersion)
+const rendered = await Promise.all(releases.map(async (release) => ({ release, Content: (await render(release)).Content })))
+---
+
+<Base title="What's new in Lodoc" description="Every week's changes to Lodoc: new features, improvements and fixes.">
+  <h1 class="font-page text-4xl font-bold tracking-tight">What's new</h1>
+  <p class="mt-2 text-muted-foreground">
+    New features, improvements and fixes, week by week. Follow along with the <a href="rss.xml" class="underline underline-offset-4 hover:no-underline">RSS feed</a>.
+  </p>
+
+  <ol class="mt-12 space-y-14" aria-label="Releases">
+    {
+      rendered.map(({ release, Content }) => (
+        <li id={release.data.version} class="scroll-mt-20">
+          <article aria-labelledby={`v${release.data.version}`}>
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 id={`v${release.data.version}`} class="text-2xl font-semibold tracking-tight">
+                <a href={`#${release.data.version}`} class="outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/60">
+                  {release.data.version}
+                </a>
+              </h2>
+              <time datetime={release.data.date.toISOString().slice(0, 10)} class="text-sm text-muted-foreground">
+                {formatDate(release.data.date)}
+              </time>
+            </div>
+            <p class="mt-2 text-lg">{release.data.summary}</p>
+            <div class="prose-lodoc mt-2">
+              <Content />
+            </div>
+          </article>
+        </li>
+      ))
+    }
+  </ol>
+</Base>

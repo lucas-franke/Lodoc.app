@@ -14,6 +14,7 @@ import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNote
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
 import { AppearanceMenu } from './AppearanceMenu'
 import { BackupMenu } from './BackupMenu'
+import { LodocMenu } from './LodocMenu'
 import { BoardItem } from './BoardItem'
 import { FolderTree } from './FolderTree'
 import { NoteItem } from './NoteItem'
@@ -210,7 +211,9 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
               <PanelLeftClose />
             </Button>
           </Tip>
-          <span className="flex-1 truncate px-1 text-sm font-semibold tracking-tight">Lodoc</span>
+          <div className="min-w-0 flex-1">
+            <LodocMenu />
+          </div>
           <Tip label={newNoteLabel} shortcut="Ctrl Alt N">
             <Button variant="ghost" size="icon-sm" onClick={newNote} aria-label="New note" aria-description={newNoteLabel}>
               <SquarePen />

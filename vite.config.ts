@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -64,6 +65,23 @@ self.addEventListener('fetch', (event) => {
   }
   if (request.method !== 'GET' || new URL(request.url).origin !== location.origin) return
   // Pages: the network first (so a new version shows up), the cached app when offline
+  // The website beside the app (changelog/, docs/, about/ and their files in _astro/): from the network, and a
+  // copy is kept as they are visited, so a page seen once also opens offline
+  const inSite = /^(changelog|docs|about|_astro)(\\/|$)/.test(new URL(request.url).pathname.slice(new URL(self.registration.scope).pathname.length))
+  if (inSite) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone()
+            event.waitUntil(caches.open('site-pages').then((cache) => cache.put(request, copy)))
+          }
+          return response
+        })
+        .catch(async () => (await caches.match(request, { ignoreVary: true })) || Response.error()),
+    )
+    return
+  }
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(async () =>
@@ -81,11 +99,30 @@ self.addEventListener('fetch', (event) => {
   }
 }
 
+/**
+ * The newest release in the changelog (site/src/content/changelog), shown in the app's Lodoc menu: so the
+ * version the app says it is and the changelog can't drift apart.
+ */
+function latestRelease() {
+  const dir = path.resolve(import.meta.dirname, 'site/src/content/changelog')
+  const releases = readdirSync(dir)
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => {
+      const text = readFileSync(path.join(dir, f), 'utf8')
+      return { version: /^version:\s*['"]?([^'"\n]+)/m.exec(text)?.[1] ?? '', date: /^date:\s*(\S+)/m.exec(text)?.[1] ?? '' }
+    })
+    .sort((a, b) => b.version.localeCompare(a.version, 'en', { numeric: true }))
+  return releases[0] ?? { version: '', date: '' }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   // Relative asset paths, so the build works under https://<user>.github.io/<repo>/ as well as at a domain root
   base: './',
   plugins: [react(), tailwindcss(), serviceWorker()],
+  define: {
+    __LODOC_RELEASE__: JSON.stringify(latestRelease()),
+  },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
