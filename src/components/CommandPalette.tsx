@@ -41,8 +41,7 @@ import { emitAppEvent } from '@/lib/app-events'
 import { openGuideNote } from '@/lib/guide'
 import { openTodaysJournal } from '@/lib/journal'
 import { createFromNote, createFromTemplate, TEMPLATES } from '@/lib/templates'
-import { canShareBackup, exportProject, shareProject } from '@/lib/project-file'
-import { notify } from '@/lib/notify'
+import { backupSendFailed, canShareBackup, exportProject, shareProject } from '@/lib/project-file'
 
 type Action = { id: string; label: string; icon: LucideIcon; keywords?: string; shortcut?: string; run: () => void }
 
@@ -95,7 +94,7 @@ export function CommandPalette({
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },
     { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme font color tint texture settings', run: () => emitAppEvent('open-appearance') },
     { id: 'export', label: 'Export backup (.json)', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
-    ...(canShareBackup() ? [{ id: 'send-backup', label: 'Send backup to another device…', icon: Send, keywords: 'share sync transfer phone computer', run: () => void shareProject().then((sent) => sent && emitAppEvent('backup-exported')).catch(() => notify('Could not send the backup. Export it instead and send the file yourself.', { level: 'error' })) }] : []),
+    ...(canShareBackup() ? [{ id: 'send-backup', label: 'Send backup to another device…', icon: Send, keywords: 'share sync transfer phone computer', run: () => void shareProject().then((result) => result === 'sent' && emitAppEvent('backup-exported')).catch(backupSendFailed) }] : []),
     { id: 'import-markdown', label: 'Import Markdown files…', icon: FileText, keywords: 'obsidian notion md zip migrate move', run: () => emitAppEvent('import-markdown-files') },
     { id: 'overview', label: 'Go to Overview', icon: LayoutGrid, keywords: 'home start', run: () => openNote(null) },
     { id: 'activity', label: 'Open Activity', icon: History, keywords: 'changes log history messages notifications', run: () => openActivity() },

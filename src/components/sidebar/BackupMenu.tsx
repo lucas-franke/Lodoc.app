@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { canShareBackup, exportProject, getLastExport, shareProject } from '@/lib/project-file'
+import { backupSendFailed, canShareBackup, exportProject, getLastExport, prepareBackupFile, shareProject } from '@/lib/project-file'
 import { emitAppEvent, useAppEvent } from '@/lib/app-events'
 import {
   autoBackupSupported,
@@ -61,7 +61,14 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
 
   return (
     <>
-      <DropdownMenu onOpenChange={(open) => open && setNow(Date.now())}>
+      <DropdownMenu
+        onOpenChange={(open) => {
+          if (!open) return
+          setNow(Date.now())
+          // "Send backup…" needs the file at the moment of the tap (the share sheet opens only right after one)
+          if (canShareBackup()) prepareBackupFile()
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <button
             type="button"
@@ -96,12 +103,12 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             <DropdownMenuItem
               onSelect={async () => {
                 try {
-                  if (!(await shareProject())) return
+                  if ((await shareProject()) !== 'sent') return
                   const time = Date.now()
                   setLastExport(time)
                   setNow(time)
-                } catch {
-                  notify('Could not send the backup. Export it instead and send the file yourself.', { level: 'error' })
+                } catch (error) {
+                  backupSendFailed(error)
                 }
               }}
             >
