@@ -4,12 +4,14 @@ import '../styles/site.css'
 interface Props {
   title: string
   description: string
-  /** A wider page (the docs, with their navigation beside the text) */
+  /** Wider content (the docs with their navigation, the about page); the header and footer are the same on every page */
   wide?: boolean
   /** The picture shown when the page is shared (a path inside the site, like "about/overview-light.png") */
   image?: string
 }
 const { title, description, wide = false, image } = Astro.props
+// The header and footer keep one width on every page, so moving between pages doesn't make them jump
+const frame = 'max-w-5xl'
 const width = wide ? 'max-w-5xl' : 'max-w-3xl'
 const base = import.meta.env.BASE_URL
 // The app is at the root of the site, wherever that is (lodoc.app/ or the GitHub Pages folder)
@@ -50,7 +52,7 @@ const nav = [
   <body class="min-h-dvh">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2">Skip to content</a>
     <header class="sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
-      <div class:list={['mx-auto flex h-14 items-center gap-2 px-4 sm:gap-4', width]}>
+      <div class:list={['mx-auto flex h-14 items-center gap-2 px-4 sm:gap-4', frame]}>
         <!-- The name leads to the page about Lodoc; "Open Lodoc" opens the app -->
         <a href={about} aria-current={Astro.url.pathname === about ? 'page' : undefined} class="flex items-center gap-2 rounded-md font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60">
           <img src={`${base}favicon.svg`} alt="" width="22" height="22" />
@@ -81,7 +83,7 @@ const nav = [
       <slot />
     </main>
     <footer class="border-t">
-      <div class:list={['mx-auto flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-6 text-sm text-muted-foreground', width]}>
+      <div class:list={['mx-auto flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-6 text-sm text-muted-foreground', frame]}>
         <span>Lodoc: notes that stay on your device.</span>
         <nav aria-label="Footer" class="flex flex-wrap gap-x-4 gap-y-2 sm:ml-auto">
           <a href={about} class="underline-offset-4 hover:underline">About</a>
