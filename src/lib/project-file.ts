@@ -166,9 +166,38 @@ export async function buildProjectBlob(): Promise<Blob> {
 export async function exportProject() {
   const blob = await buildProjectBlob()
   const now = Date.now()
-  saveFile(blob, `lodoc-${new Date(now).toISOString().slice(0, 10)}.json`)
+  saveFile(blob, backupName(now))
   setLastExport(now)
   logChange('Backup file saved')
+}
+
+/** The backup file's name for a day: lodoc-2026-10-20.json */
+const backupName = (time: number, ext = 'json') => 'lodoc-' + new Date(time).toISOString().slice(0, 10) + '.' + ext
+
+/** Whether this browser can hand a backup file to the share sheet (phones, and Chrome or Edge on desktop) */
+export function canShareBackup() {
+  return typeof navigator !== 'undefined' && !!navigator.canShare?.({ files: [new File(['{}'], 'x.txt', { type: 'text/plain' })] })
+}
+
+/**
+ * Sends a backup through the share sheet (to yourself by Quick Share, mail, a drive…), to bring the notes to
+ * another device. Some browsers only share certain file types and JSON is often not one of them: then it goes
+ * as a .txt file with the same content, which Import reads just the same. False when the share was cancelled.
+ */
+export async function shareProject(): Promise<boolean> {
+  const blob = await buildProjectBlob()
+  const now = Date.now()
+  const asJson = new File([blob], backupName(now), { type: 'application/json' })
+  const file = navigator.canShare?.({ files: [asJson] }) ? asJson : new File([blob], backupName(now, 'txt'), { type: 'text/plain' })
+  try {
+    await navigator.share({ files: [file], title: 'Lodoc backup' })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') return false
+    throw error
+  }
+  setLastExport(now)
+  logChange('Backup sent')
+  return true
 }
 
 /** Remembers when the last backup was made (for the reminder in the sidebar) */
@@ -233,6 +262,15 @@ export function describeProject(project: ProjectFile) {
 export type ImportMode = 'replace' | 'merge'
 
 export async function importProject(project: ProjectFile, mode: ImportMode) {
+  // Merge: what was deleted here after it was last edited there stays deleted (it was still in the other device's file)
+  const deletedAt = new Map<string, number>()
+  if (mode === 'merge') {
+    for (const entry of await db.trash.toArray()) {
+      for (const item of [...entry.notes, ...entry.boards]) deletedAt.set(item.id, Math.max(deletedAt.get(item.id) ?? 0, entry.deletedAt))
+    }
+  }
+  const notDeletedSince = <T extends { id: string; updatedAt: number }>(items: T[]) =>
+    items.filter((item) => !(item.updatedAt < (deletedAt.get(item.id) ?? 0)))
   await db.transaction('rw', [db.folders, db.notes, db.boards, db.assets, db.trash], async () => {
     if (mode === 'replace') {
       await Promise.all([db.folders.clear(), db.notes.clear(), db.boards.clear(), db.assets.clear(), db.trash.clear()])
@@ -248,9 +286,9 @@ export async function importProject(project: ProjectFile, mode: ImportMode) {
       const existing = await table.bulkGet(items.map((i) => i.id))
       return items.filter((item, i) => !existing[i] || item.updatedAt > existing[i]!.updatedAt)
     }
-    const notes = await newer(db.notes, project.notes)
+    const notes = await newer(db.notes, notDeletedSince(project.notes))
     await db.notes.bulkPut(notes)
-    const boards = await newer(db.boards, project.boards)
+    const boards = await newer(db.boards, notDeletedSince(project.boards))
     await db.boards.bulkPut(boards)
     // Images are immutable: add the ones the written boards and notes use that we don't have yet
     const wanted = [...new Set([...boardImageIds(boards), ...coverIds(notes)])]

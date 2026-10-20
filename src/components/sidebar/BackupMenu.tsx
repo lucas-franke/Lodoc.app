@@ -1,4 +1,4 @@
-import { ArchiveRestore, Check, Download, FileText, FolderInput, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
+import { ArchiveRestore, Check, Download, FileText, FolderInput, FolderSync, PauseCircle, RefreshCw, Send, ShieldCheck, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { notify } from '@/lib/notify'
 import { useImportFile } from '@/hooks/useImportFile'
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { exportProject, getLastExport } from '@/lib/project-file'
+import { canShareBackup, exportProject, getLastExport, shareProject } from '@/lib/project-file'
 import { emitAppEvent, useAppEvent } from '@/lib/app-events'
 import {
   autoBackupSupported,
@@ -82,7 +82,6 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-60">
           <DropdownMenuItem
-           
             onSelect={async () => {
               await exportProject()
               const time = Date.now()
@@ -92,6 +91,27 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
           >
             <Download /> Export all notes (.json)
           </DropdownMenuItem>
+          {/* To another device: the backup through the share sheet; there it is imported with Merge */}
+          {canShareBackup() && (
+            <DropdownMenuItem
+              onSelect={async () => {
+                try {
+                  if (!(await shareProject())) return
+                  const time = Date.now()
+                  setLastExport(time)
+                  setNow(time)
+                } catch {
+                  notify('Could not send the backup. Export it instead and send the file yourself.', { level: 'error' })
+                }
+              }}
+            >
+              <Send />
+              <span className="flex flex-col">
+                <span>Send backup…</span>
+                <span className="text-xs text-muted-foreground">To your other device; import it there with Merge</span>
+              </span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={importFile.pick}>
             <Upload /> Import from file…
           </DropdownMenuItem>

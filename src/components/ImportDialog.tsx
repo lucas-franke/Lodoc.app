@@ -25,9 +25,10 @@ export function ImportDialog({ project, onClose }: { project: ProjectFile | null
     setBusy(true)
     try {
       await importProject(project, mode)
-      // Files from before settings were saved keep the current look
-      if (settings?.appearance) replaceAppearance(settings.appearance)
-      if (settings?.theme) setTheme(settings.theme)
+      // Replace takes the file's look too; a merge (bringing notes over from another device) keeps this one's.
+      // Files from before settings were saved keep the current look either way.
+      if (mode === 'replace' && settings?.appearance) replaceAppearance(settings.appearance)
+      if (mode === 'replace' && settings?.theme) setTheme(settings.theme)
       if (mode === 'replace') openNote(null)
       notify(`Imported ${describeProject(project)}.`, { level: 'success', logged: true })
       onClose()
@@ -51,14 +52,13 @@ export function ImportDialog({ project, onClose }: { project: ProjectFile | null
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>
             <span className="font-medium text-foreground">Merge</span> adds the contents to your current ones. If a note
-            or board exists in both, the more recently edited version is kept.
+            or board exists in both, the more recently edited version is kept, and what you deleted here since stays
+            deleted. Your look (theme, colors, fonts) stays as it is.
           </p>
           <p>
             <span className="font-medium text-foreground">Replace</span> deletes all current notes, folders and boards first.
           </p>
-          {(settings?.appearance || settings?.theme) && (
-            <p>Either way, the theme and appearance settings saved in the file are applied too.</p>
-          )}
+          {(settings?.appearance || settings?.theme) && <p>Replace also takes over the theme and appearance saved in the file.</p>}
         </div>
         <DialogFooter>
           <Button variant="outline" disabled={busy} onClick={() => run('replace')}>

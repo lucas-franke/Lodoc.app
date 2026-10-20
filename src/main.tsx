@@ -14,7 +14,9 @@ import { startAutoBackup } from '@/lib/auto-backup'
 import { shrinkNoteImages } from '@/lib/shrink-note-images'
 import { pruneVersions } from '@/db/versions'
 import { followThemeColor } from '@/lib/theme-color'
-import { collectShared, markArrived, takeShared } from '@/lib/collect'
+import { collectShared, markArrived, takeShared, type SharedFile } from '@/lib/collect'
+import { setPendingImport } from '@/lib/pending-import'
+import { readProjectFile, type ProjectFile } from '@/lib/project-file'
 import { openTodaysJournal, takeJournalFromUrl } from '@/lib/journal'
 import { notify } from '@/lib/notify'
 
@@ -70,10 +72,36 @@ const render = () =>
     </StrictMode>,
   )
 
+/** The first of the shared files that is a Lodoc backup */
+async function firstBackup(files: SharedFile[]): Promise<ProjectFile | null> {
+  for (const { blob, name } of files) {
+    try {
+      return await readProjectFile(new File([blob], name || 'backup.json', { type: blob.type }))
+    } catch {
+      // not a backup: try the next one
+    }
+  }
+  return null
+}
+
 // Opened from another app's share sheet: what was shared (text, a link, images) goes into the collect note
 // first, which then opens
 async function start() {
   const shared = await takeShared().catch(() => null)
+  // A backup file shared from another device: the import dialog opens with it (Merge or Replace)
+  if (shared?.files?.length) {
+    const project = await firstBackup(shared.files)
+    if (project) {
+      setPendingImport(project)
+      render()
+      return
+    }
+    if (!shared.images?.length && !shared.text && !shared.url) {
+      render()
+      notify('Lodoc takes in text, links, images and its own backup files. This file is none of those.', { level: 'error' })
+      return
+    }
+  }
   if (shared) {
     try {
       const { noteId, title, created, added } = await collectShared(shared)
