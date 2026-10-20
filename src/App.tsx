@@ -24,6 +24,7 @@ import { createNote, noteTitle } from '@/db/notes'
 import { useSidebarSwipe } from '@/hooks/useSidebarSwipe'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
 import { useMilestones } from '@/hooks/useMilestones'
+import { useMarkdownImport } from '@/hooks/useMarkdownImport'
 import { openNote, useActivityTab, useRoute, useTagRoute, type RouteType } from '@/hooks/useRoute'
 import { useAppEvent } from '@/lib/app-events'
 import { cn } from '@/lib/utils'
@@ -50,6 +51,7 @@ export default function App() {
   useDiscardUntouchedNote(route?.type === 'note' ? route.id : null)
   // A quiet word at the 10th, 100th… note and each year of writing here
   useMilestones()
+  const markdownImport = useMarkdownImport()
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow())
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -228,6 +230,7 @@ export default function App() {
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} newNoteFolderId={newNoteFolderId} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      {markdownImport.element}
     </AppDnd>
   )
 }

@@ -3,7 +3,14 @@ import { useEffect } from 'react'
 // A few app-wide requests that the command palette (or a shortcut) makes of components elsewhere,
 // e.g. "open the Appearance panel" for the button in the sidebar footer.
 
-type AppEvent = 'open-appearance' | 'open-palette' | 'open-shortcuts' | 'backup-exported' | 'tidy-board'
+type AppEvent =
+  | 'open-appearance'
+  | 'open-palette'
+  | 'open-shortcuts'
+  | 'backup-exported'
+  | 'tidy-board'
+  | 'import-markdown-files'
+  | 'import-markdown-folder'
 
 const target = new EventTarget()
 

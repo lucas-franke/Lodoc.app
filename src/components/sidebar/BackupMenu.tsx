@@ -1,4 +1,4 @@
-import { ArchiveRestore, Check, Download, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
+import { ArchiveRestore, Check, Download, FileText, FolderInput, FolderSync, PauseCircle, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { notify } from '@/lib/notify'
 import { useImportFile } from '@/hooks/useImportFile'
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { exportProject, getLastExport } from '@/lib/project-file'
-import { useAppEvent } from '@/lib/app-events'
+import { emitAppEvent, useAppEvent } from '@/lib/app-events'
 import {
   autoBackupSupported,
   backUpNow,
@@ -94,6 +94,21 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={importFile.pick}>
             <Upload /> Import from file…
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => emitAppEvent('import-markdown-files')}>
+            <FileText />
+            <span className="flex flex-col">
+              <span>Import Markdown…</span>
+              <span className="text-xs text-muted-foreground">.md files, or a .zip (e.g. a Notion export)</span>
+            </span>
+          </DropdownMenuItem>
+          {/* Folders can only be picked with a mouse-and-keyboard browser */}
+          <DropdownMenuItem className="pointer-coarse:hidden" onSelect={() => emitAppEvent('import-markdown-folder')}>
+            <FolderInput />
+            <span className="flex flex-col">
+              <span>Import a Markdown folder…</span>
+              <span className="text-xs text-muted-foreground">With its subfolders and images (e.g. an Obsidian vault)</span>
+            </span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {autoBackupSupported && auto.status === 'off' && (

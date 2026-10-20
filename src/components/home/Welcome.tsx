@@ -2,6 +2,7 @@ import { BookOpen, PenLine, Upload, type LucideIcon } from 'lucide-react'
 import { createNote } from '@/db/notes'
 import { useImportFile } from '@/hooks/useImportFile'
 import { openNote } from '@/hooks/useRoute'
+import { emitAppEvent } from '@/lib/app-events'
 import { openGuideNote } from '@/lib/guide'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +31,16 @@ export function Welcome() {
         />
         <StartCard icon={Upload} title="Restore a backup" text="Import a Lodoc export (.json)" onClick={importFile.pick} />
       </div>
+      <p className="mt-4 text-sm text-muted-foreground">
+        Coming from another app?{' '}
+        <button
+          type="button"
+          onClick={() => emitAppEvent('import-markdown-files')}
+          className="rounded-sm font-medium text-foreground underline underline-offset-4 outline-none hover:no-underline focus-visible:ring-2 focus-visible:ring-ring/60"
+        >
+          Import Markdown files
+        </button>
+      </p>
       <p className="mt-8 text-xs text-muted-foreground">
         <span className="pointer-coarse:hidden">
           <kbd className="font-sans">Ctrl</kbd> + <kbd className="font-sans">Alt</kbd> + <kbd className="font-sans">N</kbd> new
