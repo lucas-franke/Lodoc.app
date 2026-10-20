@@ -6,7 +6,7 @@ import { en } from '@blocknote/core/locales'
 import { useTheme } from 'next-themes'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isImageFile } from '@/db/assets'
-import { isFreshNote, noteWordCount, updateNote } from '@/db/notes'
+import { addNoteTag, isFreshNote, noteWordCount, removeNoteTag, updateNote } from '@/db/notes'
 import { formatDateTime, formatRelative, plural } from '@/lib/format'
 import { blobToDataUrl, compressImage, NOTE_IMAGE } from '@/lib/image-compress'
 import { useCaptionEditor } from './CaptionEditor'
@@ -29,6 +29,7 @@ import { editorSchema } from './schema'
 import { arrowsExtension } from './arrows'
 import { emptyLinesExtension } from './empty-lines'
 import { templateHintsExtension } from './template-hints'
+import { inlineTags, inlineTagsExtension, tagMenuItems, tagMenuShouldOpen } from './inline-tags'
 import { NoteTags } from '@/components/note/NoteTags'
 import type { Note, StoredBlock } from '@/db/schema'
 import { cn } from '@/lib/utils'
@@ -110,7 +111,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
     initialContent: note.content.length ? (note.content as PartialBlock<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema>[]) : undefined,
     uploadFile,
     dictionary,
-    extensions: [arrowsExtension, emptyLinesExtension, templateHintsExtension],
+    extensions: [arrowsExtension, emptyLinesExtension, templateHintsExtension, inlineTagsExtension],
     // Accessible name for the editable area (screen readers otherwise announce just "edit text")
     domAttributes: { editor: { 'aria-label': 'Note content' } },
   })
@@ -161,6 +162,21 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   const pageRef = useRef<HTMLDivElement>(null)
   useCaretNearTop(pageRef, !embedded)
   useChecklistJoy(pageRef)
+
+  // #tags written in the text become the note's tags, and go when they are taken out (editor/inline-tags.ts).
+  // Compared with the tags the text had before, so tags added in the tag field are left alone.
+  const writtenTags = useRef<Set<string> | null>(null)
+  useEffect(() => {
+    writtenTags.current = inlineTags(editor.prosemirrorState)
+  }, [editor])
+  const syncWrittenTags = () => {
+    const before = writtenTags.current
+    if (!before) return
+    const now = inlineTags(editor.prosemirrorState)
+    for (const tag of now) if (!before.has(tag)) void addNoteTag(note.id, tag)
+    for (const tag of before) if (!now.has(tag)) void removeNoteTag(note.id, tag)
+    writtenTags.current = now
+  }
 
   // An earlier version was put back (note history): the editor only reads the note when it opens, so it's told
   useEffect(
@@ -255,7 +271,10 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
         onChange={() => {
           save({ content: editor.document as unknown as StoredBlock[] })
           if (!embedded) updateOutline()
+          syncWrittenTags()
         }}
+        // A tag counts once the caret leaves it, so moving away (without typing) also adds it
+        onSelectionChange={syncWrittenTags}
       >
         {/* "@" links to another note (or creates one with the typed name) */}
         <SuggestionMenuController
@@ -265,6 +284,12 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
               editor.insertInlineContent([{ type: 'noteLink', props: { noteId, title: linkTitle } }, ' ']),
             )
           }
+        />
+        {/* "#" after a space: the tags already in use (or a new one) */}
+        <SuggestionMenuController
+          triggerCharacter="#"
+          shouldOpen={tagMenuShouldOpen}
+          getItems={(query) => tagMenuItems(query, (tag) => editor.insertInlineContent(['#' + tag + ' ']))}
         />
         {formatBar && <MobileFormatBar />}
       </BlockNoteView>

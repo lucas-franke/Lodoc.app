@@ -479,6 +479,14 @@
   content: attr(data-hint);
 }
 
+/* #tags written in the text (editor/inline-tags.ts): tinted like a tag, without changing the text's width */
+.bn-root .bn-editor .inline-tag {
+  border-radius: 4px;
+  color: color-mix(in oklch, var(--foreground) 70%, var(--joy));
+  background-color: color-mix(in oklch, var(--joy) 14%, transparent);
+  box-decoration-break: clone;
+}
+
 /* Quotes: body text color (BlockNote greys them, about 4:1 on white); the line on the left stays, in the
    theme's secondary text color so it follows tints and dark mode */
 .bn-root.bn-shadcn [data-content-type='quote'] blockquote {

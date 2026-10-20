@@ -16,7 +16,7 @@ const CONTENT: StoredBlock[] = [
   li('Markdown shortcuts work too: ', { text: '#', code: true }, ' for a heading, ', { text: '-', code: true }, ' for a list, ', { text: '[]', code: true }, ' for a checklist.'),
   li('Click the cover above the title to pick another gradient or your own image.'),
   li('Type ', { text: '@', code: true }, ' to link to another note. The linked note lists this one under "Linked from".'),
-  li('Add tags under the title (like #ideas) to find related notes on one page.'),
+  li('Add tags under the title, or just write them in the text (like #ideas), to find related notes on one page. Ctrl+click a tag in the text to open it.'),
   li('Type ', { text: '->', code: true }, ' or ', { text: '<-', code: true }, ' for arrows (→ ←); Backspace right after keeps what you typed.'),
   h(2, 'Finding things'),
   li({ text: 'Ctrl+K', bold: true }, ' (or Search at the top of the sidebar) opens the command palette: search every note by title and text, and run commands.'),
