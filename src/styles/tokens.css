@@ -6,6 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    /* Outlines of controls (tiles, switches, sliders in Appearance): at least 3:1 against the page and panels */
+    --color-control-border: var(--control-border);
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
     /* Page content (note titles, the editor, card previews) follows the Appearance panel; see lib/appearance.ts */
@@ -179,7 +181,18 @@
     --muted-foreground: oklch(0.73 calc(var(--text-c) * 2.5) var(--text-h));
 }
 
-/* High contrast (Appearance → Accessibility; lib/appearance.ts sets data-contrast from the choice or the
+/* Outlines of controls: WCAG 1.4.11 asks for 3:1 against what is around them. --border is a soft divider
+   (about 1.2:1), so controls get their own, tinted like the rest. */
+:root,
+[data-look] {
+    --control-border: oklch(0.6 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
+}
+:root.dark,
+[data-look].dark {
+    --control-border: oklch(0.56 calc(var(--tint-c, 0) * 0.6) var(--tint-h, 0));
+}
+
+/* High contrast (the Accessibility menu; lib/appearance.ts sets data-contrast from the choice or the
    system's setting): near-black or white text, darker secondary text and clearly visible lines. Surfaces keep
    their tint; tinted text gives way to contrast. :root:root is there to outrank the tint and text rules above. */
 :root:root:not(.dark)[data-contrast='high'] {
@@ -196,6 +209,7 @@
     --sidebar-accent-foreground: oklch(0.12 0 0);
     --sidebar-border: oklch(0.55 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
     --sidebar-ring: oklch(0.3 0 0);
+    --control-border: oklch(0.45 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
 }
 :root:root.dark[data-contrast='high'] {
     --foreground: oklch(1 0 0);
@@ -211,4 +225,5 @@
     --sidebar-accent-foreground: oklch(0.98 0 0);
     --sidebar-border: oklch(0.62 calc(var(--tint-c, 0) * 0.6) var(--tint-h, 0));
     --sidebar-ring: oklch(0.85 0 0);
+    --control-border: oklch(0.7 calc(var(--tint-c, 0) * 0.6) var(--tint-h, 0));
 }

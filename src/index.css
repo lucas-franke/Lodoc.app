@@ -162,7 +162,27 @@
     animation: preview-flash 0.9s ease-out forwards;
 }
 
-/* Reduce motion (Appearance → Accessibility; lib/appearance.ts sets data-motion from the choice or the
+/* While the Appearance panel is open on a wide screen, the page makes room for it instead of being covered.
+   Pages use padding rather than a margin: the strip stays part of the page, so its texture runs on behind
+   the panel (and around a floating one) instead of stopping at a hard edge. A board keeps the margin, since
+   its header and controls are positioned over the canvas and must stay clear of the panel. */
+@media (min-width: 80rem) {
+    [data-app-shell] > main {
+        transition: padding-right 0.2s ease, margin-right 0.2s ease;
+        --appearance-room: 440px;
+    }
+    :root[data-sidebar='floating'] [data-app-shell] > main {
+        --appearance-room: calc(440px + 0.5rem);
+    }
+    :root[data-appearance-open] [data-app-shell] > main:not([data-board]) {
+        padding-right: var(--appearance-room);
+    }
+    :root[data-appearance-open] [data-app-shell] > main[data-board] {
+        margin-right: var(--appearance-room);
+    }
+}
+
+/* Reduce motion (the Accessibility menu; lib/appearance.ts sets data-motion from the choice or the
    system's setting): animations and transitions end at once. Kept a hair above zero so animationend still
    fires for code that waits for it. */
 :root[data-motion='reduce'] *,
@@ -176,7 +196,7 @@
     scroll-behavior: auto !important;
 }
 
-/* High contrast: a clear focus outline on everything that takes keyboard focus (text fields and the editor
+/* High contrast (the Accessibility menu): a clear focus outline on everything that takes keyboard focus (text fields and the editor
    show their caret, so they keep their own ring) */
 :root[data-contrast='high'] :focus-visible:not(input, textarea, [contenteditable]) {
     outline: 2px solid var(--ring);

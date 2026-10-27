@@ -7,6 +7,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { AppDnd } from '@/components/dnd/AppDnd'
 import { FolderView } from '@/components/folder/FolderView'
 import { BoardPageActions, FolderPageActions, NotePageActions } from '@/components/PageActions'
+import { AccessibilityMenu } from '@/components/appearance/AccessibilityMenu'
 import { AppearanceButton, AppearanceMenu } from '@/components/appearance/AppearanceMenu'
 import { HomeView } from '@/components/home/HomeView'
 import { Welcome } from '@/components/home/Welcome'
@@ -201,6 +202,7 @@ export default function App() {
               {current?.type === 'note' && <NotePageActions note={current.note} />}
               {current?.type === 'folder' && <FolderPageActions folder={current.folder} />}
               {current?.type === 'board' && <BoardPageActions board={current.board} />}
+              <AccessibilityMenu />
               <AppearanceButton />
             </div>
           </header>

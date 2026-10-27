@@ -13,7 +13,8 @@ function set(next: Appearance) {
 }
 
 export const updateAppearance = (patch: Partial<Appearance>) => set({ ...current, ...patch })
-export const resetAppearance = () => set(DEFAULT_APPEARANCE)
+/** Back to the default look; contrast and motion (the Accessibility menu) stay as they are */
+export const resetAppearance = () => set({ ...DEFAULT_APPEARANCE, contrast: current.contrast, motion: current.motion })
 /** All settings at once, e.g. from a backup */
 export const replaceAppearance = (next: Appearance) => set(next)
 /** Back to the defaults for some settings only (one panel section) */

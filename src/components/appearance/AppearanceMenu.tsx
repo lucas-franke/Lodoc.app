@@ -1,10 +1,10 @@
 import { Palette } from 'lucide-react'
-import { lazy, Suspense, useCallback, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { emitAppEvent, useAppEvent } from '@/lib/app-events'
 
-// The dialog (and its slider/switch/toggle components) is only loaded once it is opened
+// The panel (and its slider/switch/toggle components) is only loaded once it is opened
 const AppearancePanel = lazy(() =>
   import('@/components/appearance/AppearancePanel').then((m) => ({ default: m.AppearancePanel })),
 )
@@ -20,11 +20,11 @@ export function AppearanceButton() {
   )
 }
 
-/** Holds the Appearance dialog, opened by the header button or the command palette. */
+/** Holds the Appearance panel, opened by the header button or the command palette. */
 export function AppearanceMenu() {
   const [open, setOpen] = useState(false)
   const [loaded, setLoaded] = useState(false)
-  // Focus goes back where it was (the header button), since the dialog has no trigger of its own
+  // Focus goes back where it was (the header button), since the panel has no trigger of its own
   const opener = useRef<HTMLElement | null>(null)
 
   useAppEvent(
@@ -35,6 +35,12 @@ export function AppearanceMenu() {
       setOpen(true)
     }, []),
   )
+
+  // Lets the page make room for the panel on wide screens (index.css)
+  useEffect(() => {
+    document.documentElement.toggleAttribute('data-appearance-open', open)
+    return () => document.documentElement.removeAttribute('data-appearance-open')
+  }, [open])
 
   return loaded ? (
     <Suspense fallback={null}>

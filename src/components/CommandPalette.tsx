@@ -3,6 +3,7 @@ import {
   ArchiveRestore,
   BookOpen,
   CalendarDays,
+  Contrast,
   FilePlus,
   FileText,
   Folder as FolderIcon,
@@ -15,6 +16,7 @@ import {
   Palette,
   Sun,
   Trash2,
+  Waves,
   History,
   type LucideIcon,
 } from 'lucide-react'
@@ -36,7 +38,9 @@ import { createFolder } from '@/db/folders'
 import { createNote, noteSnippetText, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openFolder, openNote, openTag, openActivity, useRoute } from '@/hooks/useRoute'
+import { updateAppearance } from '@/hooks/useAppearance'
 import { emitAppEvent } from '@/lib/app-events'
+import { reducedMotion } from '@/lib/joy'
 import { openGuideNote } from '@/lib/guide'
 import { openTodaysJournal } from '@/lib/journal'
 import { createFromNote, createFromTemplate, TEMPLATES } from '@/lib/templates'
@@ -82,6 +86,7 @@ export function CommandPalette({
   }
 
   const dark = resolvedTheme === 'dark'
+  const highContrast = document.documentElement.dataset.contrast === 'high'
   const actions: Action[] = [
     { id: 'new-note', label: 'New note', icon: FilePlus, shortcut: 'Ctrl Alt N', run: async () => openNote(await createNote(newNoteFolderId)) },
     { id: 'journal', label: "Today's journal", icon: CalendarDays, keywords: 'daily diary today date', shortcut: 'Ctrl Alt J', run: async () => openNote(await openTodaysJournal()) },
@@ -91,7 +96,9 @@ export function CommandPalette({
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
     ...(onBoard ? [{ id: 'tidy-board', label: 'Tidy up this board', icon: LayoutGrid, keywords: 'arrange grid align layout clean order', run: () => emitAppEvent('tidy-board') }] : []),
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },
-    { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme dark light mode font color tint texture contrast motion animation accessibility settings', run: () => emitAppEvent('open-appearance') },
+    { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme dark light mode font color tint texture settings', run: () => emitAppEvent('open-appearance') },
+    { id: 'contrast', label: highContrast ? 'Turn high contrast off' : 'Turn high contrast on', icon: Contrast, keywords: 'accessibility a11y readable', run: () => updateAppearance({ contrast: highContrast ? 'standard' : 'more' }) },
+    { id: 'motion', label: reducedMotion() ? 'Turn reduced motion off' : 'Turn reduced motion on', icon: Waves, keywords: 'accessibility a11y animation', run: () => updateAppearance({ motion: reducedMotion() ? 'full' : 'reduce' }) },
     { id: 'export', label: 'Export backup (.json)', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
     { id: 'import-markdown', label: 'Import Markdown files…', icon: FileText, keywords: 'obsidian notion md zip migrate move', run: () => emitAppEvent('import-markdown-files') },
     { id: 'overview', label: 'Go to Overview', icon: LayoutGrid, keywords: 'home start', run: () => openNote(null) },

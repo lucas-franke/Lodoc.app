@@ -4,10 +4,10 @@ description: Light and dark, a colour tint, fonts, textures, the sidebar, high c
 order: 7
 ---
 
-The palette button at the top right of every page opens **Appearance**, where you change how Lodoc looks. Pick a section on the left (on a phone, the tabs under the preview). Every change shows right away, in the page behind and in the small preview. **Randomize** picks a look for you, and **Reset all** goes back to the start.
+The palette button at the top right of every page opens **Appearance**, a panel on the right where you change how Lodoc looks. Every change shows right away, on the page beside it and in the small preview, so you can try combinations as you go. **Randomize** picks a look for you, and **Reset all** goes back to the start.
 
 <figure class="shot">
-  <img src="../img/appearance-light.jpg" class="dark:hidden" alt="The Appearance window over a note, with a sage tint" width="1280" height="800" loading="lazy" />
+  <img src="../img/appearance-light.jpg" class="dark:hidden" alt="The Appearance panel next to a note, with a sage tint" width="1280" height="800" loading="lazy" />
   <img src="../img/appearance-dark.jpg" class="hidden dark:block" alt="" width="1280" height="800" loading="lazy" />
 </figure>
 
@@ -33,9 +33,9 @@ The palette button at the top right of every page opens **Appearance**, where yo
 
 ## Accessibility
 
-Both follow your system's setting at first, and you can turn them on or off for Lodoc.
+The figure in a circle next to the palette button opens the **Accessibility** menu. Both settings follow your system at first, and you can turn them on or off for Lodoc. You can also switch them from the command palette.
 
 - **Contrast**: high contrast makes text darker (or brighter, in dark mode), lines clearer and focus outlines bolder. Textures get softer and the gradient goes, so nothing competes with the text.
 - **Motion**: reduced motion turns off animations, like boards gliding when you zoom or tidy up, and the small joys. Things simply change at once. *Full* keeps them, even if your system asks for less.
 
-Your look is saved in this browser and included in backups. Randomize leaves text size, contrast and motion as they are. Merging a backup keeps your own look, and only *Replace* takes over the one in the file.
+Your look is saved in this browser and included in backups. Randomize leaves text size, contrast and motion as they are, and Reset all leaves contrast and motion. Merging a backup keeps your own look, and only *Replace* takes over the one in the file.
