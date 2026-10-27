@@ -60,7 +60,7 @@ export function BoardFab({
             aria-label="Add item"
             className={cn(
               'absolute z-10 size-14 rounded-full shadow-lg',
-              'transition-[left,top,translate] duration-300 ease-out motion-reduce:transition-none',
+              'transition-[left,top,translate] duration-300 ease-out',
               empty
                 ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
                 : 'top-[calc(100%-5rem)] left-[calc(100%-5rem)] translate-x-0 translate-y-0',

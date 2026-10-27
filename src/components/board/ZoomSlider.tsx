@@ -2,6 +2,7 @@ import { Panel, useReactFlow, useStore } from '@xyflow/react'
 import { Map as MapIcon, Maximize, Minus, Plus } from 'lucide-react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
+import { motionMs } from '@/lib/joy'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 2
@@ -21,7 +22,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
       className="nodrag nopan flex items-center gap-0.5 rounded-lg border bg-background p-0.5 shadow-sm"
     >
       <Tip label="Zoom out">
-        <Button variant="ghost" size="icon-xs" className="size-8" aria-label="Zoom out" onClick={() => void zoomOut({ duration: 150 })}>
+        <Button variant="ghost" size="icon-xs" className="size-8" aria-label="Zoom out" onClick={() => void zoomOut({ duration: motionMs(150) })}>
           <Minus />
         </Button>
       </Tip>
@@ -37,7 +38,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
         className="h-8 w-28 cursor-pointer accent-primary"
       />
       <Tip label="Zoom in">
-        <Button variant="ghost" size="icon-xs" className="size-8" aria-label="Zoom in" onClick={() => void zoomIn({ duration: 150 })}>
+        <Button variant="ghost" size="icon-xs" className="size-8" aria-label="Zoom in" onClick={() => void zoomIn({ duration: motionMs(150) })}>
           <Plus />
         </Button>
       </Tip>
@@ -47,7 +48,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
           size="xs"
           className="h-8 w-12 justify-center tabular-nums"
           aria-label={`Zoom ${percent}%, reset to 100%`}
-          onClick={() => void zoomTo(1, { duration: 150 })}
+          onClick={() => void zoomTo(1, { duration: motionMs(150) })}
         >
           {percent}%
         </Button>
@@ -58,7 +59,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
           size="icon-xs"
           className="size-8"
           aria-label="Fit everything in view"
-          onClick={() => void fitView({ duration: 250, padding: 0.2, maxZoom: 1 })}
+          onClick={() => void fitView({ duration: motionMs(250), padding: 0.2, maxZoom: 1 })}
         >
           <Maximize />
         </Button>

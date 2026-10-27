@@ -85,7 +85,7 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
             className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none pointer-coarse:size-8 hover:bg-sidebar-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <ChevronRight
-              className={cn('size-4 motion-safe:transition-transform', open && 'rotate-90', !hasChildren && 'opacity-50')}
+              className={cn('size-4 transition-transform', open && 'rotate-90', !hasChildren && 'opacity-50')}
             />
           </button>
           {renamingId === folder.id ? (

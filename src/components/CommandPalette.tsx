@@ -91,7 +91,7 @@ export function CommandPalette({
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
     ...(onBoard ? [{ id: 'tidy-board', label: 'Tidy up this board', icon: LayoutGrid, keywords: 'arrange grid align layout clean order', run: () => emitAppEvent('tidy-board') }] : []),
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },
-    { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme font color tint texture settings', run: () => emitAppEvent('open-appearance') },
+    { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme dark light mode font color tint texture contrast motion animation accessibility settings', run: () => emitAppEvent('open-appearance') },
     { id: 'export', label: 'Export backup (.json)', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
     { id: 'import-markdown', label: 'Import Markdown files…', icon: FileText, keywords: 'obsidian notion md zip migrate move', run: () => emitAppEvent('import-markdown-files') },
     { id: 'overview', label: 'Go to Overview', icon: LayoutGrid, keywords: 'home start', run: () => openNote(null) },

@@ -14,9 +14,8 @@ export const WIDE_SCREEN = '(min-width: 48rem)'
 const schema = z.object({
   tint: z.enum(TINTS.map((t) => t.id) as [Tint, ...Tint[]]).catch('neutral'),
   gradient: z.boolean().catch(false),
-  textColor: z.enum(['neutral', 'tint', 'custom']).catch('neutral'),
-  /** The text's own tint, used when textColor is "custom" */
-  textTint: z.enum(TINTS.map((t) => t.id) as [Tint, ...Tint[]]).catch('sand'),
+  /** Text takes on a touch of the tint color */
+  tintedText: z.boolean().catch(false),
   pageFont: z.enum(['sans', 'serif']).catch('sans'),
   textSize: z.enum(['s', 'm', 'l']).catch('m'),
   /** Notes without a chosen cover show a generated gradient (off: only covers the user picked) */
@@ -29,15 +28,25 @@ const schema = z.object({
   /** Grain on the interface (sidebar, menus, panels), separate from the page texture */
   uiGrain: z.boolean().catch(false),
   uiGrainStrength: z.number().int().min(0).max(100).catch(TEXTURE_STRENGTH_DEFAULT),
+  /** System follows prefers-contrast; "more" is high contrast */
+  contrast: z.enum(['system', 'more', 'standard']).catch('system'),
+  /** System follows prefers-reduced-motion; "full" animates even when the system asks for less */
+  motion: z.enum(['system', 'reduce', 'full']).catch('system'),
 })
 
-/** Earlier versions stored a free corner radius (px) and a grain on/off switch (its texture no longer exists) */
+/**
+ * Earlier versions stored a free corner radius (px), a grain on/off switch (its texture no longer exists) and a
+ * text color of neutral, the tint's or one of its own (now one switch that follows the tint)
+ */
 function migrate(saved: Record<string, unknown>): Record<string, unknown> {
   const out = { ...saved }
   if (typeof saved.radius === 'number' && !('corners' in saved))
     out.corners = saved.radius <= 4 ? 'sharp' : saved.radius <= 12 ? 'rounded' : 'round'
+  if (typeof saved.textColor === 'string' && !('tintedText' in saved)) out.tintedText = saved.textColor !== 'neutral'
   delete out.radius
   delete out.grain
+  delete out.textColor
+  delete out.textTint
   return out
 }
 
@@ -46,9 +55,10 @@ export const DEFAULT_APPEARANCE: Appearance = schema.parse({})
 
 /** Which settings each panel section owns (for "Reset" per section) */
 export const APPEARANCE_SECTIONS = {
-  theme: ['tint', 'gradient', 'textColor', 'textTint'],
+  theme: ['tint', 'gradient', 'tintedText'],
   pages: ['pageFont', 'textSize', 'autoCover', 'texture', 'textureStrength'],
   interface: ['sidebar', 'corners', 'uiGrain', 'uiGrainStrength'],
+  accessibility: ['contrast', 'motion'],
 } as const satisfies Record<string, readonly (keyof Appearance)[]>
 
 const KEY = 'localnotes:appearance'
@@ -80,32 +90,42 @@ export function saveAppearance(settings: Appearance) {
   }
 }
 
+const MORE_CONTRAST = '(prefers-contrast: more)'
+const LESS_MOTION = '(prefers-reduced-motion: reduce)'
+
 let applied: Appearance | null = null
 
 export function applyAppearance(a: Appearance) {
   const root = document.documentElement
-  // Follow the window across the wide/narrow line (the floating sidebar only applies on wide screens)
-  if (!applied) window.matchMedia(WIDE_SCREEN).addEventListener('change', () => applied && applyAppearance(applied))
+  // Follow the window across the wide/narrow line (the floating sidebar only applies on wide screens), and the
+  // system's contrast and motion settings for "System"
+  if (!applied)
+    for (const query of [WIDE_SCREEN, MORE_CONTRAST, LESS_MOTION])
+      window.matchMedia(query).addEventListener('change', () => applied && applyAppearance(applied))
   applied = a
+  const system = (query: string) => window.matchMedia(query).matches
+  const high = a.contrast === 'system' ? system(MORE_CONTRAST) : a.contrast === 'more'
+  root.dataset.contrast = high ? 'high' : 'standard'
+  root.dataset.motion = (a.motion === 'system' ? system(LESS_MOTION) : a.motion === 'reduce') ? 'reduce' : 'full'
+  // High contrast: no gradient behind the text, and textures and grain at less than half their strength
+  const textureScale = high ? 0.4 : 1
   root.dataset.pageFont = a.pageFont
   root.dataset.tint = a.tint
-  root.dataset.gradient = String(a.gradient)
+  root.dataset.gradient = String(a.gradient && !high)
   root.dataset.sidebar = a.sidebar === 'floating' && window.matchMedia(WIDE_SCREEN).matches ? 'floating' : 'connected'
   root.dataset.texture = a.texture
   // The paper textures are rendered by a shader on first use; until then (or without WebGL) index.css shows a stand-in
   if (a.texture === 'paper' || a.texture === 'laid') showPaperTexture(a.texture)
-  root.style.setProperty('--texture-strength', String(a.textureStrength / TEXTURE_STRENGTH_DEFAULT))
+  root.style.setProperty('--texture-strength', String((a.textureStrength / TEXTURE_STRENGTH_DEFAULT) * textureScale))
   root.dataset.uiGrain = String(a.uiGrain)
-  root.style.setProperty('--ui-grain-strength', String(a.uiGrainStrength / TEXTURE_STRENGTH_DEFAULT))
+  root.style.setProperty('--ui-grain-strength', String((a.uiGrainStrength / TEXTURE_STRENGTH_DEFAULT) * textureScale))
   const tint = TINTS.find((t) => t.id === a.tint) ?? TINTS[0]
   root.style.setProperty('--tint-h', String(tint.hue))
   root.style.setProperty('--tint-c', String(tint.chroma))
-  // "Match tint" with a neutral page tint is simply neutral text
-  const textTint = TINTS.find((t) => t.id === (a.textColor === 'tint' ? a.tint : a.textTint)) ?? TINTS[0]
-  const textTintId = a.textColor === 'neutral' ? 'neutral' : textTint.id
-  root.dataset.textTint = textTintId
-  root.style.setProperty('--text-h', String(textTint.hue))
-  root.style.setProperty('--text-c', String(textTint.chroma))
+  // Tinted text with a neutral page tint is simply neutral text
+  root.dataset.textTint = a.tintedText ? tint.id : 'neutral'
+  root.style.setProperty('--text-h', String(tint.hue))
+  root.style.setProperty('--text-c', String(tint.chroma))
   const corners = RADIUS_PRESETS.find((p) => p.id === a.corners) ?? RADIUS_PRESETS[1]
   root.style.setProperty('--radius', `${corners.px / 16}rem`)
   root.style.setProperty('--page-text-size', TEXT_SIZES[a.textSize])
@@ -115,7 +135,8 @@ const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.le
 
 /**
  * A random look for "Randomize": colors, fonts, texture and interface shape. Text size, generated covers,
- * strengths and the light/dark mode stay as they are, since those are about reading comfort, not style.
+ * strengths, contrast, motion and the light/dark mode stay as they are, since those are about reading comfort,
+ * not style.
  */
 export function randomAppearance(current: Appearance): Appearance {
   for (;;) {
@@ -124,9 +145,8 @@ export function randomAppearance(current: Appearance): Appearance {
       ...current,
       tint,
       gradient: Math.random() < 0.5,
-      // Neutral text stays the most common, colored text is the accent
-      textColor: pick(['neutral', 'neutral', 'tint', 'custom'] as const),
-      textTint: pick(TINTS.filter((t) => t.id !== 'neutral')).id,
+      // Neutral text stays the most common, tinted text is the accent
+      tintedText: Math.random() < 0.3,
       pageFont: pick(['sans', 'serif'] as const),
       texture: pick(TEXTURES).id,
       sidebar: pick(['connected', 'floating'] as const),

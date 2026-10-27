@@ -23,7 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { useAppEvent } from '@/lib/app-events'
-import { playOnce, reducedMotion } from '@/lib/joy'
+import { motionMs, playOnce, reducedMotion } from '@/lib/joy'
 import { notify } from '@/lib/notify'
 import { useRegisterCanvasDrop } from '@/components/dnd/dnd-registry'
 import type { DndData } from '@/components/sidebar/tree-dnd'
@@ -438,7 +438,7 @@ function Canvas({ board }: { board: Board }) {
   const focusNode = useCallback(
     (id: string) => {
       setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === id })))
-      void rf.fitView({ nodes: [{ id }], duration: 300, padding: 0.4, maxZoom: 1 })
+      void rf.fitView({ nodes: [{ id }], duration: motionMs(300), padding: 0.4, maxZoom: 1 })
     },
     [rf],
   )
@@ -526,9 +526,9 @@ function Canvas({ board }: { board: Board }) {
       })
       const done = () => {
         void commit(target)
-        void rf.fitView({ padding: FIT_PADDING, maxZoom: 1, duration: 300 })
+        void rf.fitView({ padding: FIT_PADDING, maxZoom: 1, duration: motionMs(300) })
       }
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return done()
+      if (reducedMotion()) return done()
       setInteracting(true)
       const DURATION = 320
       const start = performance.now()
@@ -621,7 +621,7 @@ function Canvas({ board }: { board: Board }) {
       if (node && rf.getZoom() < 0.75) {
         void rf.setCenter(node.position.x + (node.width ?? 300) / 2, node.position.y + (node.height ?? 200) / 2, {
           zoom: 1,
-          duration: 200,
+          duration: motionMs(200),
         })
       }
     },

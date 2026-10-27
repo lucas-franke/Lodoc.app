@@ -1,9 +1,13 @@
-// Small moments of delight ("sparks of joy"). Each is short and quiet, and none happens when the system asks
-// for reduced motion. The colour is --joy (index.css): the tint's hue, or a warm gold without a tint.
+// Small moments of delight ("sparks of joy"). Each is short and quiet, and none happens with reduced motion
+// (Appearance → Accessibility, or the system's setting). The colour is --joy (index.css): the tint's hue, or a warm gold without a tint.
 
 import { flushSync } from 'react-dom'
 
-export const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+/** Reduced motion, as lib/appearance.ts resolved it (the user's choice, or the system's setting) */
+export const reducedMotion = () => document.documentElement.dataset.motion === 'reduce'
+
+/** An animation's length in ms, or 0 with reduced motion (for animations run from script, like board zooms) */
+export const motionMs = (ms: number) => (reducedMotion() ? 0 : ms)
 
 /** A few dots that drift up from a point and fade, once (about 0.8 s) */
 export function burst(x: number, y: number, count = 7) {

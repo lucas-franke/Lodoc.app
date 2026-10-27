@@ -7,7 +7,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { AppDnd } from '@/components/dnd/AppDnd'
 import { FolderView } from '@/components/folder/FolderView'
 import { BoardPageActions, FolderPageActions, NotePageActions } from '@/components/PageActions'
-import { ThemeToggle } from '@/components/ThemeToggle'
+import { AppearanceButton, AppearanceMenu } from '@/components/appearance/AppearanceMenu'
 import { HomeView } from '@/components/home/HomeView'
 import { Welcome } from '@/components/home/Welcome'
 import { openTodaysJournal } from '@/lib/journal'
@@ -201,7 +201,7 @@ export default function App() {
               {current?.type === 'note' && <NotePageActions note={current.note} />}
               {current?.type === 'folder' && <FolderPageActions folder={current.folder} />}
               {current?.type === 'board' && <BoardPageActions board={current.board} />}
-              <ThemeToggle />
+              <AppearanceButton />
             </div>
           </header>
 
@@ -235,6 +235,7 @@ export default function App() {
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} newNoteFolderId={newNoteFolderId} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <AppearanceMenu />
       {markdownImport.element}
       {historyFor && (
         <Suspense fallback={null}>

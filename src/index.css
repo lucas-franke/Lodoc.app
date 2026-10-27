@@ -161,30 +161,26 @@
 [data-preview-flash] {
     animation: preview-flash 0.9s ease-out forwards;
 }
-@media (prefers-reduced-motion: reduce) {
-    [data-preview-flash] {
-        animation: none;
-    }
+
+/* Reduce motion (Appearance → Accessibility; lib/appearance.ts sets data-motion from the choice or the
+   system's setting): animations and transitions end at once. Kept a hair above zero so animationend still
+   fires for code that waits for it. */
+:root[data-motion='reduce'] *,
+:root[data-motion='reduce'] *::before,
+:root[data-motion='reduce'] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
 }
 
-/* While the Appearance panel is open on a wide screen, the page makes room for it instead of being covered.
-   Pages use padding rather than a margin: the strip stays part of the page, so its texture runs on behind
-   the panel (and around a floating one) instead of stopping at a hard edge. A board keeps the margin, since
-   its header and controls are positioned over the canvas and must stay clear of the panel. */
-@media (min-width: 80rem) {
-    [data-app-shell] > main {
-        transition: padding-right 0.2s ease, margin-right 0.2s ease;
-        --appearance-room: 380px;
-    }
-    :root[data-sidebar='floating'] [data-app-shell] > main {
-        --appearance-room: calc(380px + 0.5rem);
-    }
-    :root[data-appearance-open] [data-app-shell] > main:not([data-board]) {
-        padding-right: var(--appearance-room);
-    }
-    :root[data-appearance-open] [data-app-shell] > main[data-board] {
-        margin-right: var(--appearance-room);
-    }
+/* High contrast: a clear focus outline on everything that takes keyboard focus (text fields and the editor
+   show their caret, so they keep their own ring) */
+:root[data-contrast='high'] :focus-visible:not(input, textarea, [contenteditable]) {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
 }
 
 /* The preview tiles show the texture a few times stronger */
@@ -491,7 +487,8 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
   background: var(--joy);
   pointer-events: none;
 }
-@media (prefers-reduced-motion: no-preference) {
+/* Not with reduced motion (data-motion, see above) */
+:root:not([data-motion='reduce']) {
   .joy-pop {
     animation: joy-pop 260ms cubic-bezier(0.3, 1.6, 0.5, 1);
   }
@@ -502,8 +499,8 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
   .joy-roll {
     animation: joy-roll 420ms cubic-bezier(0.3, 1.4, 0.5, 1);
   }
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
+  &::view-transition-old(root),
+  &::view-transition-new(root) {
     animation-duration: 280ms;
   }
   /* Something shared to Lodoc: the new line at the top of the collect note drops in (NoteEditor) */

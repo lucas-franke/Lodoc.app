@@ -31,20 +31,6 @@ export function tintSwatchColor(t: (typeof TINTS)[number], mode: 'light' | 'dark
   return `oklch(0.42 ${t.chroma * 4} ${t.hue})`
 }
 
-/** Text in a tint's color (same numbers as the data-text-tint rules in index.css), for the swatches */
-export function textTintColor(t: (typeof TINTS)[number], mode: 'light' | 'dark') {
-  if (t.id === 'neutral') return mode === 'light' ? 'oklch(0.145 0 0)' : 'oklch(0.985 0 0)'
-  return mode === 'light' ? `oklch(0.3 ${t.chroma * 4} ${t.hue})` : `oklch(0.92 ${t.chroma * 2} ${t.hue})`
-}
-
-/** Text color: neutral grey, the page tint, or a tint of its own */
-export const TEXT_COLORS = [
-  { id: 'neutral', name: 'Neutral' },
-  { id: 'tint', name: 'Match tint' },
-  { id: 'custom', name: 'Custom' },
-] as const
-export type TextColor = (typeof TEXT_COLORS)[number]['id']
-
 export const RADIUS_PRESETS = [
   { id: 'sharp', name: 'Sharp', px: 0 },
   { id: 'rounded', name: 'Rounded', px: 10 },

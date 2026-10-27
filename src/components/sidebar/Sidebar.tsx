@@ -12,7 +12,6 @@ import { createNote, sortNotes, sortNotesManual, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useActivityTab, useIsHome, useTagRoute } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
-import { AppearanceMenu } from './AppearanceMenu'
 import { BackupMenu } from './BackupMenu'
 import { LodocMenu } from './LodocMenu'
 import { BoardItem } from './BoardItem'
@@ -365,7 +364,6 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
           />
         )}
         <div className="space-y-1 border-t p-2">
-          <AppearanceMenu />
           <BackupMenu hasNotes={notes.length > 0} />
         </div>
         <SidebarResizer width={sidebarWidth.width} onResize={sidebarWidth.setWidth} onCommit={sidebarWidth.save} />
