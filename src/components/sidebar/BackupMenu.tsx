@@ -1,4 +1,4 @@
-import { ArchiveRestore, Download, FileText, FolderInput, Settings, Upload } from 'lucide-react'
+import { ArchiveRestore, CircleAlert, Download, FileText, FolderInput, Settings, Upload } from 'lucide-react'
 import { useImportFile } from '@/hooks/useImportFile'
 import {
   DropdownMenu,
@@ -10,10 +10,12 @@ import {
 import { exportBackup, useBackupStatus } from '@/hooks/useBackupStatus'
 import { openSettings } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
+import { cn } from '@/lib/utils'
 
 /**
- * One calm footer control for export and import: the label, and where the backups stand in a small grey pill.
- * Automatic backups and keeping data safe live in Settings → Backup, one click away.
+ * One footer control for export and import: the label, and where the backups stand in a small pill. Grey while
+ * all is well; amber with an alert icon once a backup is due (none yet, a week since the last, or the automatic
+ * backup paused or failing), so it is noticed. Automatic backups and keeping data safe live in Settings → Backup.
  */
 export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
   const { auto, status, overdue, refresh } = useBackupStatus(hasNotes)
@@ -32,8 +34,19 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
           >
             <ArchiveRestore className="size-(--icon) shrink-0 text-muted-foreground" />
             <span className="shrink-0">Backup</span>
-            <span aria-hidden className="ml-auto min-w-0 truncate rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground" data-backup-pill>
-              {status}
+            <span
+              aria-hidden
+              className={cn(
+                'ml-auto flex min-w-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs',
+                overdue
+                  ? 'bg-amber-100 font-medium text-amber-800 dark:bg-amber-400/15 dark:text-amber-300'
+                  : 'bg-muted text-muted-foreground',
+              )}
+              data-backup-pill
+              data-overdue={overdue || undefined}
+            >
+              {overdue && <CircleAlert className="size-3.5 shrink-0" />}
+              <span className="truncate">{status}</span>
             </span>
           </button>
         </DropdownMenuTrigger>
