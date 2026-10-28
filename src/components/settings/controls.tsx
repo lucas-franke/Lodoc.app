@@ -55,7 +55,7 @@ export function SectionBlock({
       <div className="mb-4 flex min-h-8 items-start justify-between gap-2">
         <div>
           <h3 className="flex items-center gap-2 text-sm font-medium">
-            <Icon aria-hidden className="size-4 text-muted-foreground" />
+            <Icon aria-hidden className="size-(--icon) text-muted-foreground" />
             {title}
           </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>

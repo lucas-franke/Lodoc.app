@@ -5,6 +5,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Icon sizes: 16px for repeating rows (the tree's notes, folders, boards), 18px by default (buttons, menus, nav
+   rows), 20px for prominent single actions (page header, sidebar top bar, Settings tabs). Used as size-(--icon). */
+:root {
+    --icon-sm: 1rem;
+    --icon: 1.125rem;
+    --icon-lg: 1.25rem;
+}
+
 @theme inline {
     /* Outlines of controls (tiles, switches, sliders in Appearance): at least 3:1 against the page and panels */
     --color-control-border: var(--control-border);

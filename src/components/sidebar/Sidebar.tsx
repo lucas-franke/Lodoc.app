@@ -206,7 +206,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
         style={{ '--sidebar-width': `${sidebarWidth.width}px` } as React.CSSProperties}
       >
         {/* Same height and padding as the page header, so this toggle and "Show sidebar" sit on the same spot */}
-        <div className="flex h-12 shrink-0 items-center gap-1 px-3">
+        <div className="icons-lg flex h-12 shrink-0 items-center gap-1 px-3">
           <Tip label="Hide sidebar" shortcut="Ctrl \">
             <Button variant="ghost" size="icon-sm" onClick={onCollapse} aria-label="Hide sidebar">
               <PanelLeftClose />
@@ -232,7 +232,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
             // A fine outline sets it apart from the rows below it
             className="flex h-9 w-full items-center gap-2 rounded-md border border-sidebar-border pr-1.5 pl-2.5 text-sm text-muted-foreground outline-none hover:border-control-border hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
-            <Search aria-hidden className="size-4 shrink-0" />
+            <Search aria-hidden className="size-(--icon) shrink-0" />
             <span className="flex-1 text-left">Search…</span>
             <kbd aria-hidden className="rounded border bg-sidebar px-1.5 py-0.5 font-sans text-xs pointer-coarse:hidden">
               Ctrl K
@@ -240,13 +240,13 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
           </button>
           <div className={rowClass(isHome)}>
             <a href="#/" aria-current={isHome ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
-              <LayoutGrid className="size-4 shrink-0 text-muted-foreground" />
+              <LayoutGrid className="size-(--icon) shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">Overview</span>
             </a>
           </div>
           <div className={rowClass(onActivity)}>
             <a href="#/activity" aria-current={onActivity ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
-              <History className="size-4 shrink-0 text-muted-foreground" />
+              <History className="size-(--icon) shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">Activity</span>
               {unseenErrors > 0 && !onActivity && (
                 <span className="mr-2 size-2 shrink-0 rounded-full bg-destructive" role="status" aria-label={`${plural(unseenErrors, 'new error')}`} />
@@ -349,7 +349,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                         className={rowLinkClass}
                         style={{ paddingLeft: '0.5rem' }}
                       >
-                        <Hash className="size-4 shrink-0 text-muted-foreground" />
+                        <Hash className="size-(--icon-sm) shrink-0 text-muted-foreground" />
                         <span className="min-w-0 flex-1 truncate">{tag}</span>
                         <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
                       </a>

@@ -162,6 +162,12 @@
     animation: preview-flash 0.9s ease-out forwards;
 }
 
+/* Prominent single actions (page header, sidebar top bar): their buttons' icons at 20px instead of 18px */
+.icons-lg button svg:not([class*='size-']) {
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+}
+
 /* Reduce motion (the Accessibility menu; lib/appearance.ts sets data-motion from the choice or the
    system's setting): animations and transitions end at once. Kept a hair above zero so animationend still
    fires for code that waits for it. */

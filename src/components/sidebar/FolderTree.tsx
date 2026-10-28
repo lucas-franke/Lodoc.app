@@ -85,12 +85,12 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
             className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none pointer-coarse:size-8 hover:bg-sidebar-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <ChevronRight
-              className={cn('size-4 transition-transform', open && 'rotate-90', !hasChildren && 'opacity-50')}
+              className={cn('size-(--icon-sm) transition-transform', open && 'rotate-90', !hasChildren && 'opacity-50')}
             />
           </button>
           {renamingId === folder.id ? (
             <div className="flex h-full min-w-0 flex-1 items-center gap-2">
-              <Icon className="size-4 shrink-0 text-muted-foreground" />
+              <Icon className="size-(--icon-sm) shrink-0 text-muted-foreground" />
               <RenameInput
                 initial={folder.name}
                 onDone={(name) => {
@@ -107,7 +107,7 @@ function FolderItem({ folder, depth }: { folder: Folder; depth: number }) {
               draggable={false}
               onClick={(e) => selectClick(e, selectKey)}
             >
-              <Icon className="size-4 shrink-0 text-muted-foreground" />
+              <Icon className="size-(--icon-sm) shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">
                 {folder.name}
                 {isSelected && <span className="sr-only">, selected</span>}

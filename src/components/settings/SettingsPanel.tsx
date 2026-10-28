@@ -123,7 +123,7 @@ function SectionTabs({
                 'relative min-h-11 flex-1 justify-center rounded-t-md px-2 focus-visible:ring-inset aria-selected:after:absolute aria-selected:after:inset-x-2 aria-selected:after:-bottom-px aria-selected:after:h-0.5 aria-selected:after:rounded-full aria-selected:after:bg-foreground',
           )}
         >
-          <Icon aria-hidden className="size-4 shrink-0" />
+          <Icon aria-hidden className="size-(--icon-lg) shrink-0" />
           {title}
         </button>
       ))}

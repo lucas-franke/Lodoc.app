@@ -14,7 +14,7 @@ export function SettingsRow() {
       onClick={() => emitAppEvent('open-settings')}
       className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring/60 aria-expanded:bg-sidebar-accent"
     >
-      <Settings aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+      <Settings aria-hidden className="size-(--icon) shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 truncate">Settings</span>
     </button>
   )

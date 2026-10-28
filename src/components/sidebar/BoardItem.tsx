@@ -58,7 +58,7 @@ export function BoardItem({
       >
         {renaming ? (
           <div className="flex h-full min-w-0 flex-1 items-center gap-2" style={indent}>
-            <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" />
+            <LayoutDashboard className="size-(--icon-sm) shrink-0 text-muted-foreground" />
             <RenameInput
               initial={board.title}
               onDone={(title) => {
@@ -76,7 +76,7 @@ export function BoardItem({
             draggable={false}
             onClick={(e) => selectClick(e, selectKey)}
           >
-            <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" />
+            <LayoutDashboard className="size-(--icon-sm) shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate">
               {boardTitle(board)}
               {hint && <span className="ml-1.5 text-xs font-normal text-muted-foreground">{hint}</span>}

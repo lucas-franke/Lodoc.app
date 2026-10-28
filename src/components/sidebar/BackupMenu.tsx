@@ -29,7 +29,7 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             aria-label={`Backup. ${status}${overdue ? ', backup recommended' : ''}`}
             className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring/60 data-[state=open]:bg-sidebar-accent"
           >
-            <ArchiveRestore className="size-4 shrink-0 text-muted-foreground" />
+            <ArchiveRestore className="size-(--icon) shrink-0 text-muted-foreground" />
             <span className="shrink-0">Backup</span>
             <span aria-hidden className="ml-auto min-w-0 truncate rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground" data-backup-pill>
               {status}

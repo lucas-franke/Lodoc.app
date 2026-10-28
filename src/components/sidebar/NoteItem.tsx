@@ -115,8 +115,8 @@ export function NoteItem({
 /** The note that collects what's shared from other apps (lib/collect.ts) shows an inbox instead of a page */
 function NoteIcon({ collecting, template }: { collecting: boolean; template: boolean }) {
   if (template && !collecting) {
-    return <LayoutTemplate className="size-4 shrink-0 text-muted-foreground" role="img" aria-label="Template" />
+    return <LayoutTemplate className="size-(--icon-sm) shrink-0 text-muted-foreground" role="img" aria-label="Template" />
   }
-  if (!collecting) return <FileText className="size-4 shrink-0 text-muted-foreground" />
-  return <Inbox className="size-4 shrink-0 text-muted-foreground" role="img" aria-label="Collects what you share to Lodoc" />
+  if (!collecting) return <FileText className="size-(--icon-sm) shrink-0 text-muted-foreground" />
+  return <Inbox className="size-(--icon-sm) shrink-0 text-muted-foreground" role="img" aria-label="Collects what you share to Lodoc" />
 }

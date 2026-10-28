@@ -93,7 +93,7 @@ export function FolderView({ folder }: { folder: Folder }) {
         </Button>
         {!empty && (
           <div className="relative ml-auto w-full sm:w-56">
-            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-(--icon) -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
               value={filter}
@@ -264,7 +264,7 @@ export function CardShell({
         )}
       >
         <div className="flex h-11 shrink-0 items-center gap-2 pr-12 pl-4">
-          <Icon className="size-4 shrink-0 text-muted-foreground" />
+          <Icon className="size-(--icon-sm) shrink-0 text-muted-foreground" />
           {rename ? (
             <RenameInput initial={rename.initial} onDone={rename.onDone} />
           ) : (
