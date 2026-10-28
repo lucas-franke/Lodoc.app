@@ -47,18 +47,23 @@ export async function exportBackup() {
   emitAppEvent('backup-exported')
 }
 
-/** Whether the browser keeps this site's data when storage runs low (navigator.storage.persist). */
+/**
+ * Whether the browser keeps this site's data when storage runs low (navigator.storage.persist). A one-way
+ * request: once granted, a site can't hand it back. `denied`: asked in this visit, and the browser said no.
+ */
 export function usePersistedStorage() {
   const supported = typeof navigator !== 'undefined' && !!navigator.storage?.persist
   const [value, setValue] = useState(false)
+  const [denied, setDenied] = useState(false)
   useEffect(() => {
     if (supported) void navigator.storage.persisted().then(setValue)
   }, [supported])
   const request = async () => {
     const granted = await navigator.storage.persist()
     setValue(granted)
+    setDenied(!granted)
+    // A no is shown in Settings itself, next to the button
     if (granted) notify('Your notes are now kept safe in this browser', { level: 'success' })
-    else notify("The browser didn't allow it. Regular backups keep your notes safe.")
   }
-  return { supported, value, request }
+  return { supported, value, denied, request }
 }

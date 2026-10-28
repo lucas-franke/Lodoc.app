@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArchiveRestore, Download, FolderSync, HardDrive, RefreshCw, Upload, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { SECTION_SCROLL, SectionBlock, SettingsFooter, SwitchRow } from '@/components/settings/controls'
+import { ArchiveRestore, Download, Folder, FolderSync, HardDrive, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { SECTION_SCROLL, SectionBlock, SettingsFooter } from '@/components/settings/controls'
 import { Button } from '@/components/ui/button'
 import { db } from '@/db/db'
 import { exportBackup, useBackupStatus, usePersistedStorage } from '@/hooks/useBackupStatus'
@@ -50,68 +50,122 @@ export function BackupSettings() {
                 and then.
               </p>
             ))}
-          {auto.status === 'paused' && (
-            <>
-              <p className="text-sm text-amber-700 dark:text-amber-400">
-                Paused. The browser asks once per visit before writing to “{auto.folder}”.
-              </p>
-              <Button variant="outline" size="sm" className="border-control-border" onClick={() => void resumeAutoBackup()}>
-                <RefreshCw /> Resume
-              </Button>
-            </>
-          )}
-          {auto.status === 'on' && (
-            <>
-              <p className={cn('text-sm', auto.error && 'text-amber-700 dark:text-amber-400')} data-auto-backup-status>
-                {auto.error
-                  ? `Could not save to “${auto.folder}”: ${auto.error}`
-                  : `Backing up to “${auto.folder}”${auto.lastSaved ? `, last saved ${formatRelative(auto.lastSaved, now)}` : ''}.`}
-              </p>
-              <p className="text-xs text-muted-foreground">The newest 7 backups are kept; older automatic ones are removed.</p>
-              <Button variant="outline" size="sm" className="border-control-border" onClick={() => void backUpNow()}>
-                <RefreshCw /> Back up now
-              </Button>
-            </>
-          )}
           {auto.status !== 'off' && (
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" className="border-control-border" onClick={() => void chooseBackupFolder()}>
-                <FolderSync /> Choose another folder…
+            <>
+              {/* Each fact with the action that belongs to it */}
+              <dl className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3 sm:grid-cols-[6rem_minmax(0,max-content)_auto] sm:justify-start">
+                <Fact
+                  label="Folder"
+                  value={
+                    // The place the user chose, set apart from the text around it
+                    <span
+                      className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-muted px-2 py-1 font-medium"
+                      title={auto.folder}
+                      data-backup-folder
+                    >
+                      <Folder aria-hidden className="size-(--icon-sm) shrink-0 text-muted-foreground" />
+                      <span className="truncate">{auto.folder}</span>
+                    </span>
+                  }
+                  action={
+                    <Button variant="outline" size="sm" className={ACTION} onClick={() => void chooseBackupFolder()}>
+                      Change…
+                    </Button>
+                  }
+                />
+                {auto.status === 'paused' ? (
+                  <Fact
+                    label="Status"
+                    value={
+                      <span className="text-amber-700 dark:text-amber-400" data-auto-backup-status>
+                        Paused. The browser asks once per visit before writing here.
+                      </span>
+                    }
+                    action={
+                      <Button variant="outline" size="sm" className={ACTION} onClick={() => void resumeAutoBackup()}>
+                        <RefreshCw /> Resume
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <Fact
+                    label="Last saved"
+                    value={
+                      <span className={cn(auto.error && 'text-amber-700 dark:text-amber-400')} data-auto-backup-status>
+                        {auto.error
+                          ? `Could not save: ${auto.error}`
+                          : auto.lastSaved
+                            ? formatRelative(auto.lastSaved, now)
+                            : 'Not yet'}
+                      </span>
+                    }
+                    action={
+                      <Button variant="outline" size="sm" className={ACTION} onClick={() => void backUpNow()}>
+                        <RefreshCw /> Back up now
+                      </Button>
+                    }
+                  />
+                )}
+              </dl>
+              <p className="text-xs text-muted-foreground">The newest 7 backups are kept; older automatic ones are removed.</p>
+              <Button variant="ghost" size="sm" className="-ml-2.5 self-start" onClick={() => void stopAutoBackup()}>
+                <X /> Stop automatic backup
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => void stopAutoBackup()}>
-                <X /> Stop
-              </Button>
-            </div>
+            </>
           )}
         </SectionBlock>
 
         <SectionBlock icon={HardDrive} title="In this browser" hint="Notes, boards and images are stored only here" last>
-          {persisted.supported && (
-            <SwitchRow
-              id="settings-persist"
-              label="Keep data safe"
-              hint={
-                persisted.value
-                  ? 'On: the browser keeps your notes even when space runs low. Only clearing the site data removes them.'
-                  : 'Asks the browser not to clear your notes when space runs low'
-              }
-              checked={persisted.value}
-              // Browsers can't hand the guarantee back, so once on it stays on
-              disabled={persisted.value}
-              onChange={(on) => on && void persisted.request()}
-            />
-          )}
-          {used !== null && (
-            <p className="text-xs text-muted-foreground" data-storage-used>
-              Using {used} in this browser.
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground">Clearing this browser's data removes them, so export a backup now and then.</p>
+          {persisted.supported &&
+            (persisted.value ? (
+              // Granted for good (browsers can't hand it back): a status, not a switch that can't be moved
+              <div className="flex items-start gap-3" data-persist-status>
+                <ShieldCheck aria-hidden className="mt-0.5 size-(--icon) shrink-0 text-emerald-700 dark:text-emerald-400" />
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Kept safe</p>
+                  <p className="text-xs text-muted-foreground">
+                    The browser won't clear your notes when space runs low. Only clearing the site data removes them.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Keep data safe</p>
+                  <p className="text-xs text-muted-foreground">Asks the browser not to clear your notes when space runs low.</p>
+                  {persisted.denied && (
+                    <p className="text-xs text-amber-700 dark:text-amber-400" role="status">
+                      The browser didn't allow it yet. It often does once Lodoc is installed or used more.
+                    </p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" className="border-control-border" onClick={() => void persisted.request()}>
+                  <ShieldCheck /> Keep data safe
+                </Button>
+              </div>
+            ))}
+          <p className="text-xs text-muted-foreground" data-storage-used>
+            {used !== null && `Using ${used}. `}Clearing this browser's data removes it, so export a backup now and then.
+          </p>
         </SectionBlock>
         {importFile.element}
       </div>
       <SettingsFooter />
     </>
+  )
+}
+
+/** A row's action: in its own column on wider screens, under the value on phones */
+const ACTION = 'justify-self-start border-control-border max-sm:col-start-2'
+
+/** A label, its value and the action that belongs to it, in the automatic backup's list */
+function Fact({ label, value, action }: { label: string; value: ReactNode; action: ReactNode }) {
+  return (
+    <div className="col-span-full grid grid-cols-subgrid items-center gap-y-1.5 text-sm">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="min-w-0">{value}</dd>
+      <dd className="contents">{action}</dd>
+    </div>
   )
 }
 

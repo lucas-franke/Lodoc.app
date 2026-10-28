@@ -15,7 +15,7 @@ Lodoc stores everything in your browser, on this device. Nothing is sent anywher
 
 ## Automatic backup
 
-In Chrome and Edge on a computer, **Settings → Backup → Choose a folder…** writes a backup into a folder you choose whenever something changes, one file per day. The last 7 are kept. After the browser restarts it may ask once before writing again: the Backup tab then offers **Resume**.
+In Chrome and Edge on a computer, **Settings → Backup → Choose a folder…** writes a backup into a folder you choose whenever something changes, one file per day. The last 7 are kept. The tab shows the chosen folder with **Change…** beside it, and when it last saved with **Back up now**; **Stop automatic backup** is at the end. After the browser restarts it may ask once before writing again: the tab then offers **Resume**.
 
 ## Moving notes between phone and computer
 
@@ -29,7 +29,7 @@ It's a copy, not a sync: after that, each device carries on on its own. A note d
 
 ## Keep data safe in this browser
 
-**Keep data safe** in **Settings → Backup** asks the browser not to clear Lodoc's data when space runs low. The switch stays on once the browser has agreed. The tab also shows how much space Lodoc uses in this browser.
+**Keep data safe** in **Settings → Backup** asks the browser not to clear Lodoc's data when space runs low. Once the browser agrees, the tab shows **Kept safe** instead; browsers keep this for good, so there is nothing to turn off. If it says no, it often agrees later, once Lodoc is installed or used more often. The tab also shows how much space Lodoc uses in this browser.
 
 ## Coming from another app
 
