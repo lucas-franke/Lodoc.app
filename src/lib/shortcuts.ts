@@ -19,7 +19,8 @@ export const SHORTCUT_GROUPS: { title: string; items: [keys: string[], what: str
       [['/'], 'Insert a block (heading, list, table, image…)'],
       [['#', 'Space'], 'Heading (## and ### for smaller ones)'],
       [['-', 'Space'], 'Bulleted list'],
-      [['[]', 'Space'], 'Checklist'],
+      // Two keys, not "[]": side by side in one key cap the brackets read as a box
+      [['[', ']', 'Space'], 'Checklist'],
       [['Ctrl', 'K'], 'Link (with text selected)'],
     ],
   },
