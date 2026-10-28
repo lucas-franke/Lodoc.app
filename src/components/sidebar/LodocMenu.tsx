@@ -1,4 +1,4 @@
-import { BookOpen, BookText, ChevronDown, Info, Keyboard, Sparkles } from 'lucide-react'
+import { BookOpen, BookText, ChevronDown, Info, Keyboard, Settings, Sparkles } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +51,10 @@ export function LodocMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={async () => openNote(await openGuideNote())}>
           <BookOpen /> Getting started guide
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => emitAppEvent('open-settings')}>
+          <Settings /> Settings
+          <DropdownMenuShortcut>Ctrl ,</DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => emitAppEvent('open-shortcuts')}>
           <Keyboard /> Keyboard shortcuts

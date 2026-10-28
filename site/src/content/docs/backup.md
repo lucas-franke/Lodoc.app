@@ -4,7 +4,7 @@ description: Where your notes are stored, how to keep a copy, and how to bring t
 order: 6
 ---
 
-Lodoc stores everything in your browser, on this device. Nothing is sent anywhere, which also means a backup is up to you. Everything here is in **Backup** at the bottom of the sidebar.
+Lodoc stores everything in your browser, on this device. Nothing is sent anywhere, which also means a backup is up to you. **Backup** at the bottom of the sidebar exports and imports; its **Backup settings…** (also **Settings → Backup**) has automatic backups and keeping your data safe.
 
 ## Export and import
 
@@ -15,7 +15,7 @@ Lodoc stores everything in your browser, on this device. Nothing is sent anywher
 
 ## Automatic backup
 
-In Chrome and Edge on a computer, **Back up automatically…** writes a backup into a folder you choose whenever something changes, one file per day. The last 7 are kept. After the browser restarts it may ask once before writing again: the menu then offers **Resume automatic backup**.
+In Chrome and Edge on a computer, **Settings → Backup → Choose a folder…** writes a backup into a folder you choose whenever something changes, one file per day. The last 7 are kept. After the browser restarts it may ask once before writing again: the Backup tab then offers **Resume**.
 
 ## Moving notes between phone and computer
 
@@ -29,7 +29,7 @@ It's a copy, not a sync: after that, each device carries on on its own. A note d
 
 ## Keep data safe in this browser
 
-**Keep data safe in this browser** asks the browser not to clear Lodoc's data when space runs low. The menu shows when the browser has agreed.
+**Keep data safe** in **Settings → Backup** asks the browser not to clear Lodoc's data when space runs low. The switch stays on once the browser has agreed. The tab also shows how much space Lodoc uses in this browser.
 
 ## Coming from another app
 

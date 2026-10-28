@@ -4,10 +4,10 @@ description: Light and dark, a colour tint, fonts, textures, the sidebar, high c
 order: 7
 ---
 
-The palette button at the top right of every page opens **Appearance**, a panel on the right where you change how Lodoc looks. Every change shows right away on the page beside it, so you can try combinations as you go. On a phone, where the panel covers the page, a small note at the top shows the look. **Randomize** picks a look for you, and **Reset all** goes back to the start.
+**Settings** at the bottom of the sidebar (or `Ctrl` + `,`) opens a panel on the right. Its **Appearance** tab changes how Lodoc looks. Every change shows right away on the page beside it, so you can try combinations as you go. On a phone, where the panel covers the page, a small note at the top shows the look. **Randomize** picks a look for you, and **Reset all** goes back to the start.
 
 <figure class="shot">
-  <img src="../img/appearance-light.jpg" class="dark:hidden" alt="The Appearance panel next to a note, with a sage tint" width="1280" height="800" loading="lazy" />
+  <img src="../img/appearance-light.jpg" class="dark:hidden" alt="Settings open on Appearance, next to a note with a sage tint" width="1280" height="800" loading="lazy" />
   <img src="../img/appearance-dark.jpg" class="hidden dark:block" alt="" width="1280" height="800" loading="lazy" />
 </figure>
 
@@ -33,7 +33,7 @@ The palette button at the top right of every page opens **Appearance**, a panel 
 
 ## Accessibility
 
-The figure in a circle next to the palette button opens the **Accessibility** menu. Both settings follow your system at first, and you can turn them on or off for Lodoc. You can also switch them from the command palette.
+The **Accessibility** tab in Settings has these two. Both follow your system at first, and you can turn them on or off for Lodoc. You can also switch them from the command palette.
 
 - **Contrast**: high contrast makes text darker (or brighter, in dark mode), lines clearer and focus outlines bolder. Textures get softer and the gradient goes, so nothing competes with the text.
 - **Motion**: reduced motion turns off animations, like boards gliding when you zoom or tidy up, and the small joys. Things simply change at once. *Full* keeps them, even if your system asks for less.

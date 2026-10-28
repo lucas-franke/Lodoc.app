@@ -7,8 +7,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { AppDnd } from '@/components/dnd/AppDnd'
 import { FolderView } from '@/components/folder/FolderView'
 import { BoardPageActions, FolderPageActions, NotePageActions } from '@/components/PageActions'
-import { AccessibilityMenu } from '@/components/appearance/AccessibilityMenu'
-import { AppearanceButton, AppearanceMenu } from '@/components/appearance/AppearanceMenu'
+import { SettingsHost } from '@/components/settings/SettingsHost'
 import { HomeView } from '@/components/home/HomeView'
 import { Welcome } from '@/components/home/Welcome'
 import { openTodaysJournal } from '@/lib/journal'
@@ -28,7 +27,7 @@ import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
 import { useMilestones } from '@/hooks/useMilestones'
 import { useMarkdownImport } from '@/hooks/useMarkdownImport'
 import { openNote, useActivityTab, useRoute, useTagRoute, type RouteType } from '@/hooks/useRoute'
-import { useAppEvent } from '@/lib/app-events'
+import { emitAppEvent, useAppEvent } from '@/lib/app-events'
 import { cn } from '@/lib/utils'
 
 // The editor is the bulk of the bundle; load it separately so the shell appears fast
@@ -137,6 +136,9 @@ export default function App() {
         if (inEditor && !window.getSelection()?.isCollapsed) return
         e.preventDefault()
         setPaletteOpen((open) => !open)
+      } else if (mod && !e.altKey && e.key === ',') {
+        e.preventDefault()
+        emitAppEvent('open-settings')
       } else if (e.key === '?' && !mod && !isTyping(e.target)) {
         e.preventDefault()
         setShortcutsOpen(true)
@@ -202,8 +204,6 @@ export default function App() {
               {current?.type === 'note' && <NotePageActions note={current.note} />}
               {current?.type === 'folder' && <FolderPageActions folder={current.folder} />}
               {current?.type === 'board' && <BoardPageActions board={current.board} />}
-              <AccessibilityMenu />
-              <AppearanceButton />
             </div>
           </header>
 
@@ -237,7 +237,7 @@ export default function App() {
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} newNoteFolderId={newNoteFolderId} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
-      <AppearanceMenu />
+      <SettingsHost />
       {markdownImport.element}
       {historyFor && (
         <Suspense fallback={null}>

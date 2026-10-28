@@ -8,6 +8,7 @@ export const SHORTCUT_GROUPS: { title: string; items: [keys: string[], what: str
       [['Ctrl', 'Alt', 'N'], 'New note in the folder you are in'],
       [['Ctrl', 'Alt', 'J'], "Today's journal"],
       [['Ctrl', '\\'], 'Show or hide the sidebar'],
+      [['Ctrl', ','], 'Settings'],
       [['?'], 'All keyboard shortcuts'],
     ],
   },

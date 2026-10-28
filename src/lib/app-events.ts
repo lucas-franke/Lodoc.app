@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 
 // A few app-wide requests that the command palette (or a shortcut) makes of components elsewhere,
-// e.g. "open the Appearance panel" for the button in the sidebar footer.
+// e.g. "open Settings on the Backup tab" from the Backup menu. An event can carry a detail (such as the tab).
 
 type AppEvent =
-  | 'open-appearance'
+  | 'open-settings'
   | 'open-palette'
   | 'open-shortcuts'
   | 'backup-exported'
@@ -14,13 +14,14 @@ type AppEvent =
 
 const target = new EventTarget()
 
-export function emitAppEvent(event: AppEvent) {
-  target.dispatchEvent(new Event(event))
+export function emitAppEvent(event: AppEvent, detail?: unknown) {
+  target.dispatchEvent(new CustomEvent(event, { detail }))
 }
 
-export function useAppEvent(event: AppEvent, handler: () => void) {
+export function useAppEvent(event: AppEvent, handler: (detail?: unknown) => void) {
   useEffect(() => {
-    target.addEventListener(event, handler)
-    return () => target.removeEventListener(event, handler)
+    const listener = (e: Event) => handler((e as CustomEvent).detail)
+    target.addEventListener(event, listener)
+    return () => target.removeEventListener(event, listener)
   }, [event, handler])
 }

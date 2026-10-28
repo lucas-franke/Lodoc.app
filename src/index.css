@@ -162,23 +162,23 @@
     animation: preview-flash 0.9s ease-out forwards;
 }
 
-/* While the Appearance panel is open on a wide screen, the page makes room for it instead of being covered.
+/* While the Settings panel is open on a wide screen, the page makes room for it instead of being covered.
    Pages use padding rather than a margin: the strip stays part of the page, so its texture runs on behind
    the panel (and around a floating one) instead of stopping at a hard edge. A board keeps the margin, since
    its header and controls are positioned over the canvas and must stay clear of the panel. */
 @media (min-width: 80rem) {
     [data-app-shell] > main {
         transition: padding-right 0.2s ease, margin-right 0.2s ease;
-        --appearance-room: 440px;
+        --settings-room: 440px;
     }
     :root[data-sidebar='floating'] [data-app-shell] > main {
-        --appearance-room: calc(440px + 0.5rem);
+        --settings-room: calc(440px + 0.5rem);
     }
-    :root[data-appearance-open] [data-app-shell] > main:not([data-board]) {
-        padding-right: var(--appearance-room);
+    :root[data-settings-open] [data-app-shell] > main:not([data-board]) {
+        padding-right: var(--settings-room);
     }
-    :root[data-appearance-open] [data-app-shell] > main[data-board] {
-        margin-right: var(--appearance-room);
+    :root[data-settings-open] [data-app-shell] > main[data-board] {
+        margin-right: var(--settings-room);
     }
 }
 

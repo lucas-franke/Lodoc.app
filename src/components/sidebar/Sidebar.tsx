@@ -13,6 +13,7 @@ import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useActivityTab, useIsHome, useTagRoute } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
 import { BackupMenu } from './BackupMenu'
+import { SettingsRow } from './SettingsRow'
 import { LodocMenu } from './LodocMenu'
 import { BoardItem } from './BoardItem'
 import { FolderTree } from './FolderTree'
@@ -365,6 +366,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
           />
         )}
         <div className="space-y-1 border-t p-2">
+          <SettingsRow />
           <BackupMenu hasNotes={notes.length > 0} />
         </div>
         <SidebarResizer width={sidebarWidth.width} onResize={sidebarWidth.setWidth} onCommit={sidebarWidth.save} />
