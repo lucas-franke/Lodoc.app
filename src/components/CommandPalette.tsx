@@ -179,7 +179,7 @@ export function CommandPalette({
           {notes.length > 0 && (
             <CommandGroup heading="Notes">
               {notes.map((n) => (
-                <NoteItem key={n.id} note={n} folder={folderName(n.folderId)} query={q} onSelect={run(() => openNote(n.id))} />
+                <NoteItem key={n.id} note={n} folder={folderName(n.folderId)} query={q} onSelect={run(() => openNote(n.overview ? null : n.id))} />
               ))}
             </CommandGroup>
           )}

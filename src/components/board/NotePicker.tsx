@@ -11,7 +11,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { db } from '@/db/db'
-import { notePreview, noteText, noteTitle, sortNotes } from '@/db/notes'
+import { isListed, notePreview, noteText, noteTitle, sortNotes } from '@/db/notes'
 import type { Note } from '@/db/schema'
 
 /** Searchable list of the notes that are not on the board yet. Enter (or a click) adds the highlighted one. */
@@ -26,7 +26,7 @@ export function NotePicker({
   excludeIds: Set<string>
   onPick: (noteId: string) => void
 }) {
-  const notes = useLiveQuery(() => db.notes.toArray(), [], [] as Note[])
+  const notes = useLiveQuery(() => db.notes.filter(isListed).toArray(), [], [] as Note[])
   const [query, setQuery] = useState('')
 
   const available = sortNotes(notes.filter((n) => !excludeIds.has(n.id)))

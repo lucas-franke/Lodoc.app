@@ -1,6 +1,6 @@
 ---
 title: Organizing
-description: Folders, favorites, search, today's journal, quick capture, the Trash and Activity.
+description: Folders, favorites, search, today's journal, the note pinned on the overview, the Trash and Activity.
 order: 3
 ---
 
@@ -27,9 +27,9 @@ Folders can hold notes, boards and other folders. Notes outside any folder are l
 
 One note per day: **Today's journal** on the overview, in the command palette, or `Ctrl` + `Alt` + `J`. It's made from the journal template the first time each day, and opens the same note again after that. Journal notes go into a *Journal* folder, or wherever you moved the last one.
 
-## Quick capture
+## Pinned on the overview
 
-Type a thought into **Write something down…** at the top of the overview and press `Enter`: it's kept as a new note in *Unfiled*, and the field is ready for the next one. `Shift` + `Enter` starts a new line; the first line becomes the title.
+The box at the top of the overview is a note of its own, for what you want to keep in view: a plan for the week, a short list, a reminder. Write right there, with **bold**, lists, checklists and everything `/` offers. It's saved like any note (searchable, with history and in backups), but it isn't listed in the sidebar or folders.
 
 ## The Trash and Activity
 

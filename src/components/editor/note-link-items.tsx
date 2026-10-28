@@ -1,7 +1,7 @@
 import type { DefaultReactSuggestionItem } from '@blocknote/react'
 import { FilePlus, FileText } from 'lucide-react'
 import { db } from '@/db/db'
-import { createNote, noteTitle, sortNotes, updateNote } from '@/db/notes'
+import { createNote, isListed, noteTitle, sortNotes, updateNote } from '@/db/notes'
 
 /**
  * The items of the "@" menu: matching notes (not the current one), plus creating a new note with the typed
@@ -13,7 +13,7 @@ export async function noteLinkItems(
   insert: (noteId: string, title: string) => void,
 ): Promise<DefaultReactSuggestionItem[]> {
   const q = query.trim().toLowerCase()
-  const notes = sortNotes((await db.notes.toArray()).filter((n) => n.id !== currentId && noteTitle(n).toLowerCase().includes(q))).slice(0, 8)
+  const notes = sortNotes((await db.notes.filter(isListed).toArray()).filter((n) => n.id !== currentId && noteTitle(n).toLowerCase().includes(q))).slice(0, 8)
   const folders = new Map((await db.folders.toArray()).map((f) => [f.id, f.name]))
   const items: DefaultReactSuggestionItem[] = notes.map((n) => ({
     title: noteTitle(n),

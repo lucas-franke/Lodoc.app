@@ -3,14 +3,14 @@ import { Hash } from 'lucide-react'
 import { CardSection, NoteCard } from '@/components/folder/FolderView'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { db } from '@/db/db'
-import { sortNotes, tagCounts } from '@/db/notes'
+import { isListed, sortNotes, tagCounts } from '@/db/notes'
 import type { Note } from '@/db/schema'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
 import { plural } from '@/lib/format'
 
 /** All notes with one tag (#/tag/<name>), plus the other tags to jump between them. */
 export function TagView({ tag }: { tag: string }) {
-  const notes = useLiveQuery(() => db.notes.toArray(), [], undefined as Note[] | undefined)
+  const notes = useLiveQuery(() => db.notes.filter(isListed).toArray(), [], undefined as Note[] | undefined)
   const [cardView, setCardView] = useNoteCardView()
   if (!notes) return null
   const tagged = sortNotes(notes.filter((n) => n.tags.includes(tag)))

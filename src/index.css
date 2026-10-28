@@ -338,6 +338,12 @@
   padding-inline: var(--page-gutter);
 }
 
+/* In a card (board cards, the overview's pinned note) a heading on the first line starts at the top, without the
+   room BlockNote leaves above headings */
+.bn-embedded .bn-block-group > .bn-block-outer:first-child > .bn-block > [data-content-type='heading'] {
+  padding-top: 0;
+}
+
 /* Level 1 has no data-level attribute */
 .bn-root.bn-shadcn [data-content-type='heading'] {
   --level: 1.875em;

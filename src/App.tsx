@@ -102,6 +102,12 @@ export default function App() {
     if (route?.type === 'note') rememberLastNote(route.id)
   }, [route])
 
+  // The overview's own note lives on the overview, not as a page of its own
+  const onOverviewNote = current?.type === 'note' && !!current.note.overview
+  useEffect(() => {
+    if (onOverviewNote) openNote(null)
+  }, [onOverviewNote])
+
   // On small screens the sidebar is an overlay; close it once a page is opened (any page: a note, Activity,
   // Settings, a tag, the overview)
   useEffect(() => {

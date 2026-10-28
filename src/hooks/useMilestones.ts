@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { db } from '@/db/db'
 import { notify } from '@/lib/notify'
+import { isListed } from '@/db/notes'
 
 // A quiet word at a few milestones (a spark of joy): the 10th, 100th… note, and each year since the first one.
 // Each is said once; the ones already passed when this is first seen (or after an import) are noted silently.
@@ -36,7 +37,7 @@ function remember(keys: Set<string>) {
 }
 
 export function useMilestones() {
-  const count = useLiveQuery(() => db.notes.count())
+  const count = useLiveQuery(() => db.notes.filter(isListed).count())
   // When the first note was written: read once (not on every save), for the yearly word
   const [firstCreated, setFirstCreated] = useState<number>()
   useEffect(() => {

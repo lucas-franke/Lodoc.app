@@ -38,6 +38,8 @@ const SAVE_DELAY = 400
 
 /** BlockNote's texts, with an empty checklist item saying "To-do" rather than "List" */
 const dictionary = { ...en, placeholders: { ...en.placeholders, checkListItem: 'To-do' } }
+/** The overview's note says what it is for while it is empty */
+const padDictionary = { ...dictionary, placeholders: { ...dictionary.placeholders, emptyDocument: 'Something to keep in view: a plan, a list, a reminder…' } }
 
 /** Stores files inline as data URLs, since there is no server to upload to. Images are compressed first. */
 async function uploadFile(file: File): Promise<string> {
@@ -86,8 +88,10 @@ function useDebouncedSave(noteId: string) {
  * Mount with `key={note.id}`: the editor is initialised once per note.
  * `embedded` is the compact variant used inside a board card: smaller title, tight padding and no
  * block side menu (the card is small), with the cursor placed at the end of the note.
+ * `pad` is the overview's own note: as compact, but without a title, and it waits to be clicked.
  */
-export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: boolean }) {
+export function NoteEditor({ note, embedded = false, pad = false }: { note: Note; embedded?: boolean; pad?: boolean }) {
+  const compact = embedded || pad
   const { resolvedTheme } = useTheme()
   const [title, setTitle] = useState(note.title)
   // Browsers without `field-sizing: content` (Safari, Firefox) get the title's height set by hand
@@ -110,10 +114,10 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
     schema: editorSchema,
     initialContent: note.content.length ? (note.content as PartialBlock<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema>[]) : undefined,
     uploadFile,
-    dictionary,
+    dictionary: pad ? padDictionary : dictionary,
     extensions: [arrowsExtension, emptyLinesExtension, templateHintsExtension, inlineTagsExtension],
     // Accessible name for the editable area (screen readers otherwise announce just "edit text")
-    domAttributes: { editor: { 'aria-label': 'Note content' } },
+    domAttributes: { editor: { 'aria-label': pad ? 'Pinned on the overview' : 'Note content' } },
   })
 
   // The headings for the outline, kept in step with the editor (only re-rendered when they change)
@@ -160,7 +164,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   }
 
   const pageRef = useRef<HTMLDivElement>(null)
-  useCaretNearTop(pageRef, !embedded)
+  useCaretNearTop(pageRef, !compact)
   useChecklistJoy(pageRef)
 
   // #tags written in the text become the note's tags, and go when they are taken out (editor/inline-tags.ts).
@@ -203,14 +207,14 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
   const caption = useCaptionEditor(editor)
   // Phones get a fixed format bar at the bottom instead of the toolbar floating over the selection
   const wide = useWideScreen()
-  const formatBar = !embedded && !wide && isTouchDevice()
+  const formatBar = !compact && !wide && isTouchDevice()
 
   return (
     <div
       ref={pageRef}
       className={
-        embedded
-          ? 'bn-embedded relative w-full pt-2 pb-4'
+        compact
+          ? cn('bn-embedded relative w-full', pad ? 'py-2' : 'pt-2 pb-4')
           : // On phones a cover can scroll out of view even on a short note, so the cursor can reach the top
             'relative mx-auto min-h-full w-full max-w-(--page-width) px-1 pt-10 pb-32 sm:px-12 max-md:has-[[data-testid=note-cover]]:min-h-[calc(100%+18rem)]'
       }
@@ -220,7 +224,7 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
       onCut={(e) => cleanCopiedText(e.nativeEvent)}
       onKeyDownCapture={(e) => indentSelectedFile(editor, e.nativeEvent)}
       onDragOver={
-        embedded
+        compact
           ? undefined
           : (e) => {
               if (!e.dataTransfer.types.includes('Files')) return
@@ -228,11 +232,11 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
               e.dataTransfer.dropEffect = 'copy'
             }
       }
-      onDrop={embedded ? undefined : dropImages}
+      onDrop={compact ? undefined : dropImages}
     >
-      {!embedded && <CoverBanner note={note} />}
-      <div className="group/title relative">
-        {!embedded && <AddCoverButton note={note} />}
+      {!compact && <CoverBanner note={note} />}
+      <div className={cn('group/title relative', pad && 'hidden')}>
+        {!compact && <AddCoverButton note={note} />}
         {/* A textarea, so a long title wraps instead of being cut off; it stays one paragraph (no line breaks) */}
         <textarea
           ref={titleField}
@@ -260,17 +264,17 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
             embedded ? 'mb-1 px-3 text-lg font-semibold' : 'mb-4 px-(--page-gutter) text-4xl leading-tight font-bold',
           )}
         />
-        {!embedded && <PageInfo note={note} title={title} outline={outline} />}
-        {!embedded && <NoteTags note={note} />}
+        {!compact && <PageInfo note={note} title={title} outline={outline} />}
+        {!compact && <NoteTags note={note} />}
       </div>
       <BlockNoteView
         editor={editor}
-        sideMenu={!embedded}
+        sideMenu={!compact}
         formattingToolbar={!formatBar}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
         onChange={() => {
           save({ content: editor.document as unknown as StoredBlock[] })
-          if (!embedded) updateOutline()
+          if (!compact) updateOutline()
           syncWrittenTags()
         }}
         // A tag counts once the caret leaves it, so moving away (without typing) also adds it
@@ -294,8 +298,8 @@ export function NoteEditor({ note, embedded = false }: { note: Note; embedded?: 
         {formatBar && <MobileFormatBar />}
       </BlockNoteView>
       {caption.field}
-      {!embedded && <NoteBacklinks noteId={note.id} />}
-      {!embedded && <NoteOutline items={outline} />}
+      {!compact && <NoteBacklinks noteId={note.id} />}
+      {!compact && <NoteOutline items={outline} />}
     </div>
   )
 }

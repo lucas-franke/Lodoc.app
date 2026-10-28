@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input'
 import { boardTitle, createBoard, renameBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder, renameFolder } from '@/db/folders'
-import { createNote, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
+import { createNote, isListed, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
 import type { Board, Folder, Note, NoteCardView } from '@/db/schema'
 import { useBoardMenuEntries, useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
@@ -39,7 +39,7 @@ import { SortMenu } from './SortMenu'
 /** A folder opened as a page: its subfolders, boards and notes as preview cards. */
 export function FolderView({ folder }: { folder: Folder }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], [] as Folder[])
-  const notes = useLiveQuery(() => db.notes.toArray(), [], [] as Note[])
+  const notes = useLiveQuery(() => db.notes.filter(isListed).toArray(), [], [] as Note[])
   const boards = useLiveQuery(() => db.boards.toArray(), [], [] as Board[])
 
   const allSubfolders = sortFolders(folders.filter((f) => f.parentId === folder.id))

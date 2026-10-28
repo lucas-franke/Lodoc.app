@@ -4,14 +4,14 @@ import { ArrowRight, CalendarDays, FolderPlus, LayoutDashboard, Plus } from 'luc
 import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folder/FolderView'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { TemplateMenu } from '@/components/TemplateMenu'
-import { QuickCapture } from './QuickCapture'
+import { OverviewPad } from './OverviewPad'
 import { WritingDays } from './WritingDays'
 import { NoteCover } from '@/components/note/NoteCover'
 import { Button } from '@/components/ui/button'
 import { createBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
-import { createNote, notePreview, noteTitle, sortNotes } from '@/db/notes'
+import { createNote, isListed, notePreview, noteTitle, sortNotes } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { useAppearance } from '@/hooks/useAppearance'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
@@ -26,7 +26,7 @@ const RECENT_COUNT = 8
 
 /** The start page: shows an overview of everything once there is something to show. */
 export function HomeView({ empty }: { empty: React.ReactNode }) {
-  const notes = useLiveQuery(() => db.notes.toArray(), [], undefined as Note[] | undefined)
+  const notes = useLiveQuery(() => db.notes.filter(isListed).toArray(), [], undefined as Note[] | undefined)
   const folders = useLiveQuery(() => db.folders.toArray(), [], undefined as Folder[] | undefined)
   const boards = useLiveQuery(() => db.boards.toArray(), [], undefined as Board[] | undefined)
   const [cardView, setCardView] = useNoteCardView()
@@ -64,7 +64,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
         <WritingDays notes={notes} />
       </div>
 
-      <QuickCapture />
+      <OverviewPad />
 
       {continueWith && <ContinueCard note={continueWith} />}
 

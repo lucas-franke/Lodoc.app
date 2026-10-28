@@ -36,6 +36,11 @@ export interface Note {
   journal?: string
   /** Offered under "From template": new notes start as a copy of it (the note itself stays an ordinary note) */
   template?: boolean
+  /**
+   * The overview's own note, pinned there in place of a list entry (lib's getOverviewNote): not shown in the
+   * sidebar, folders, the overview's lists or pickers, but searchable, with history, and in backups
+   */
+  overview?: boolean
   createdAt: number
   updatedAt: number
 }

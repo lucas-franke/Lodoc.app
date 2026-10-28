@@ -33,6 +33,7 @@ const noteSchema = z.object({
   cover: z.union([z.object({ assetId: z.string() }), z.object({ gradient: z.string() })]).nullable().optional(),
   journal: z.string().optional(),
   template: z.boolean().optional(),
+  overview: z.boolean().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
 })

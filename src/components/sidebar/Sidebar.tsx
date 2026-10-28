@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { db } from '@/db/db'
 import { createBoard, sortBoards } from '@/db/boards'
 import { createFolder } from '@/db/folders'
-import { createNote, sortNotes, sortNotesManual, tagCounts } from '@/db/notes'
+import { createNote, isListed, sortNotes, sortNotesManual, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openNote, useActiveBoardId, useActiveFolderId, useActiveNoteId, useActivityTab, useIsHome, useTagRoute } from '@/hooks/useRoute'
 import { useRegisterSidebarDnd } from '@/components/dnd/dnd-registry'
@@ -48,7 +48,7 @@ const RECENT_COUNT = 5
 export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   const folders = useLiveQuery(() => db.folders.toArray(), [], NOT_LOADED)
   const foldersLoaded = folders !== NOT_LOADED
-  const notes = useLiveQuery(() => db.notes.toArray(), [], [] as Note[])
+  const notes = useLiveQuery(() => db.notes.filter(isListed).toArray(), [], [] as Note[])
   const boards = useLiveQuery(() => db.boards.toArray(), [], [] as Board[])
   const activeNoteId = useActiveNoteId()
   const activeFolderId = useActiveFolderId()

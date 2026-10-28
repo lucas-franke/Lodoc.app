@@ -14,6 +14,30 @@ import { keepVersion, versionDue } from './versions'
  */
 const freshNotes = new Map<string, { folderId: string | null; order: number }>()
 
+/** Notes that lists show (the sidebar, folders, the overview, pickers): all but the overview's own note */
+export const isListed = (note: Note) => !note.overview
+
+let overviewNote: Promise<string> | null = null
+
+/**
+ * The note pinned on the overview, made the first time it is needed (quietly: it is part of the overview, not
+ * something the user created). One at a time, even if asked twice at once.
+ */
+export function getOverviewNote(): Promise<string> {
+  overviewNote ??= (async () => {
+    const existing = await db.notes.filter((n) => !!n.overview).first()
+    if (existing) return existing.id
+    const now = Date.now()
+    const id = nanoid()
+    await db.notes.add({ id, title: 'Pinned on the overview', content: [], folderId: null, order: 0, favorite: false, pinned: false, tags: [], overview: true, createdAt: now, updatedAt: now })
+    return id
+  })().catch((error) => {
+    overviewNote = null
+    throw error
+  })
+  return overviewNote
+}
+
 export async function createNote(folderId: string | null = null): Promise<string> {
   const now = Date.now()
   const note: Note = {
