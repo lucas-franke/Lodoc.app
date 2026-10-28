@@ -12,9 +12,12 @@ export const rowClass = (active: boolean, dropInside = false, dragging = false, 
     selected && 'bg-primary/10 ring-1 ring-primary/40 ring-inset hover:bg-primary/15',
   )
 
-/** The link filling a row; focus ring for keyboard users. */
+/**
+ * The link filling a row; focus ring for keyboard users. On touch screens a long press opens the row's menu, so
+ * the browser shows no link preview and selects no text there.
+ */
 export const rowLinkClass =
-  'flex h-full min-w-0 flex-1 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/60'
+  'flex h-full min-w-0 flex-1 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/60 pointer-coarse:select-none pointer-coarse:[-webkit-touch-callout:none]'
 
 /** Row actions stay reachable: shown on hover, keyboard focus, touch screens, or while their menu is open. */
 export const rowActionsClass =

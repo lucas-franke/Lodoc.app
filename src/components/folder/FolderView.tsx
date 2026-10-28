@@ -270,7 +270,9 @@ export function CardShell({
           ) : (
             <a
               href={href}
-              className="min-w-0 flex-1 truncate font-page font-medium outline-none after:absolute after:inset-0 after:rounded-lg"
+              // It covers the whole card (::after), so on touch screens a long press there opens the card menu: no link
+              // preview or text selection from the browser
+              className="min-w-0 flex-1 truncate font-page font-medium outline-none after:absolute after:inset-0 after:rounded-lg pointer-coarse:select-none pointer-coarse:[-webkit-touch-callout:none]"
             >
               {title}
             </a>
@@ -283,7 +285,7 @@ export function CardShell({
             align="end"
             entries={entries}
             trigger={
-              <Button variant="ghost" size="icon-xs" aria-label={`Actions for ${title}`}>
+              <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label={`Actions for ${title}`}>
                 <MoreHorizontal />
               </Button>
             }

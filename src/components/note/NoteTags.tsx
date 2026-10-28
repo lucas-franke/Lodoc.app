@@ -29,7 +29,7 @@ export function NoteTags({ note }: { note: Note }) {
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="flex items-center gap-1 rounded text-xs text-muted-foreground opacity-0 outline-none group-focus-within/title:opacity-100 group-hover/title:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/60 pointer-coarse:opacity-100"
+          className="flex items-center gap-1 rounded text-xs text-muted-foreground opacity-0 pointer-coarse:-my-2 pointer-coarse:py-2 outline-none group-focus-within/title:opacity-100 group-hover/title:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/60 pointer-coarse:opacity-100"
         >
           <Plus className="size-3" /> Add tag
         </button>
@@ -43,7 +43,7 @@ export function NoteTags({ note }: { note: Note }) {
         <li key={tag} className="flex items-center rounded-full border bg-muted/50 text-xs">
           <a
             href={`#/tag/${encodeURIComponent(tag)}`}
-            className="flex items-center gap-0.5 rounded-l-full py-0.5 pl-2 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="flex items-center gap-0.5 rounded-l-full py-0.5 pl-2 outline-none pointer-coarse:py-2 pointer-coarse:pl-2.5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <Hash className="size-3 text-muted-foreground" />
             {tag}
@@ -52,7 +52,7 @@ export function NoteTags({ note }: { note: Note }) {
             type="button"
             onClick={() => void removeNoteTag(note.id, tag)}
             aria-label={`Remove tag ${tag}`}
-            className="rounded-r-full px-1.5 py-0.5 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="rounded-r-full px-1.5 py-0.5 text-muted-foreground outline-none pointer-coarse:px-2.5 pointer-coarse:py-2.5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <X className="size-3" />
           </button>
@@ -92,7 +92,7 @@ export function NoteTags({ note }: { note: Note }) {
             type="button"
             onClick={() => setAdding(true)}
             aria-label="Add tag"
-            className="flex size-6 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="flex size-6 items-center justify-center rounded-full pointer-coarse:size-8 text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <Plus className="size-3" />
           </button>

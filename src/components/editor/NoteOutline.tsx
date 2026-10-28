@@ -68,7 +68,7 @@ export function OutlineButton({ items }: { items: OutlineItem[] }) {
       <Button
         variant="ghost"
         size="icon-xs"
-        className="-my-1 ml-auto @min-[76rem]:hidden"
+        className="-my-1 ml-auto @min-[76rem]:hidden pointer-coarse:size-9"
         aria-label="Outline"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}

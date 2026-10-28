@@ -397,13 +397,19 @@
 .bn-root .bn-suggestion-menu {
   max-width: min(22.75rem, calc(100vw - 2rem));
 }
-/* Touch screens: no keyboard shortcuts to show, and a shorter list that stays clear of the format bar */
+/* Touch screens: no keyboard shortcuts to show, and a shorter list that stays clear of the format bar. Checklist
+   boxes are 20px wide instead of 12px, in the same 24px as before (the text doesn't move), so a finger finds them. */
 @media (pointer: coarse) {
   .bn-suggestion-menu-item [class*='group/badge'] {
     display: none;
   }
   .bn-root .bn-suggestion-menu {
     max-height: min(40dvh, 20rem);
+  }
+  .bn-root .bn-block-content[data-content-type='checkListItem'] > div > input {
+    width: 20px;
+    margin-left: 0;
+    margin-right: 4px;
   }
 }
 
@@ -483,6 +489,33 @@ html .react-flow__handle.board-drop.connectingto {
 html .react-flow__connection-path {
   stroke: var(--ring);
   stroke-width: 1.5;
+}
+
+/* Touch screens: the resize handles and arrow dots get room for a finger. A transparent ::before widens what
+   can be touched, while what is drawn keeps its size. Arrow dots only take touches on the selected item (the only
+   place they show without a mouse), so a swipe that starts near a card's edge pans instead of drawing an arrow. */
+@media (pointer: coarse) {
+  html .react-flow__resize-control::before,
+  html .react-flow__node.selected > .react-flow__handle.board-connect::before {
+    content: '';
+    position: absolute;
+  }
+  html .react-flow__resize-control.handle::before {
+    inset: -11px;
+  }
+  html .react-flow__resize-control.line:is(.left, .right)::before {
+    inset: 0 -8px;
+  }
+  html .react-flow__resize-control.line:is(.top, .bottom)::before {
+    inset: -8px 0;
+  }
+  html .react-flow__node.selected > .react-flow__handle.board-connect::before {
+    inset: -8px;
+    border-radius: 9999px;
+  }
+  html .react-flow__node:not(.selected) > .react-flow__handle.board-connect {
+    pointer-events: none;
+  }
 }
 
 /* The note editor inside a board card: no room for the page gutter */

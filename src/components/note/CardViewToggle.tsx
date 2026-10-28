@@ -27,7 +27,7 @@ export function CardViewToggle({
               size="icon-xs"
               aria-label={name}
               aria-pressed={value === view}
-              className={cn('size-8', value === view ? 'bg-accent text-foreground' : 'text-muted-foreground')}
+              className={cn('size-8 pointer-coarse:size-9', value === view ? 'bg-accent text-foreground' : 'text-muted-foreground')}
               onClick={() => onChange(view)}
             >
               <Icon className="size-4" />

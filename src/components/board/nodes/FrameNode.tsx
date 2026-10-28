@@ -74,7 +74,7 @@ export function FrameNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
             align="end"
             entries={entries}
             trigger={
-              <Button variant="ghost" size="icon-xs" className="nodrag" aria-label={`Actions for frame ${name}`}>
+              <Button variant="ghost" size="icon-xs" className="nodrag pointer-coarse:size-9" aria-label={`Actions for frame ${name}`}>
                 <MoreHorizontal />
               </Button>
             }

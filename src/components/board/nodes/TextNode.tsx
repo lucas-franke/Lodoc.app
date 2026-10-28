@@ -58,6 +58,7 @@ export function TextNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
               key={s.size}
               variant={s.size === size ? 'secondary' : 'ghost'}
               size="icon-xs"
+              className="pointer-coarse:size-9"
               aria-label={s.label}
               aria-pressed={s.size === size}
               onClick={() => board.setTextSize(id, s.size)}
@@ -66,7 +67,7 @@ export function TextNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
             </Button>
           ))}
           <div className="mx-0.5 w-px self-stretch bg-border" />
-          <Button variant="ghost" size="icon-xs" aria-label="Connect to…" onClick={() => board.connectFrom(id)}>
+          <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label="Connect to…" onClick={() => board.connectFrom(id)}>
             <Spline />
           </Button>
         </div>

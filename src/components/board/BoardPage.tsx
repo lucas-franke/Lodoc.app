@@ -25,6 +25,7 @@ import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { useAppEvent } from '@/lib/app-events'
 import { motionMs, playOnce, reducedMotion } from '@/lib/joy'
+import { isTouchScreen } from '@/lib/keyboard'
 import { BoardTitle } from './BoardTitle'
 import { FIT_PADDING } from './board-context'
 import { notify } from '@/lib/notify'
@@ -691,6 +692,11 @@ function Canvas({ board }: { board: Board }) {
     return edges.map((e) => ({ ...e, ariaLabel: `Arrow from ${name(e.source)} to ${name(e.target)}${e.data?.label ? ` (${e.data.label})` : ''}` }))
   }, [edges, nodes, notes])
 
+  // Touch screens: an item moves only once it is selected (tap it, then drag), so a swipe that starts on a card
+  // pans the board instead of moving the card. React Flow pans wherever an item can't be dragged.
+  const touch = isTouchScreen()
+  const flowNodes = useMemo(() => (touch ? nodes.map((n) => (n.selected ? n : { ...n, draggable: false })) : nodes), [nodes, touch])
+
   return (
     <BoardContext.Provider value={context}>
       <div
@@ -720,7 +726,7 @@ function Canvas({ board }: { board: Board }) {
         }}
       >
         <ReactFlow
-          nodes={nodes}
+          nodes={flowNodes}
           edges={labelledEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}

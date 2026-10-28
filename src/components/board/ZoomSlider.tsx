@@ -11,7 +11,10 @@ const MAX_ZOOM = 2
 const toSlider = (zoom: number) => Math.log(zoom)
 const fromSlider = (value: number) => Math.exp(value)
 
-/** Zoom out / slider / zoom in, the zoom level (click for 100%), "fit all" and the minimap switch, in the bottom-left corner. */
+/**
+ * Zoom out / slider / zoom in, the zoom level (click for 100%), "fit all" and the minimap switch, in the bottom-left corner.
+ * Touch screens zoom with two fingers, so there the slider makes room for buttons big enough to tap.
+ */
 export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onMinimapChange: (on: boolean) => void }) {
   const { zoomTo, zoomIn, zoomOut, fitView } = useReactFlow()
   const zoom = useStore((s) => s.transform[2])
@@ -23,7 +26,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
       className="nodrag nopan flex items-center gap-0.5 rounded-lg border bg-background p-0.5 shadow-sm"
     >
       <Tip label="Zoom out">
-        <Button variant="ghost" size="icon-xs" className="size-8" aria-label="Zoom out" onClick={() => void zoomOut({ duration: motionMs(150) })}>
+        <Button variant="ghost" size="icon-xs" className="size-8 pointer-coarse:size-10" aria-label="Zoom out" onClick={() => void zoomOut({ duration: motionMs(150) })}>
           <Minus />
         </Button>
       </Tip>
@@ -36,10 +39,10 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
         step={0.01}
         value={toSlider(zoom)}
         onChange={(e) => void zoomTo(fromSlider(Number(e.target.value)))}
-        className="h-8 w-28 cursor-pointer accent-primary"
+        className="h-8 w-28 cursor-pointer accent-primary pointer-coarse:hidden"
       />
       <Tip label="Zoom in">
-        <Button variant="ghost" size="icon-xs" className="size-8" aria-label="Zoom in" onClick={() => void zoomIn({ duration: motionMs(150) })}>
+        <Button variant="ghost" size="icon-xs" className="size-8 pointer-coarse:size-10" aria-label="Zoom in" onClick={() => void zoomIn({ duration: motionMs(150) })}>
           <Plus />
         </Button>
       </Tip>
@@ -47,7 +50,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
         <Button
           variant="ghost"
           size="xs"
-          className="h-8 w-12 justify-center tabular-nums"
+          className="h-8 w-12 justify-center tabular-nums pointer-coarse:h-10"
           aria-label={`Zoom ${percent}%, reset to 100%`}
           onClick={() => void zoomTo(1, { duration: motionMs(150) })}
         >
@@ -58,7 +61,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
         <Button
           variant="ghost"
           size="icon-xs"
-          className="size-8"
+          className="size-8 pointer-coarse:size-10"
           aria-label="Fit everything in view"
           onClick={() => void fitView({ duration: motionMs(250), padding: FIT_PADDING, maxZoom: 1 })}
         >
@@ -69,7 +72,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
         <Button
           variant={minimap ? 'secondary' : 'ghost'}
           size="icon-xs"
-          className="size-8"
+          className="size-8 pointer-coarse:size-10"
           aria-label="Minimap"
           aria-pressed={minimap}
           onClick={() => onMinimapChange(!minimap)}

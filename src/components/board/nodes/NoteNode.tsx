@@ -84,7 +84,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
               <Button
                 variant="secondary"
                 size="icon-xs"
-                className="nodrag"
+                className="nodrag pointer-coarse:size-9"
                 aria-label="Finish editing"
                 onClick={() => board.setEditingId(null)}
               >
@@ -94,7 +94,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
               <Button
                 variant="ghost"
                 size="icon-xs"
-                className="nodrag"
+                className="nodrag pointer-coarse:size-9"
                 aria-label={`Edit ${title}`}
                 onClick={() => board.editNote(id)}
               >
@@ -105,7 +105,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
             align="end"
             entries={entries}
             trigger={
-              <Button variant="ghost" size="icon-xs" className="nodrag" aria-label={`Actions for ${title}`}>
+              <Button variant="ghost" size="icon-xs" className="nodrag pointer-coarse:size-9" aria-label={`Actions for ${title}`}>
                 <MoreHorizontal />
               </Button>
             }

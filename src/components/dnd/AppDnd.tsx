@@ -22,6 +22,14 @@ import { DndRegistryContext, type CanvasDrop, type SidebarDnd } from './dnd-regi
 const EXPAND_DELAY = 600
 /** Notes dropped on a board together are laid out with this offset, so they don't land on top of each other */
 const GROUP_OFFSET = 32
+/** Touch: a row held still this long after it lifts (the sensor's 250ms) opens its menu, like a long press… */
+const MENU_AFTER = 300
+/** …and moving it further than this makes it a drag instead, which closes that menu again */
+const HOLD_TOLERANCE = 8
+
+const contextMenuOpen = () => !!document.querySelector('[data-slot="context-menu-content"]')
+/** Closes open menus as Escape does. Only `key` is set: dnd-kit cancels the drag on `code` Escape, the menus look at `key`. */
+const closeMenus = () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
 
 /** The dragged row as a selection item */
 function itemOf(data: DndData | undefined): ItemRef | null {
@@ -64,6 +72,12 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
   const expandTimer = useRef<{ id: string; timer: number } | null>(null)
   // A drag ends with a click on the row's link; swallow it so dropping doesn't navigate
   const suppressClick = useRef(false)
+  // Touch: opens the held row's menu unless the row moves first
+  const holdTimer = useRef<number | undefined>(undefined)
+  const clearHold = () => {
+    window.clearTimeout(holdTimer.current)
+    holdTimer.current = undefined
+  }
 
   const sidebar = useRef<SidebarDnd | null>(null)
   const canvas = useRef<CanvasDrop | null>(null)
@@ -89,6 +103,11 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
   }
 
   const onMove = ({ active, over, activatorEvent, delta }: DragMoveEvent) => {
+    // A touch drag that moves is a drag: its menu doesn't open, or closes if holding still opened it
+    if ('touches' in activatorEvent && Math.hypot(delta.x, delta.y) > HOLD_TOLERANCE) {
+      clearHold()
+      if (contextMenuOpen()) closeMenus()
+    }
     const data = active.data.current as DndData | undefined
     const overData = over?.data.current as DndData | undefined
     const side = sidebar.current
@@ -124,6 +143,7 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
     setGroup(null)
     setPlan(null)
     clearExpandTimer()
+    clearHold()
   }
 
   return (
@@ -131,13 +151,25 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
       <DndContext
         sensors={sensors}
         collisionDetection={smallestUnderPointer}
-        onDragStart={({ active }: DragStartEvent) => {
+        onDragStart={({ active, activatorEvent }: DragStartEvent) => {
           const data = (active.data.current as DndData) ?? null
           setActive(data)
           const item = itemOf(data ?? undefined)
           const selected = sidebar.current?.selected ?? []
           setGroup(item && selected.length > 1 && selected.some((s) => s.kind === item.kind && s.id === item.id) ? selected : null)
           suppressClick.current = true
+          // Touch: a long press on a row opens its menu, as it does elsewhere. The row lifts first (so it can be
+          // dragged right away); held still a moment longer, its menu opens beside the finger. The browser's own
+          // long-press menu doesn't come reliably while a drag holds the touch, so it is asked for here.
+          if (activatorEvent && 'touches' in activatorEvent) {
+            const target = activatorEvent.target
+            holdTimer.current = window.setTimeout(() => {
+              holdTimer.current = undefined
+              if (contextMenuOpen() || !(target instanceof Element)) return
+              const { x, y } = pointerPosition(activatorEvent, { x: 0, y: 0 })
+              target.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: x, clientY: y }))
+            }, MENU_AFTER)
+          }
         }}
         onDragMove={onMove}
         onDragOver={onMove}
@@ -187,7 +219,9 @@ export function AppDnd({ onNoteDroppedOnCanvas, children }: { onNoteDroppedOnCan
             {children}
           </div>
         </TreeDndContext.Provider>
-        <DragOverlay dropAnimation={null}>
+        {/* Above the phone sidebar (z-40), below menus (z-50): a row held still on a touch screen opens its menu
+            while the row is lifted, and the menu stays readable */}
+        <DragOverlay dropAnimation={null} zIndex={45}>
           {active && (active.type === 'note' || active.type === 'folder' || active.type === 'board') && (
             <div className="flex h-9 w-56 items-center gap-2 rounded-md border bg-popover px-2.5 text-sm text-popover-foreground shadow-md">
               {group ? (

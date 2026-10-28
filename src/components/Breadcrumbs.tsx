@@ -41,7 +41,7 @@ export function Breadcrumbs({ folderId, current }: { folderId: string | null; cu
                 {folder ? (
                   <button
                     onClick={() => openFolder(folder.id)}
-                    className="flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-foreground"
+                    className="flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-foreground pointer-coarse:min-h-9 pointer-coarse:min-w-9 pointer-coarse:justify-center"
                   >
                     {(i === 0 || parent) && <FolderIcon className={cn('size-3.5 shrink-0', i !== 0 && 'sm:hidden')} />}
                     <span className="max-w-40 truncate max-sm:sr-only">{folder.name}</span>

@@ -97,13 +97,13 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Boar
           )}
           {selected && !editing && (
             <div role="toolbar" aria-label="Arrow" className="flex gap-0.5 rounded-lg border bg-popover p-1 shadow-md">
-              <Button variant="ghost" size="icon-xs" aria-label={label ? 'Edit label' : 'Add label'} onClick={() => board.setEditingId(id)}>
+              <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label={label ? 'Edit label' : 'Add label'} onClick={() => board.setEditingId(id)}>
                 <Tag />
               </Button>
-              <Button variant="ghost" size="icon-xs" aria-label="Reverse direction" onClick={() => board.reverseEdge(id)}>
+              <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label="Reverse direction" onClick={() => board.reverseEdge(id)}>
                 <ArrowLeftRight />
               </Button>
-              <Button variant="ghost" size="icon-xs" aria-label="Delete arrow" onClick={() => board.removeEdges([id])}>
+              <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label="Delete arrow" onClick={() => board.removeEdges([id])}>
                 <Trash2 />
               </Button>
             </div>

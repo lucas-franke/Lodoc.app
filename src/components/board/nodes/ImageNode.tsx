@@ -28,7 +28,7 @@ export function ImageNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
       />
       <NodeToolbar isVisible={selected} position={Position.Top}>
         <div role="toolbar" aria-label="Image" className="nodrag flex rounded-lg border bg-popover p-1 shadow-md">
-          <Button variant="ghost" size="icon-xs" aria-label="Connect to…" onClick={() => board.connectFrom(id)}>
+          <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label="Connect to…" onClick={() => board.connectFrom(id)}>
             <Spline />
           </Button>
         </div>
