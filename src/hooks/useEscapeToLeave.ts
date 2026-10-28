@@ -17,7 +17,10 @@ export function useEscapeToLeave(section: ReturnSection) {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || escapeTaken(e)) return
       e.preventDefault()
-      leavePage(section)
+      // The page's "Back to …" link knows whether that page still exists
+      const link = document.querySelector<HTMLAnchorElement>('[data-back-link]')
+      if (link) link.click()
+      else leavePage(section)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)

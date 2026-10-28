@@ -33,7 +33,7 @@ export default function NoteHistoryDialog({ noteId }: { noteId: string }) {
     const version = versions?.find((v) => v.id === selected)
     await restoreVersion(selected)
     close()
-    notify(`Restored the version from ${version ? formatDateTime(version.at) : 'earlier'}. What it said before is in its history too.`, {
+    notify(`Restored the version from ${version ? formatDateTime(version.at) : 'earlier'}`, {
       level: 'success',
     })
   }
@@ -43,7 +43,7 @@ export default function NoteHistoryDialog({ noteId }: { noteId: string }) {
       <DialogContent className="flex max-h-[min(44rem,calc(100dvh-2rem))] flex-col gap-4 sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>History of “{note ? noteTitle(note) : '…'}”</DialogTitle>
-          <DialogDescription>Earlier versions, kept on this device for 90 days. A new one is kept when you change the note, at most every 10 minutes.</DialogDescription>
+          <DialogDescription>Earlier versions, kept for 90 days.</DialogDescription>
         </DialogHeader>
         {versions && versions.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">

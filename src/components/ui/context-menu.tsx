@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { cn } from "cn"
+import { shortcutLabel } from "@/lib/keyboard"
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
@@ -229,6 +230,7 @@ function ContextMenuSeparator({
 
 function ContextMenuShortcut({
   className,
+  children,
   ...props
 }: React.ComponentProps<"span">) {
   return (
@@ -239,7 +241,9 @@ function ContextMenuShortcut({
         className
       )}
       {...props}
-    />
+    >
+      {typeof children === "string" ? shortcutLabel(children) : children}
+    </span>
   )
 }
 

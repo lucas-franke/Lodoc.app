@@ -34,7 +34,7 @@ export function SectionBlock({
 }: {
   icon: LucideIcon
   title: string
-  hint: string
+  hint?: string
   /** Shown only when the section differs from the defaults */
   onReset?: () => void
   last?: boolean
@@ -48,7 +48,7 @@ export function SectionBlock({
             <Icon aria-hidden className="size-(--icon) text-muted-foreground" />
             {title}
           </h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+          {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
         </div>
         {onReset && (
           <Button variant="ghost" size="xs" onClick={onReset} aria-label={`Reset ${title}`}>
@@ -125,7 +125,7 @@ export function SwitchRow({
 }: {
   id: string
   label: string
-  hint: ReactNode
+  hint?: ReactNode
   checked: boolean
   onChange: (checked: boolean) => void
   disabled?: boolean
@@ -134,7 +134,7 @@ export function SwitchRow({
     <div className="flex items-center justify-between gap-4">
       <div className="space-y-0.5">
         <Label htmlFor={id}>{label}</Label>
-        <p className="text-xs text-muted-foreground">{hint}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </div>
       {/* An outlined track and a solid knob when off, so the switch and its state show at 3:1 or more */}
       <Switch

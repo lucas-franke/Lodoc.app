@@ -15,8 +15,8 @@ order: 7
 
 - **Light, dark or system**.
 - **Tint**: Sand, Rose, Sky, Sage or Lavender, soft in light mode and in tinted darks in dark mode. *Neutral* keeps it grey.
-- **Gradient**: a gentle diagonal gradient behind the page.
-- **Tinted text**: gives the text a touch of the tint colour.
+- **Gradient**: a gentle diagonal gradient behind the page (not shown while high contrast is on).
+- **Tinted text**: gives the text a touch of the tint colour (shown once you pick a tint).
 
 ## Pages
 

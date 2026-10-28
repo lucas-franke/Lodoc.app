@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 import { cn } from "cn"
+import { shortcutLabel } from "@/lib/keyboard"
 
 import {
   Dialog,
@@ -174,6 +175,7 @@ function CommandItem({
 
 function CommandShortcut({
   className,
+  children,
   ...props
 }: React.ComponentProps<"span">) {
   return (
@@ -184,7 +186,9 @@ function CommandShortcut({
         className
       )}
       {...props}
-    />
+    >
+      {typeof children === "string" ? shortcutLabel(children) : children}
+    </span>
   )
 }
 

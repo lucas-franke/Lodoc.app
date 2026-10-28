@@ -318,7 +318,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                 {topBoards.length ? (
                   topBoards.map((board) => <BoardItem key={board.id} board={board} />)
                 ) : (
-                  <EmptyHint>{boards.length ? 'Boards outside folders appear here' : 'No boards yet'}</EmptyHint>
+                  !boards.length && <EmptyHint>No boards yet</EmptyHint>
                 )}
               </Section>
               <Section
@@ -336,7 +336,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                 {unfiled.length ? (
                   unfiled.map((note) => <NoteItem key={note.id} note={note} />)
                 ) : (
-                  <EmptyHint>Notes outside folders appear here</EmptyHint>
+                  !notes.length && <EmptyHint>No notes yet</EmptyHint>
                 )}
               </Section>
               {tags.length > 0 && (

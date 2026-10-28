@@ -49,8 +49,6 @@ export function SortMenu({ sort, onChange }: { sort: NoteSort; onChange: (sort: 
             {direction === sort.direction && <Check className="ml-auto" />}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <p className="px-1.5 py-1 text-xs text-muted-foreground">Pinned notes stay on top.</p>
       </DropdownMenuContent>
     </DropdownMenu>
   )

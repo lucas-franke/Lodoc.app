@@ -28,17 +28,20 @@ export function useBackupStatus(hasNotes: boolean) {
   const auto = useAutoBackup()
   const paused = auto.status === 'paused'
   const autoError = auto.status === 'on' && !!auto.error
+  // "Backed up 3 days ago" (by hand or into the folder)
   const status = paused
-    ? 'Automatic backup paused'
+    ? 'Backup paused'
     : autoError
-      ? 'Automatic backup failed'
+      ? 'Backup failed'
       : lastExport
-        ? `${auto.status === 'on' ? 'Saved to folder' : 'Last backup'} ${formatRelative(lastExport, now)}`
+        ? `Backed up ${formatRelative(lastExport, now)}`
         : 'Never backed up'
+  // Beside the word "Backup" in the sidebar: just the when ("3 days ago"), or what is wrong
+  const short = paused ? 'Paused' : autoError ? 'Failed' : lastExport ? formatRelative(lastExport, now) : 'Never'
   const overdue = paused || autoError || (hasNotes && (!lastExport || now - lastExport > EXPORT_REMINDER_DAYS * DAY))
   const urgent = paused || autoError || (hasNotes && (!lastExport || now - lastExport > EXPORT_WARNING_DAYS * DAY))
 
-  return { auto, status, overdue, urgent, now, refresh }
+  return { auto, status, short, overdue, urgent, now, refresh }
 }
 
 /** Saves the backup file and tells every status line */

@@ -28,4 +28,4 @@ Backups, downloads and automatic backups go only where you put them.
 
 ## Removing everything
 
-Delete things in Lodoc and empty the Trash (*Activity → Deleted*), or clear the site data for lodoc.app in your browser's settings. That removes everything Lodoc stored on this device, so export a backup first if you want to keep it.
+Delete things in Lodoc and empty the Trash (*Activity → Trash*), or clear the site data for lodoc.app in your browser's settings. That removes everything Lodoc stored on this device, so export a backup first if you want to keep it.

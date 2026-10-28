@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { shortcutLabel } from '@/lib/keyboard'
 
 /** Tooltip for icon-only buttons; `shortcut` is shown as a muted hint. */
 export function Tip({ label, shortcut, children }: { label: string; shortcut?: string; children: ReactElement }) {
@@ -8,7 +9,7 @@ export function Tip({ label, shortcut, children }: { label: string; shortcut?: s
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent>
         {label}
-        {shortcut && <kbd className="ml-2 font-sans opacity-70">{shortcut}</kbd>}
+        {shortcut && <kbd className="ml-2 font-sans opacity-70">{shortcutLabel(shortcut)}</kbd>}
       </TooltipContent>
     </Tooltip>
   )

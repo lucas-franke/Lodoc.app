@@ -27,7 +27,6 @@ export function SettingsView({ tab }: { tab: SettingsTab }) {
     <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
       <BackLink section="settings" />
       <h1 className="font-page text-4xl font-bold tracking-tight">Settings</h1>
-      <p className="mt-2 text-sm text-muted-foreground">How Lodoc looks and works, and your backups. Saved in this browser.</p>
       <nav aria-label="Settings" data-focus-inset className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
         {TABS.map(({ id, title, icon: Icon }) => (
           <a

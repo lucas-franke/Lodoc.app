@@ -18,7 +18,7 @@ const TABS: { tab: ActivityTab; label: string }[] = [
   { tab: 'all', label: 'All' },
   { tab: 'changes', label: 'Changes' },
   { tab: 'messages', label: 'Messages' },
-  { tab: 'deleted', label: 'Deleted' },
+  { tab: 'trash', label: 'Trash' },
 ]
 
 const ITEM_ICONS = { note: FileText, folder: Folder, board: LayoutGrid } as const
@@ -26,7 +26,7 @@ const ITEM_ICONS = { note: FileText, folder: Folder, board: LayoutGrid } as cons
 /**
  * Activity: a changelog of what happened to the notes (created, renamed, moved, deleted, restored, imported,
  * backed up), every message the app showed (they close by themselves, so this is where to read them again),
- * and the trash, as the "Deleted" tab. "Back to …" (or Escape) returns to where you came from.
+ * and the Trash tab. "Back to …" (or Escape) returns to where you came from.
  */
 export function ActivityView({ tab }: { tab: ActivityTab }) {
   const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
@@ -35,9 +35,6 @@ export function ActivityView({ tab }: { tab: ActivityTab }) {
     <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
       <BackLink section="activity" />
       <h1 className="font-page text-4xl font-bold tracking-tight">Activity</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        What changed, what was deleted and the messages you were shown, newest first.
-      </p>
       <nav aria-label="Filter" data-focus-inset className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden">
         {TABS.map(({ tab: t, label }) => (
           <a
@@ -50,23 +47,23 @@ export function ActivityView({ tab }: { tab: ActivityTab }) {
             )}
           >
             {label}
-            {t === 'deleted' && trashCount > 0 && <span className="ml-1.5 text-xs text-muted-foreground tabular-nums">{trashCount}</span>}
+            {t === 'trash' && trashCount > 0 && <span className="ml-1.5 text-xs text-muted-foreground tabular-nums">{trashCount}</span>}
           </a>
         ))}
       </nav>
-      {tab === 'deleted' ? <DeletedList /> : <Timeline tab={tab} />}
+      {tab === 'trash' ? <DeletedList /> : <Timeline tab={tab} />}
     </div>
   )
 }
 
-const MATCHES: Record<Exclude<ActivityTab, 'deleted'>, (e: ActivityEntry) => boolean> = {
+const MATCHES: Record<Exclude<ActivityTab, 'trash'>, (e: ActivityEntry) => boolean> = {
   all: () => true,
   changes: (e) => e.kind !== 'message',
   messages: (e) => e.kind === 'message',
 }
 
 /** Activity lines, grouped by day, with their items' current names and whether deletions can still be undone */
-function useTimeline(tab: Exclude<ActivityTab, 'deleted'>) {
+function useTimeline(tab: Exclude<ActivityTab, 'trash'>) {
   return useLiveQuery(async () => {
     const entries = await db.activity.orderBy('at').reverse().filter(MATCHES[tab]).toArray()
     const ids = (type: string) => [...new Set(entries.flatMap((e) => (e.item?.type === type ? [e.item.id] : [])))]
@@ -97,7 +94,7 @@ function dayLabel(time: number, now: number) {
   return formatLongDate(time)
 }
 
-function Timeline({ tab }: { tab: Exclude<ActivityTab, 'deleted'> }) {
+function Timeline({ tab }: { tab: Exclude<ActivityTab, 'trash'> }) {
   const data = useTimeline(tab)
   const [now] = useState(Date.now)
   // Opening the page (and anything that arrives while it is open) counts as seen: no more dot in the sidebar

@@ -57,7 +57,9 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <p className="text-sm text-muted-foreground">
-          {plural(notes.length, 'note')} · {plural(folders.length, 'folder')} · {plural(boards.length, 'board')}
+          {[plural(notes.length, 'note'), folders.length > 0 && plural(folders.length, 'folder'), boards.length > 0 && plural(boards.length, 'board')]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
         <WritingDays notes={notes} />
       </div>

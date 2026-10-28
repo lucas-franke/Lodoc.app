@@ -27,14 +27,15 @@ export function useRoute(): Route {
   return useSyncExternalStore(subscribe, getRoute)
 }
 
-/** The filters of the Activity page; "deleted" is what used to be the Trash page */
-export type ActivityTab = 'all' | 'changes' | 'messages' | 'deleted'
+/** The filters of the Activity page; "trash" holds the deleted items */
+export type ActivityTab = 'all' | 'changes' | 'messages' | 'trash'
 
 /** #/activity, #/activity/<tab>, and the old #/trash (bookmarks, history) for the deleted items */
 const activityTabOfHash = (): ActivityTab | null => {
   const hash = window.location.hash
-  if (hash === '#/trash') return 'deleted'
-  const m = /^#\/activity(?:\/(changes|messages|deleted))?$/.exec(hash)
+  // Older links: the Trash page, and the tab's former name
+  if (hash === '#/trash' || hash === '#/activity/deleted') return 'trash'
+  const m = /^#\/activity(?:\/(changes|messages|trash))?$/.exec(hash)
   return m ? ((m[1] as ActivityTab | undefined) ?? 'all') : null
 }
 
@@ -50,7 +51,7 @@ export type SettingsTab = 'appearance' | 'accessibility' | 'backup'
 
 /** #/settings (Appearance), #/settings/accessibility, #/settings/backup */
 const settingsTabOfHash = (): SettingsTab | null => {
-  const m = /^#\/settings(?:\/(accessibility|backup))?$/.exec(window.location.hash)
+  const m = /^#\/settings(?:\/(appearance|accessibility|backup))?$/.exec(window.location.hash)
   return m ? ((m[1] as SettingsTab | undefined) ?? 'appearance') : null
 }
 
@@ -76,7 +77,11 @@ const returnTo: Record<ReturnSection, string> = { settings: '', activity: '' }
 window.addEventListener('hashchange', (e) => {
   const from = new URL(e.oldURL).hash
   const to = sectionOf(window.location.hash)
-  if (to && sectionOf(from) !== to) returnTo[to] = from
+  const fromSection = sectionOf(from)
+  // Going back to a page from the one it led to (Settings → Activity → back) keeps where that page leads, so
+  // the two don't send you back and forth between each other
+  const goingBack = fromSection !== null && sectionOf(returnTo[fromSection]) === to
+  if (to && fromSection !== to && !goingBack) returnTo[to] = from
 })
 
 /** The page (its hash) that Settings or Activity was opened from */

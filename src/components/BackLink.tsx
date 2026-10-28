@@ -28,15 +28,17 @@ function usePageName(hash: string): string | null | undefined {
 
 /**
  * "← Back to Launch plan" above the title of Settings and Activity: back to the page it was opened from, named
- * so you know where it leads (Escape does the same). Just "Back" if that page has been deleted since.
+ * so you know where it leads (Escape does the same). To the overview if that page has been deleted since.
  */
 export function BackLink({ section }: { section: ReturnSection }) {
   const hash = useReturnTo(section)
   const name = usePageName(hash)
-  const label = name ? `Back to ${name}` : 'Back'
+  // null: the page is gone; undefined: its name is still being looked up
+  const gone = name === null
+  const label = gone ? 'Back to Overview' : name ? `Back to ${name}` : 'Back'
   return (
     <a
-      href={hash || '#'}
+      href={gone || !hash ? '#' : hash}
       aria-keyshortcuts="Escape"
       title={name && name.length > 40 ? label : undefined}
       className="-ml-2 mb-4 inline-flex h-8 max-w-full items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"

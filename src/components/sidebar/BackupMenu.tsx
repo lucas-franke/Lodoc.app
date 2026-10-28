@@ -19,10 +19,11 @@ import { cn } from '@/lib/utils'
  * backup paused or failing), so it is noticed. Automatic backups and keeping data safe live in Settings → Backup.
  */
 export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
-  const { auto, status, overdue, refresh } = useBackupStatus(hasNotes)
+  const { auto, status, short, overdue, refresh } = useBackupStatus(hasNotes)
   const importFile = useImportFile()
+  // Only while automatic backup is in use ("off" would just be noise)
   const autoSummary =
-    auto.status === 'on' ? `Backing up to “${auto.folder}”` : auto.status === 'paused' ? 'Automatic backup paused' : 'Automatic backup: off'
+    auto.status === 'on' ? `Backing up to “${auto.folder}”` : auto.status === 'paused' ? 'Automatic backup paused' : null
 
   return (
     <>
@@ -48,13 +49,13 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             >
               {/* Filled, so it shows at this size; the "!" in the pill color */}
               {overdue && <AlertFilled className="size-3.5 shrink-0" markClassName="text-amber-100 dark:text-sidebar" />}
-              <span className="truncate">{status}</span>
+              <span className="truncate">{short}</span>
             </span>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-60">
           <DropdownMenuItem onSelect={() => void exportBackup()}>
-            <Download /> Export all notes (.json)
+            <Download /> Export all notes
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={importFile.pick}>
             <Upload /> Import from file…
@@ -79,7 +80,7 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             <Settings />
             <span className="flex flex-col">
               <span>Backup settings…</span>
-              <span className="text-xs text-muted-foreground">{autoSummary}</span>
+              {autoSummary && <span className="text-xs text-muted-foreground">{autoSummary}</span>}
             </span>
           </DropdownMenuItem>
         </DropdownMenuContent>

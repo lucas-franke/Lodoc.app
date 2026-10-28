@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "cn"
+import { shortcutLabel } from "@/lib/keyboard"
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
 
@@ -190,6 +191,7 @@ function DropdownMenuSeparator({
 
 function DropdownMenuShortcut({
   className,
+  children,
   ...props
 }: React.ComponentProps<"span">) {
   return (
@@ -200,7 +202,9 @@ function DropdownMenuShortcut({
         className
       )}
       {...props}
-    />
+    >
+      {typeof children === "string" ? shortcutLabel(children) : children}
+    </span>
   )
 }
 

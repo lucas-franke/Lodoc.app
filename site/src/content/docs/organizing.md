@@ -33,6 +33,6 @@ Type a thought into **Write something down…** at the top of the overview and p
 
 ## The Trash and Activity
 
-Deleting moves a note, folder or board to the Trash, and the message that follows offers **Undo**. **Activity** (in the sidebar) has the Trash under *Deleted*: things wait there for 30 days and can be restored, together with their cards on boards.
+Deleting moves a note, folder or board to the Trash, and the message that follows offers **Undo**. **Activity** (in the sidebar) has the **Trash** as a tab: things wait there for 30 days and can be restored, together with their cards on boards.
 
 Activity also lists what changed and every message Lodoc showed you, so a message that closed by itself is never lost.
