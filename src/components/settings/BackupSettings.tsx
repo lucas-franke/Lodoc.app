@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ArchiveRestore, Download, Folder, FolderSync, HardDrive, RefreshCw, ShieldCheck, Upload, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { SECTION_SCROLL, SectionBlock, SettingsFooter } from '@/components/settings/controls'
+import { SectionBlock } from '@/components/settings/controls'
 import { Button } from '@/components/ui/button'
 import { db } from '@/db/db'
 import { exportBackup, useBackupStatus, usePersistedStorage } from '@/hooks/useBackupStatus'
@@ -22,8 +22,7 @@ export function BackupSettings() {
   const used = useStorageUsed()
 
   return (
-    <>
-      <div className={SECTION_SCROLL}>
+    <div>
         <SectionBlock icon={ArchiveRestore} title="Backup file" hint="All notes, boards, images and your look in one .json file">
           <p className={cn('text-sm', urgent && 'text-amber-700 dark:text-amber-400')} data-backup-status>
             {status}
@@ -149,9 +148,7 @@ export function BackupSettings() {
           </p>
         </SectionBlock>
         {importFile.element}
-      </div>
-      <SettingsFooter />
-    </>
+    </div>
   )
 }
 

@@ -1,10 +1,9 @@
 import { useEffect } from 'react'
 
 // A few app-wide requests that the command palette (or a shortcut) makes of components elsewhere,
-// e.g. "open Settings on the Backup tab" from the Backup menu. An event can carry a detail (such as the tab).
+// e.g. "open the shortcut list". An event can carry a detail.
 
 type AppEvent =
-  | 'open-settings'
   | 'open-palette'
   | 'open-shortcuts'
   | 'backup-exported'

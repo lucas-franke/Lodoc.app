@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { exportBackup, useBackupStatus } from '@/hooks/useBackupStatus'
+import { openSettings } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
 
 /**
@@ -59,7 +60,7 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             </span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => emitAppEvent('open-settings', { tab: 'backup' })}>
+          <DropdownMenuItem onSelect={() => openSettings('backup')}>
             <Settings />
             <span className="flex flex-col">
               <span>Backup settings…</span>

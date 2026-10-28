@@ -1,5 +1,5 @@
 import { Contrast, Monitor, Waves } from 'lucide-react'
-import { Row, SECTION_SCROLL, SectionBlock, SettingsFooter, Tiles } from '@/components/settings/controls'
+import { Row, SectionBlock, Tiles } from '@/components/settings/controls'
 import { useMediaQuery } from '@/hooks/useRootData'
 import { updateAppearance, useAppearance } from '@/hooks/useAppearance'
 import { cn } from '@/lib/utils'
@@ -14,8 +14,7 @@ export function AccessibilitySettings() {
   const systemReduce = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   return (
-    <>
-      <div className={SECTION_SCROLL}>
+    <div>
         <SectionBlock
           icon={Contrast}
           title="Contrast"
@@ -57,9 +56,7 @@ export function AccessibilitySettings() {
             <p className="text-xs text-muted-foreground">Reduced: no animations; things change at once. Full keeps them even if the system asks for less.</p>
           </Row>
         </SectionBlock>
-      </div>
-      <SettingsFooter />
-    </>
+    </div>
   )
 }
 

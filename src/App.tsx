@@ -7,7 +7,8 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { AppDnd } from '@/components/dnd/AppDnd'
 import { FolderView } from '@/components/folder/FolderView'
 import { BoardPageActions, FolderPageActions, NotePageActions } from '@/components/PageActions'
-import { SettingsHost } from '@/components/settings/SettingsHost'
+import { SettingsPage } from '@/components/settings/SettingsPage'
+import { usePreloadSettings } from '@/components/settings/load-settings'
 import { HomeView } from '@/components/home/HomeView'
 import { Welcome } from '@/components/home/Welcome'
 import { openTodaysJournal } from '@/lib/journal'
@@ -26,8 +27,8 @@ import { useSidebarSwipe } from '@/hooks/useSidebarSwipe'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
 import { useMilestones } from '@/hooks/useMilestones'
 import { useMarkdownImport } from '@/hooks/useMarkdownImport'
-import { openNote, useActivityTab, useRoute, useTagRoute, type RouteType } from '@/hooks/useRoute'
-import { emitAppEvent, useAppEvent } from '@/lib/app-events'
+import { openNote, openSettings, useActivityTab, useRoute, useSettingsTab, useTagRoute, type RouteType } from '@/hooks/useRoute'
+import { useAppEvent } from '@/lib/app-events'
 import { cn } from '@/lib/utils'
 
 // The editor is the bulk of the bundle; load it separately so the shell appears fast
@@ -51,6 +52,8 @@ export default function App() {
   const route = useRoute()
   const activityTab = useActivityTab()
   const tagRoute = useTagRoute()
+  const settingsTab = useSettingsTab()
+  usePreloadSettings()
   // A new note that was left untouched isn't kept when you move on
   useDiscardUntouchedNote(route?.type === 'note' ? route.id : null)
   // A quiet word at the 10th, 100th… note and each year of writing here
@@ -99,10 +102,13 @@ export default function App() {
     if (route?.type === 'note') rememberLastNote(route.id)
   }, [route])
 
-  // On small screens the sidebar is an overlay; close it once a page is opened
+  // On small screens the sidebar is an overlay; close it once a page is opened (any page: a note, Activity,
+  // Settings, a tag, the overview)
   useEffect(() => {
-    if (route && isNarrow()) setSidebarOpen(false)
-  }, [route])
+    const onHashChange = () => isNarrow() && setSidebarOpen(false)
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
 
   const onBoard = current?.type === 'board'
   // Boards pan with sideways swipes, so the edge swipe doesn't open the sidebar there
@@ -138,7 +144,7 @@ export default function App() {
         setPaletteOpen((open) => !open)
       } else if (mod && !e.altKey && e.key === ',') {
         e.preventDefault()
-        emitAppEvent('open-settings')
+        openSettings()
       } else if (e.key === '?' && !mod && !isTyping(e.target)) {
         e.preventDefault()
         setShortcutsOpen(true)
@@ -225,6 +231,8 @@ export default function App() {
               </Suspense>
             ) : activityTab ? (
               <ActivityView tab={activityTab} />
+            ) : settingsTab ? (
+              <SettingsPage tab={settingsTab} />
             ) : tagRoute !== null ? (
               <TagView key={tagRoute} tag={tagRoute} />
             ) : route ? (
@@ -238,7 +246,6 @@ export default function App() {
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} newNoteFolderId={newNoteFolderId} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
-      <SettingsHost />
       {markdownImport.element}
       {historyFor && (
         <Suspense fallback={null}>

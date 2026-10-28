@@ -4,10 +4,10 @@ description: Light and dark, a colour tint, fonts, textures, the sidebar, high c
 order: 7
 ---
 
-**Settings** at the bottom of the sidebar (or `Ctrl` + `,`) opens Settings. Its **Appearance** section changes how Lodoc looks. Every change shows right away in the preview at the top, a small Lodoc with its sidebar and a note, so you can try combinations as you go. **Randomize** picks a look for you, and **Reset all** goes back to the start.
+**Settings** at the bottom of the sidebar (or `Ctrl` + `,`) opens the Settings page. Its **Appearance** tab changes how Lodoc looks. Every change shows right away in the app around it, so you can try combinations as you go; what only affects notes, like the font and text size, shows on your notes. **Randomize** picks a look for you, and **Reset all** goes back to the start. `Esc` (or Back) returns to where you were.
 
 <figure class="shot">
-  <img src="../img/appearance-light.jpg" class="dark:hidden" alt="Settings open on Appearance, with the preview and a sage tint" width="1280" height="800" loading="lazy" />
+  <img src="../img/appearance-light.jpg" class="dark:hidden" alt="The Settings page on Appearance, with a sage tint" width="1280" height="800" loading="lazy" />
   <img src="../img/appearance-dark.jpg" class="hidden dark:block" alt="" width="1280" height="800" loading="lazy" />
 </figure>
 

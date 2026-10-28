@@ -1,8 +1,7 @@
 import { Check, Dices, FileText, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { AppearancePreview } from '@/components/settings/AppearancePreview'
-import { Row, SECTION_SCROLL, SectionBlock, SettingsFooter, StrengthSlider, SwitchRow, Tiles } from '@/components/settings/controls'
+import { Row, SectionBlock, SettingsToolbar, StrengthSlider, SwitchRow, Tiles } from '@/components/settings/controls'
 import { useRootData } from '@/hooks/useRootData'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -16,7 +15,6 @@ import {
 } from '@/hooks/useAppearance'
 import { useWideScreen } from '@/hooks/useWideScreen'
 import { crossfade, playOnce } from '@/lib/joy'
-import { useRoute } from '@/hooks/useRoute'
 import {
   APPEARANCE_SECTIONS,
   DEFAULT_APPEARANCE,
@@ -48,18 +46,15 @@ export function AppearanceSettings() {
   const wide = useWideScreen()
   const { theme, resolvedTheme, setTheme } = useTheme()
   const mode = resolvedTheme === 'dark' ? 'dark' : 'light'
-  const onBoard = useRoute()?.type === 'board'
-  const [flash, setFlash] = useState(0)
-  const highlight = () => setFlash((n) => n + 1)
 
   // High contrast turns the gradient off (lib/appearance.ts); the switch says so
   const high = useRootData('contrast') === 'high'
 
-  // After "Reset all" or "Randomize": what to bring back with Undo (offered in the footer until the next change)
+  // After "Reset all" or "Randomize": what to bring back with Undo (offered beside them until the next change)
   const [undo, setUndo] = useState<{ appearance: Appearance; theme: string | undefined; status: string } | null>(null)
 
   // The texture tiles below show the shader-rendered papers, not only the chosen one. They are drawn just
-  // after the window has appeared, so the shader work doesn't stall its opening animation
+  // after the page has appeared, so the shader work doesn't hold up showing it
   useEffect(() => {
     const id = window.setTimeout(showPaperTextureSamples, 150)
     return () => window.clearTimeout(id)
@@ -68,7 +63,6 @@ export function AppearanceSettings() {
   const change = (patch: Partial<Appearance>) => {
     updateAppearance(patch)
     setUndo(null)
-    highlight()
   }
   // A ToggleGroup "single" may report '' when the active item is clicked again; keep the current value then
   const choose =
@@ -82,14 +76,12 @@ export function AppearanceSettings() {
     resetAppearanceKeys(APPEARANCE_SECTIONS[s])
     if (s === 'theme') setTheme('system')
     setUndo(null)
-    highlight()
   }
   const resetAll = () => {
     const before = getAppearance()
     const beforeTheme = theme
     resetAppearance()
     setTheme('system')
-    highlight()
     setUndo({ appearance: before, theme: beforeTheme, status: 'Back to defaults' })
   }
   const randomize = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -99,7 +91,6 @@ export function AppearanceSettings() {
     if (dice) playOnce(dice, 'joy-roll')
     // Undo keeps the look from before the first of several rolls in a row
     crossfade(() => updateAppearance(randomAppearance(before)))
-    highlight()
     setUndo((u) => (u?.status === 'Randomized' ? u : { appearance: before, theme, status: 'Randomized' }))
   }
   const undoReset = () => {
@@ -107,23 +98,26 @@ export function AppearanceSettings() {
     updateAppearance(undo.appearance)
     if (undo.theme) setTheme(undo.theme)
     setUndo(null)
-    highlight()
   }
 
   return (
     <>
-      {/* Settings covers the page, so the preview stays in view while the settings below scroll */}
-      <div className="border-b p-4 sm:px-6">
-        {/* On a phone just the note: the sidebar there lies over the page anyway */}
-        <div className="sm:hidden">
-          <AppearancePreview sidebar="connected" autoCover={a.autoCover} flash={flash} compact />
-        </div>
-        <div className="hidden sm:block">
-          <AppearancePreview sidebar={wide ? a.sidebar : 'connected'} autoCover={a.autoCover} flash={flash} />
-        </div>
-      </div>
-
-      <div className={SECTION_SCROLL}>
+      <SettingsToolbar>
+        <Button variant="ghost" size="sm" onClick={resetAll}>
+          <RotateCcw /> Reset all
+        </Button>
+        <Button variant="ghost" size="sm" onClick={randomize}>
+          <Dices /> Randomize
+        </Button>
+        {undo && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground" role="status">
+            {undo.status}
+            <Button variant="outline" size="xs" onClick={undoReset}>
+              Undo
+            </Button>
+          </span>
+        )}
+      </SettingsToolbar>
         <SectionBlock
           icon={Palette}
           title="Theme"
@@ -137,7 +131,6 @@ export function AppearanceSettings() {
               onChange={(v) => {
                 setTheme(v)
                 setUndo(null)
-                highlight()
               }}
               options={[
                 { value: 'light', name: 'Light', ariaLabel: 'Light mode', preview: <Sun className="size-5" /> },
@@ -161,7 +154,7 @@ export function AppearanceSettings() {
                     value={t.id}
                     aria-label={t.name}
                     data-tint-swatch={t.id}
-                    className="size-9 rounded-full border border-control-border p-0 focus-visible:border-control-border aria-checked:ring-2 aria-checked:ring-foreground aria-checked:ring-offset-2 aria-checked:ring-offset-popover"
+                    className="size-9 rounded-full border border-control-border p-0 focus-visible:border-control-border aria-checked:ring-2 aria-checked:ring-foreground aria-checked:ring-offset-2 aria-checked:ring-offset-background"
                     style={{ backgroundColor: tintSwatchColor(t, mode) }}
                   >
                     {a.tint === t.id && <Check className="text-foreground" />}
@@ -195,11 +188,6 @@ export function AppearanceSettings() {
           hint="Notes, folders and the overview"
           onReset={isDefault('pages') ? undefined : () => resetSection('pages')}
         >
-          {onBoard && (
-            <p className="rounded-md bg-muted/60 px-2.5 py-2 text-xs text-muted-foreground" data-board-hint>
-              Boards don't show page width or texture; the page in the preview above does.
-            </p>
-          )}
           <Row label="Font">
             <Tiles
               label="Page font"
@@ -303,24 +291,6 @@ export function AppearanceSettings() {
             </Row>
           )}
         </SectionBlock>
-      </div>
-
-      <SettingsFooter>
-        <Button variant="ghost" size="sm" onClick={resetAll}>
-          <RotateCcw /> Reset all
-        </Button>
-        <Button variant="ghost" size="sm" onClick={randomize}>
-          <Dices /> Randomize
-        </Button>
-        {undo && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground" role="status">
-            {undo.status}
-            <Button variant="outline" size="xs" onClick={undoReset}>
-              Undo
-            </Button>
-          </span>
-        )}
-      </SettingsFooter>
     </>
   )
 }

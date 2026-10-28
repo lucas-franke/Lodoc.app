@@ -45,6 +45,38 @@ export function useActivityTab(): ActivityTab | null {
 
 export const activityHash = (tab: ActivityTab = 'all') => (tab === 'all' ? '#/activity' : `#/activity/${tab}`)
 
+/** The sections of the Settings page */
+export type SettingsTab = 'appearance' | 'accessibility' | 'backup'
+
+/** #/settings (Appearance), #/settings/accessibility, #/settings/backup */
+const settingsTabOfHash = (): SettingsTab | null => {
+  const m = /^#\/settings(?:\/(accessibility|backup))?$/.exec(window.location.hash)
+  return m ? ((m[1] as SettingsTab | undefined) ?? 'appearance') : null
+}
+
+/** The Settings tab shown, or null on other pages */
+export function useSettingsTab(): SettingsTab | null {
+  return useSyncExternalStore(subscribe, settingsTabOfHash)
+}
+
+export const settingsHash = (tab: SettingsTab = 'appearance') => (tab === 'appearance' ? '#/settings' : `#/settings/${tab}`)
+
+export function openSettings(tab: SettingsTab = 'appearance') {
+  window.location.hash = settingsHash(tab)
+}
+
+// Where Settings was opened from, so Escape there goes back to it (the overview after a reload on Settings)
+let beforeSettings = ''
+window.addEventListener('hashchange', (e) => {
+  const from = new URL(e.oldURL).hash
+  if (!from.startsWith('#/settings')) beforeSettings = from
+})
+
+/** Back to the page Settings was opened from */
+export function leaveSettings() {
+  window.location.hash = beforeSettings
+}
+
 /** The tag whose notes are shown (#/tag/<name>), or null */
 const tagOfHash = () => {
   const m = /^#\/tag\/(.+)$/.exec(window.location.hash)
@@ -59,7 +91,8 @@ export function useIsHome(): boolean {
   const route = useRoute()
   const activity = useActivityTab()
   const tag = useTagRoute()
-  return route === null && activity === null && tag === null
+  const settings = useSettingsTab()
+  return route === null && activity === null && tag === null && settings === null
 }
 
 export function useActiveNoteId(): string | null {

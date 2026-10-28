@@ -38,7 +38,7 @@ import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
 import { createNote, noteSnippetText, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
-import { openBoard, openFolder, openNote, openTag, openActivity, useRoute } from '@/hooks/useRoute'
+import { openBoard, openFolder, openNote, openTag, openActivity, useRoute, openSettings } from '@/hooks/useRoute'
 import { updateAppearance } from '@/hooks/useAppearance'
 import { emitAppEvent } from '@/lib/app-events'
 import { reducedMotion } from '@/lib/joy'
@@ -97,9 +97,9 @@ export function CommandPalette({
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
     ...(onBoard ? [{ id: 'tidy-board', label: 'Tidy up this board', icon: LayoutGrid, keywords: 'arrange grid align layout clean order', run: () => emitAppEvent('tidy-board') }] : []),
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },
-    { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme dark light mode font color tint texture settings', run: () => emitAppEvent('open-settings', { tab: 'appearance' }) },
-    { id: 'settings', label: 'Open Settings', icon: Settings, keywords: 'preferences options', shortcut: 'Ctrl ,', run: () => emitAppEvent('open-settings') },
-    { id: 'backup-settings', label: 'Backup settings', icon: ArchiveRestore, keywords: 'automatic folder safe storage', run: () => emitAppEvent('open-settings', { tab: 'backup' }) },
+    { id: 'appearance', label: 'Open Appearance', icon: Palette, keywords: 'theme dark light mode font color tint texture settings', run: () => openSettings('appearance') },
+    { id: 'settings', label: 'Open Settings', icon: Settings, keywords: 'preferences options', shortcut: 'Ctrl ,', run: () => openSettings() },
+    { id: 'backup-settings', label: 'Backup settings', icon: ArchiveRestore, keywords: 'automatic folder safe storage', run: () => openSettings('backup') },
     { id: 'contrast', label: highContrast ? 'Turn high contrast off' : 'Turn high contrast on', icon: Contrast, keywords: 'accessibility a11y readable', run: () => updateAppearance({ contrast: highContrast ? 'standard' : 'more' }) },
     { id: 'motion', label: reducedMotion() ? 'Turn reduced motion off' : 'Turn reduced motion on', icon: Waves, keywords: 'accessibility a11y animation', run: () => updateAppearance({ motion: reducedMotion() ? 'full' : 'reduce' }) },
     { id: 'export', label: 'Export backup (.json)', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },

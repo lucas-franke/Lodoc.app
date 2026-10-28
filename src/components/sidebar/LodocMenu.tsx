@@ -8,7 +8,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { openNote } from '@/hooks/useRoute'
+import { openNote, openSettings } from '@/hooks/useRoute'
 import { emitAppEvent } from '@/lib/app-events'
 import { formatDate } from '@/lib/format'
 import { openGuideNote } from '@/lib/guide'
@@ -52,7 +52,7 @@ export function LodocMenu() {
         <DropdownMenuItem onSelect={async () => openNote(await openGuideNote())}>
           <BookOpen /> Getting started guide
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => emitAppEvent('open-settings')}>
+        <DropdownMenuItem onSelect={() => openSettings()}>
           <Settings /> Settings
           <DropdownMenuShortcut>Ctrl ,</DropdownMenuShortcut>
         </DropdownMenuItem>
