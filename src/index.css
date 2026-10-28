@@ -112,7 +112,7 @@
 [data-texture-surface='frame']::after {
     z-index: 0;
 }
-:root[data-sidebar='floating'][data-texture]:not([data-texture='none']) [data-texture-surface='frame'] > :is(aside, [data-preview-ui]) {
+:root[data-sidebar='floating'][data-texture]:not([data-texture='none']) [data-texture-surface='frame'] > aside {
     z-index: 1;
     background-color: var(--sidebar);
 }
@@ -130,11 +130,11 @@
     position: relative;
 }
 :root[data-ui-grain='true']
-    :is(aside[data-sidebar-panel], [data-preview-ui], [data-slot='sheet-content'], [data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-sub-content'], [data-slot='context-menu-content'], [data-slot='context-menu-sub-content']) {
+    :is(aside[data-sidebar-panel], [data-slot='sheet-content'], [data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-sub-content'], [data-slot='context-menu-content'], [data-slot='context-menu-sub-content']) {
     isolation: isolate;
 }
 :root[data-ui-grain='true']
-    :is(aside[data-sidebar-panel], [data-preview-ui], [data-slot='sheet-content'], [data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-sub-content'], [data-slot='context-menu-content'], [data-slot='context-menu-sub-content'])::after {
+    :is(aside[data-sidebar-panel], [data-slot='sheet-content'], [data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-sub-content'], [data-slot='context-menu-content'], [data-slot='context-menu-sub-content'])::after {
     content: '';
     position: absolute;
     inset: 0;

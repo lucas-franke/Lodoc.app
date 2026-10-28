@@ -1,7 +1,7 @@
-import { Check, Dices, FileText, LayoutGrid, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun, type LucideIcon } from 'lucide-react'
+import { Check, Dices, FileText, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun, type LucideIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState, type ReactNode } from 'react'
-import { AppearancePreview, type PreviewArea, type PreviewFlash, type PreviewView } from '@/components/appearance/AppearancePreview'
+import { AppearancePreview } from '@/components/appearance/AppearancePreview'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -46,12 +46,10 @@ const SELECTED_CLASSES =
   'border-control-border hover:bg-accent/60 focus-visible:border-control-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover data-[state=on]:border-foreground data-[state=on]:bg-accent data-[state=on]:font-medium data-[state=on]:inset-ring data-[state=on]:inset-ring-foreground'
 
 type Section = keyof typeof APPEARANCE_SECTIONS
-/** Settings that change pages; editing one switches the preview to a page */
-const PAGE_KEYS: readonly (keyof Appearance)[] = APPEARANCE_SECTIONS.pages
-
 /**
- * The Appearance settings: a panel on the right with a live preview on top, then the settings grouped by
- * where they show up (Theme everywhere, Pages, Interface).
+ * The Appearance settings: a panel on the right, the settings grouped by where they show up (Theme everywhere,
+ * Pages, Interface). Beside the page it needs no preview; on a phone, where it covers the page, a small note
+ * preview sits on top.
  */
 export function AppearancePanel({
   open,
@@ -67,16 +65,9 @@ export function AppearancePanel({
   const wide = useWideScreen()
   const { theme, resolvedTheme, setTheme } = useTheme()
   const mode = resolvedTheme === 'dark' ? 'dark' : 'light'
-  const route = useRoute()
-  const onBoard = route?.type === 'board'
-
-  // The preview shows what is open behind the panel, until the user picks a tab (per route) or edits a page setting
-  const routeKey = route ? `${route.type}:${route.id}` : ''
-  const [chosen, setChosen] = useState<{ route: string; view: PreviewView } | null>(null)
-  const view: PreviewView = chosen?.route === routeKey ? chosen.view : onBoard ? 'board' : 'page'
-  const showView = (v: PreviewView) => setChosen({ route: routeKey, view: v })
-  const [flash, setFlash] = useState<PreviewFlash>(null)
-  const highlight = (area: PreviewArea) => setFlash((f) => ({ area, n: (f?.n ?? 0) + 1 }))
+  const onBoard = useRoute()?.type === 'board'
+  const [flash, setFlash] = useState(0)
+  const highlight = () => setFlash((n) => n + 1)
 
   // High contrast turns the gradient off (lib/appearance.ts); the switch says so
   const high = useRootData('contrast') === 'high'
@@ -89,32 +80,31 @@ export function AppearancePanel({
     if (open) showPaperTextureSamples()
   }, [open])
 
-  const change = (patch: Partial<Appearance>, area: PreviewArea) => {
+  const change = (patch: Partial<Appearance>) => {
     updateAppearance(patch)
     setUndo(null)
-    if (Object.keys(patch).some((k) => PAGE_KEYS.includes(k as keyof Appearance)) && view !== 'page') showView('page')
-    highlight(area)
+    highlight()
   }
   // A ToggleGroup "single" may report '' when the active item is clicked again; keep the current value then
   const choose =
-    <K extends keyof Appearance>(key: K, area: PreviewArea) =>
+    <K extends keyof Appearance>(key: K) =>
     (value: string) =>
-      value && change({ [key]: value } as Partial<Appearance>, area)
+      value && change({ [key]: value } as Partial<Appearance>)
 
   const isDefault = (s: Section) =>
     APPEARANCE_SECTIONS[s].every((k) => a[k] === DEFAULT_APPEARANCE[k]) && (s !== 'theme' || theme === 'system')
-  const resetSection = (s: Section, area: PreviewArea) => {
+  const resetSection = (s: Section) => {
     resetAppearanceKeys(APPEARANCE_SECTIONS[s])
     if (s === 'theme') setTheme('system')
     setUndo(null)
-    highlight(area)
+    highlight()
   }
   const resetAll = () => {
     const before = getAppearance()
     const beforeTheme = theme
     resetAppearance()
     setTheme('system')
-    highlight('shell')
+    highlight()
     setUndo({ appearance: before, theme: beforeTheme, status: 'Back to defaults' })
   }
   const randomize = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -124,7 +114,7 @@ export function AppearancePanel({
     if (dice) playOnce(dice, 'joy-roll')
     // Undo keeps the look from before the first of several rolls in a row
     crossfade(() => updateAppearance(randomAppearance(before)))
-    highlight('shell')
+    highlight()
     setUndo((u) => (u?.status === 'Randomized' ? u : { appearance: before, theme, status: 'Randomized' }))
   }
   const undoReset = () => {
@@ -132,7 +122,7 @@ export function AppearancePanel({
     updateAppearance(undo.appearance)
     if (undo.theme) setTheme(undo.theme)
     setUndo(null)
-    highlight('shell')
+    highlight()
   }
 
   const openLatestNote = async () => {
@@ -162,24 +152,9 @@ export function AppearancePanel({
           <SheetDescription>Saved in this browser</SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-2 border-b px-4 pb-4">
-          <AppearancePreview view={view} sidebar={wide ? a.sidebar : 'connected'} autoCover={a.autoCover} flash={flash} />
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            size="sm"
-            value={view}
-            onValueChange={(v) => v && showView(v as PreviewView)}
-            aria-label="Preview"
-            className="w-full"
-          >
-            <ToggleGroupItem value="page" className={cn('flex-1', SELECTED_CLASSES)}>
-              <FileText /> Page
-            </ToggleGroupItem>
-            <ToggleGroupItem value="board" className={cn('flex-1', SELECTED_CLASSES)}>
-              <LayoutGrid /> Board
-            </ToggleGroupItem>
-          </ToggleGroup>
+        {/* Only on a phone, where the panel covers the page; wider, the page beside it shows every change */}
+        <div className="border-b px-4 pb-4 sm:hidden">
+          <AppearancePreview autoCover={a.autoCover} flash={flash} />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
@@ -187,7 +162,7 @@ export function AppearancePanel({
             icon={Palette}
             title="Theme"
             hint="Colors everywhere in Lodoc"
-            onReset={isDefault('theme') ? undefined : () => resetSection('theme', 'shell')}
+            onReset={isDefault('theme') ? undefined : () => resetSection('theme')}
           >
             <Row label="Mode">
               <Tiles
@@ -196,7 +171,7 @@ export function AppearancePanel({
                 onChange={(v) => {
                   setTheme(v)
                   setUndo(null)
-                  highlight('shell')
+                  highlight()
                 }}
                 options={[
                   { value: 'light', name: 'Light', ariaLabel: 'Light mode', preview: <Sun className="size-5" /> },
@@ -209,7 +184,7 @@ export function AppearancePanel({
               <ToggleGroup
                 type="single"
                 value={a.tint}
-                onValueChange={choose('tint', 'shell')}
+                onValueChange={choose('tint')}
                 aria-label="Tint"
                 className="flex-wrap gap-2"
                 spacing={2}
@@ -237,14 +212,14 @@ export function AppearancePanel({
               label="Gradient"
               hint={high ? 'Off while high contrast is on' : 'A soft glow of the tint color from the top left'}
               checked={a.gradient}
-              onChange={(gradient) => change({ gradient }, 'shell')}
+              onChange={(gradient) => change({ gradient })}
             />
             <SwitchRow
               id="ap-tinted-text"
               label="Tinted text"
               hint={a.tint === 'neutral' ? 'Pick a tint above to see it in the text' : 'Text takes on a touch of the tint color'}
               checked={a.tintedText}
-              onChange={(tintedText) => change({ tintedText }, 'shell')}
+              onChange={(tintedText) => change({ tintedText })}
             />
           </SectionBlock>
 
@@ -252,12 +227,11 @@ export function AppearancePanel({
             icon={FileText}
             title="Pages"
             hint="Notes, folders and the overview"
-            onReset={isDefault('pages') ? undefined : () => resetSection('pages', 'page')}
+            onReset={isDefault('pages') ? undefined : () => resetSection('pages')}
           >
             {onBoard && (
               <p className="rounded-md bg-muted/60 px-2.5 py-2 text-xs text-muted-foreground" data-board-hint>
-                Boards don't show page width or texture. The preview above does
-                {' '}or{' '}
+                Boards don't show page width or texture. To see them,{' '}
                 <button type="button" onClick={openLatestNote} className="font-medium text-foreground underline underline-offset-2">
                   open your latest note
                 </button>
@@ -268,7 +242,7 @@ export function AppearancePanel({
               <Tiles
                 label="Page font"
                 value={a.pageFont}
-                onChange={choose('pageFont', 'page')}
+                onChange={choose('pageFont')}
                 options={[
                   { value: 'sans', name: 'Sans serif', preview: <FontSample font="sans" /> },
                   { value: 'serif', name: 'Serif', preview: <FontSample font="serif" /> },
@@ -279,7 +253,7 @@ export function AppearancePanel({
               <Tiles
                 label="Text size"
                 value={a.textSize}
-                onChange={choose('textSize', 'page')}
+                onChange={choose('textSize')}
                 options={TEXT_SIZE_OPTIONS.map((s) => ({
                   value: s.id,
                   name: s.name,
@@ -296,13 +270,13 @@ export function AppearancePanel({
               label="Automatic covers"
               hint="Notes without a chosen cover get a color gradient"
               checked={a.autoCover}
-              onChange={(autoCover) => change({ autoCover }, 'page')}
+              onChange={(autoCover) => change({ autoCover })}
             />
             <Row label="Texture">
               <Tiles
                 label="Page texture"
                 value={a.texture}
-                onChange={choose('texture', 'page')}
+                onChange={choose('texture')}
                 options={TEXTURES.map((t) => ({
                   value: t.id,
                   name: t.name,
@@ -315,7 +289,7 @@ export function AppearancePanel({
                 <StrengthSlider
                   label="Page texture strength"
                   value={a.textureStrength}
-                  onChange={(textureStrength) => change({ textureStrength }, 'page')}
+                  onChange={(textureStrength) => change({ textureStrength })}
                 />
               </Row>
             )}
@@ -325,7 +299,7 @@ export function AppearancePanel({
             icon={PanelLeft}
             title="Interface"
             hint="Sidebar, menus and panels"
-            onReset={isDefault('interface') ? undefined : () => resetSection('interface', 'sidebar')}
+            onReset={isDefault('interface') ? undefined : () => resetSection('interface')}
             last
           >
             {/* Desktop only: on a phone the sidebar lies over the page, and a floating one would only take room */}
@@ -334,7 +308,7 @@ export function AppearancePanel({
                 <Tiles
                   label="Sidebar style"
                   value={a.sidebar}
-                  onChange={choose('sidebar', 'sidebar')}
+                  onChange={choose('sidebar')}
                   options={[
                     { value: 'connected', name: 'Connected', preview: <SidebarPreview floating={false} /> },
                     { value: 'floating', name: 'Floating', preview: <SidebarPreview floating /> },
@@ -346,7 +320,7 @@ export function AppearancePanel({
               <Tiles
                 label="Corner style"
                 value={a.corners}
-                onChange={choose('corners', 'shell')}
+                onChange={choose('corners')}
                 options={RADIUS_PRESETS.map((p) => ({ value: p.id, name: p.name, preview: <CornerPreview px={p.px} /> }))}
               />
             </Row>
@@ -355,14 +329,14 @@ export function AppearancePanel({
               label="Grain"
               hint="A fine noise on the sidebar, menus and this panel"
               checked={a.uiGrain}
-              onChange={(uiGrain) => change({ uiGrain }, 'sidebar')}
+              onChange={(uiGrain) => change({ uiGrain })}
             />
             {a.uiGrain && (
               <Row label="Intensity">
                 <StrengthSlider
                   label="Interface grain intensity"
                   value={a.uiGrainStrength}
-                  onChange={(uiGrainStrength) => change({ uiGrainStrength }, 'sidebar')}
+                  onChange={(uiGrainStrength) => change({ uiGrainStrength })}
                 />
               </Row>
             )}

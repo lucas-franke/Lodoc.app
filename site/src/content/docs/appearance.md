@@ -4,7 +4,7 @@ description: Light and dark, a colour tint, fonts, textures, the sidebar, high c
 order: 7
 ---
 
-The palette button at the top right of every page opens **Appearance**, a panel on the right where you change how Lodoc looks. Every change shows right away, on the page beside it and in the small preview, so you can try combinations as you go. **Randomize** picks a look for you, and **Reset all** goes back to the start.
+The palette button at the top right of every page opens **Appearance**, a panel on the right where you change how Lodoc looks. Every change shows right away on the page beside it, so you can try combinations as you go. On a phone, where the panel covers the page, a small note at the top shows the look. **Randomize** picks a look for you, and **Reset all** goes back to the start.
 
 <figure class="shot">
   <img src="../img/appearance-light.jpg" class="dark:hidden" alt="The Appearance panel next to a note, with a sage tint" width="1280" height="800" loading="lazy" />
