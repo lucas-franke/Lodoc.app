@@ -58,8 +58,12 @@ export function AppearanceSettings() {
   // After "Reset all" or "Randomize": what to bring back with Undo (offered in the footer until the next change)
   const [undo, setUndo] = useState<{ appearance: Appearance; theme: string | undefined; status: string } | null>(null)
 
-  // The texture tiles below show the shader-rendered papers, not only the chosen one
-  useEffect(() => showPaperTextureSamples(), [])
+  // The texture tiles below show the shader-rendered papers, not only the chosen one. They are drawn just
+  // after the window has appeared, so the shader work doesn't stall its opening animation
+  useEffect(() => {
+    const id = window.setTimeout(showPaperTextureSamples, 150)
+    return () => window.clearTimeout(id)
+  }, [])
 
   const change = (patch: Partial<Appearance>) => {
     updateAppearance(patch)

@@ -1,5 +1,6 @@
 import { Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { preloadSettings } from '@/components/settings/load-settings'
 import { emitAppEvent } from '@/lib/app-events'
 
 /** The sidebar footer's way into Settings, above Backup; it stays highlighted while Settings is open */
@@ -11,6 +12,8 @@ export function SettingsRow() {
       aria-haspopup="dialog"
       aria-expanded={open}
       aria-keyshortcuts="Control+Comma"
+      onPointerEnter={preloadSettings}
+      onFocus={preloadSettings}
       onClick={() => emitAppEvent('open-settings')}
       className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring/60 aria-expanded:bg-sidebar-accent"
     >
