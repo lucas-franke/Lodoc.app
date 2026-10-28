@@ -23,7 +23,7 @@ order: 7
 - **Font**: sans serif or serif. Both come with Lodoc, so nothing is loaded from the internet.
 - **Text size**: small, medium or large.
 - **Automatic covers**: turn off to show only the covers you picked.
-- **Texture**: *Paper*, *Laid paper* or a *Dot grid* on the page, with its strength.
+- **Texture**: *Paper*, *Laid paper* or a *Dot grid* on the page's background, with its strength. Covers, cards and buttons on it stay plain.
 
 ## Interface
 

@@ -94,7 +94,7 @@ export function Tiles<T extends string>({
           key={o.value}
           value={o.value}
           aria-label={o.ariaLabel}
-          className={cn('relative h-auto flex-1 flex-col gap-1.5 py-2', SELECTED_CLASSES)}
+          className={cn('relative h-auto flex-1 flex-col gap-1.5 bg-background py-2', SELECTED_CLASSES)}
         >
           {/* The check makes the choice clear without relying on color */}
           {o.value === value && (
@@ -157,7 +157,7 @@ export function StrengthSlider({ label, value, onChange }: { label: string; valu
       marker={TEXTURE_STRENGTH_DEFAULT}
       value={[value]}
       onValueChange={([v]) => onChange(v)}
-      className="h-6 [--slider-thumb:1.5rem] **:data-[slot=slider-range]:bg-transparent **:data-[slot=slider-thumb]:size-(--slider-thumb) **:data-[slot=slider-thumb]:border-foreground/70 **:data-[slot=slider-thumb]:shadow-md **:data-[slot=slider-track]:h-6! **:data-[slot=slider-track]:border **:data-[slot=slider-track]:border-control-border **:data-[slot=slider-track]:bg-muted/60"
+      className="h-6 [--slider-thumb:1.5rem] **:data-[slot=slider-range]:bg-transparent **:data-[slot=slider-thumb]:size-(--slider-thumb) **:data-[slot=slider-thumb]:border-foreground/70 **:data-[slot=slider-thumb]:shadow-md **:data-[slot=slider-track]:h-6! **:data-[slot=slider-track]:border **:data-[slot=slider-track]:border-control-border **:data-[slot=slider-track]:bg-[color-mix(in_oklab,var(--muted)_60%,var(--background))]"
     />
   )
 }

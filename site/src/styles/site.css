@@ -157,7 +157,7 @@ body {
   --texture-opacity: 0.14;
   --texture-blend: normal;
 }
-/* The texture lies over the whole window; the sidebar stays plain above it */
+/* The texture lies on the window's background, under its content (like the app); the sidebar stays plain */
 .demo-window {
   isolation: isolate;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -167,7 +167,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: -1;
   border-radius: inherit;
   pointer-events: none;
   background-image: var(--texture);

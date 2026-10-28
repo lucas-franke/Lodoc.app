@@ -62,7 +62,7 @@ export function DeletedList() {
           <p className="text-sm font-medium">All clear</p>
         </div>
       ) : (
-        <ul className="mt-6 divide-y rounded-lg border" aria-label="Deleted items">
+        <ul className="mt-6 divide-y rounded-lg border bg-background" aria-label="Deleted items">
           {entries.map((entry) => {
             const Icon = ICONS[entry.kind]
             const daysLeft = Math.max(1, Math.ceil((entry.deletedAt + TRASH_DAYS * DAY - now) / DAY))

@@ -38,9 +38,10 @@
     --xy-background-color-default: transparent;
 }
 
-/* Textures (Appearance panel): a layer that never takes clicks. The page texture is drawn over each
-   [data-texture-surface] (the page; never on a board, which keeps just its dots); the
-   interface grain over the sidebar, menus, panels and dialogs. Each texture sets
+/* Textures (Appearance panel): a layer that never takes clicks. The page texture lies on the background of
+   each [data-texture-surface] (the page; never on a board, which keeps just its dots), under everything on it:
+   cards, buttons and fields with a fill stay plain. The interface grain lies over the sidebar, menus, panels
+   and dialogs. Each texture sets
    its image, tile size, strength and blend; the preview tiles in the panel use the same variables. */
 :root {
     /* The interface grain */
@@ -96,7 +97,8 @@
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 30;
+    /* Behind the surface's content, above its own background (the surface is isolated) */
+    z-index: -1;
     border-radius: inherit;
     pointer-events: none;
     background-image: var(--texture);
@@ -104,13 +106,15 @@
     opacity: calc(var(--texture-opacity) * var(--texture-strength, 1));
     mix-blend-mode: var(--texture-blend);
 }
+[data-texture-sample] {
+    position: relative;
+    isolation: isolate;
+}
+
 /* The gap around a floating sidebar is part of the page: the page texture runs underneath the sidebar, which
    becomes opaque there (no see-through gradient) so it stays plain itself */
 :root:not([data-sidebar='floating'])[data-texture]:not([data-texture='none']) [data-texture-surface='frame']::after {
     content: none;
-}
-[data-texture-surface='frame']::after {
-    z-index: 0;
 }
 :root[data-sidebar='floating'][data-texture]:not([data-texture='none']) [data-texture-surface='frame'] > aside {
     z-index: 1;

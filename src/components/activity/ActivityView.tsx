@@ -124,7 +124,7 @@ function Timeline({ tab }: { tab: Exclude<ActivityTab, 'deleted'> }) {
       {days.map((day) => (
         <section key={day.label} aria-label={day.label}>
           <h3 className="mb-2 text-xs font-medium text-muted-foreground">{day.label}</h3>
-          <ul className="divide-y rounded-lg border">
+          <ul className="divide-y rounded-lg border bg-background">
             {day.entries.map((entry) => (
               <Line
                 key={entry.id}
