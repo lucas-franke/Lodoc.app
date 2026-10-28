@@ -42,6 +42,7 @@ import { openBoard, openFolder, openNote, openTag, openActivity, useRoute, openS
 import { updateAppearance } from '@/hooks/useAppearance'
 import { emitAppEvent } from '@/lib/app-events'
 import { reducedMotion } from '@/lib/joy'
+import { isTouchScreen } from '@/lib/keyboard'
 import { openGuideNote } from '@/lib/guide'
 import { openTodaysJournal } from '@/lib/journal'
 import { createFromNote, createFromTemplate, TEMPLATES } from '@/lib/templates'
@@ -108,7 +109,8 @@ export function CommandPalette({
     { id: 'activity', label: 'Open Activity', icon: History, keywords: 'changes log history messages notifications', run: () => openActivity() },
     { id: 'trash', label: 'Open Trash', icon: Trash2, keywords: 'deleted restore activity', run: () => openActivity('trash') },
     { id: 'guide', label: 'Getting started guide', icon: BookOpen, keywords: 'help tutorial welcome', run: async () => openNote(await openGuideNote()) },
-    { id: 'shortcuts', label: 'Keyboard shortcuts', icon: Keyboard, keywords: 'help keys', shortcut: '?', run: () => emitAppEvent('open-shortcuts') },
+    // Not on touch screens, which have no keys for them (with a keyboard attached, ? still opens the list)
+    ...(isTouchScreen() ? [] : [{ id: 'shortcuts', label: 'Keyboard shortcuts', icon: Keyboard, keywords: 'help keys', shortcut: '?', run: () => emitAppEvent('open-shortcuts') }]),
   ]
 
   const q = query.trim().toLowerCase()
@@ -216,7 +218,7 @@ export function CommandPalette({
                 <CommandItem key={a.id} value={'action:' + a.id} onSelect={run(a.run)}>
                   <a.icon />
                   {a.label}
-                  {a.shortcut && <CommandShortcut>{a.shortcut}</CommandShortcut>}
+                  {a.shortcut && <CommandShortcut className="pointer-coarse:hidden">{a.shortcut}</CommandShortcut>}
                 </CommandItem>
               ))}
             </CommandGroup>

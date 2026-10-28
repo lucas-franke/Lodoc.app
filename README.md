@@ -25,6 +25,7 @@ This Project and its content are written by Claude Code.
   - **Arrows**: drag from one of the dots that appear on an item's sides to another item (or use **Connect to…** in a card's menu or an item's toolbar). Arrows attach to the nearest side by themselves. Select one to add a label (or double-click it), reverse it or delete it; removing an item removes its arrows
   - **Frames** (**+** → **Frame**): a named area behind the cards, for groups like "To do" or "Ideas". With items selected, the frame is drawn around them. Dragging a frame takes everything that lies completely inside it along; removing it keeps the items
   - Drag a note from the sidebar onto the board to add it as a card at that spot
+  - On touch screens, tap an item before dragging or resizing it; a swipe that starts on an item that isn't selected pans the board (pinch to zoom)
   - Cards are live views of your notes (renaming or editing a note updates every board); moving, resizing and deleting items is saved automatically; removing a card never deletes the note
   - Double-click a card (or use its pencil button) to edit the note right there, with the full editor and slash commands; one card is edited at a time, `Escape` or the check button finishes
 - **Trash**: deleting a note, folder or board moves it to the Trash (no confirmation; the notification offers **Undo**). The Trash page (sidebar, under Overview) restores items with their cards on boards, or deletes them for good; items older than 30 days are removed automatically. Images stay as long as a trashed item uses them
@@ -44,7 +45,7 @@ This Project and its content are written by Claude Code.
 - **Appearance** panel (bottom of the sidebar): light or dark mode, a soft color tint (pastel in light mode, tinted darks in dark mode), an optional diagonal gradient, page font (sans serif or serif, bundled, nothing loaded from the internet), text size, a connected or floating sidebar (on wide screens; phones always use the connected one), corner roundness and a paper-like grain; every change shows right away
 - Notifications stay until you close them
 - Download a note as Markdown (`.md`) or a folder with everything in it as a `.zip` of Markdown files: from the button at the top right of the page, or from the right-click menu
-- Right-click (or the `…` button) on a note, folder or board for all actions (on touch screens: long press). The open page has the same `…` menu at the top right, plus a star to add a note to favorites. Actions include **Duplicate** (a note, or a folder with all its subfolders and notes)
+- Right-click (or the `…` button) on a note, folder or board for all actions (on touch screens: press and hold; keep holding and move to drag the row instead). The open page has the same `…` menu at the top right, plus a star to add a note to favorites. Actions include **Duplicate** (a note, or a folder with all its subfolders and notes)
 
 - **Command palette** (`Ctrl+K`): find any note (title and text, with the match highlighted), folder or board, see what you edited last, and run commands (new note/folder/board, light/dark, Appearance, export backup, Trash, shortcuts)
 

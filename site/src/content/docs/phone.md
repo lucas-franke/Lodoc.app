@@ -27,9 +27,10 @@ To collect somewhere else, choose **Collect here** in any note's menu.
 
 ## Writing on a phone
 
-- The format bar above the keyboard has undo and redo, the block type, lists, checklists, indenting and text styles.
-- Swipe from the left edge to open the sidebar, and tap outside it to close it.
-- Press and hold a note, folder or board in the sidebar for its menu.
+- The format bar above the keyboard has undo and redo, the block type, lists, checklists, indenting and text styles. Tablets have it too, at the bottom of the page.
+- Swipe from the left edge to open the sidebar, and swipe it away or tap outside it to close it. A phone held sideways works the same way.
+- Press and hold a note, folder or board in the sidebar for its menu. To move it instead, keep your finger down and drag it where it should go.
+- On a board, tap a card to select it, then drag it to move it or pull a corner to resize it. Swiping anywhere else, also across other cards, moves the board, and two fingers zoom.
 - On Android, press and hold the Lodoc icon on your home screen for **Today's journal**.
 
 Sharing to Lodoc works in the installed app on Android. iPhones don't let web apps receive shares.
