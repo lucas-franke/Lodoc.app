@@ -99,7 +99,7 @@ export function CoverBanner({ note }: { note: Note }) {
   return (
     <div
       data-testid="note-cover"
-      className={cn('group/cover relative mb-6 h-48 overflow-hidden rounded-lg', over && 'ring-2 ring-ring')}
+      className={cn('group/cover relative mb-6 h-48 overflow-hidden rounded-lg max-sm:h-32', over && 'ring-2 ring-ring')}
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes('Files')) {
           e.preventDefault()
@@ -131,7 +131,8 @@ export function CoverBanner({ note }: { note: Note }) {
             className="pointer-events-auto"
             onClick={() => void setNoteGradient(note.id, otherGradient(cover.id))}
           >
-            <Shuffle /> Shuffle
+            {/* Phones: icons only, so the three fit on the shorter cover without crowding it */}
+            <Shuffle /> <span className="max-sm:sr-only">Shuffle</span>
           </Button>
         )}
         <span aria-hidden className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary px-3 text-sm font-medium text-secondary-foreground">
@@ -143,7 +144,7 @@ export function CoverBanner({ note }: { note: Note }) {
           className="pointer-events-auto"
           onClick={() => void removeNoteCover(note.id)}
         >
-          <Trash2 /> Remove
+          <Trash2 /> <span className="max-sm:sr-only">Remove</span>
         </Button>
       </div>
     </div>

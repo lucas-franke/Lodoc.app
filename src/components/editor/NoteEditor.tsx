@@ -11,7 +11,6 @@ import { formatDateTime, formatRelative, plural } from '@/lib/format'
 import { blobToDataUrl, compressImage, NOTE_IMAGE } from '@/lib/image-compress'
 import { useCaptionEditor } from './CaptionEditor'
 import { MobileFormatBar } from './MobileFormatBar'
-import { useWideScreen } from '@/hooks/useWideScreen'
 import { useCaretNearTop } from './caret-scroll'
 import { useChecklistJoy } from './checklist-joy'
 import { takeArrived } from '@/lib/collect'
@@ -205,9 +204,9 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
 
   useEffect(() => nestImagesAddedInLists(editor), [editor])
   const caption = useCaptionEditor(editor)
-  // Phones get a fixed format bar at the bottom instead of the toolbar floating over the selection
-  const wide = useWideScreen()
-  const formatBar = !compact && !wide && isTouchDevice()
+  // Touch screens (phones and tablets) get a fixed format bar at the bottom instead of the toolbar floating over
+  // the selection, which a phone's own selection menu covers and which never offers Undo or a block type
+  const formatBar = !compact && isTouchDevice()
 
   return (
     <div
@@ -216,7 +215,7 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
         compact
           ? cn('bn-embedded relative w-full', pad ? 'py-2' : 'pt-2 pb-4')
           : // On phones a cover can scroll out of view even on a short note, so the cursor can reach the top
-            'relative mx-auto min-h-full w-full max-w-(--page-width) px-1 pt-10 pb-32 sm:px-12 max-md:has-[[data-testid=note-cover]]:min-h-[calc(100%+18rem)]'
+            'relative mx-auto min-h-full w-full max-w-(--page-width) px-1 pt-10 pb-32 sm:px-12 narrow:has-[[data-testid=note-cover]]:min-h-[calc(100%+18rem)]'
       }
       onDoubleClick={caption.onDoubleClick}
       // After BlockNote has filled the clipboard: no base64 images in the plain-text copy
@@ -261,7 +260,7 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
           autoFocus={!note.title}
           className={cn(
             'block w-full resize-none overflow-hidden bg-transparent font-page tracking-tight text-balance outline-none placeholder:text-muted-foreground [field-sizing:content]',
-            embedded ? 'mb-1 px-3 text-lg font-semibold' : 'mb-4 px-(--page-gutter) text-4xl leading-tight font-bold',
+            embedded ? 'mb-1 px-3 text-lg font-semibold' : 'mb-4 px-(--page-gutter) text-4xl leading-tight font-bold max-sm:text-3xl',
           )}
         />
         {!compact && <PageInfo note={note} title={title} outline={outline} />}

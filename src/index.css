@@ -12,6 +12,19 @@
 /* The sidebar style from the Appearance panel (data-sidebar on <html>) */
 @custom-variant floating (&:is([data-sidebar='floating'] *));
 
+/* The desktop layout with the sidebar beside the page, and the phone layout with the sidebar over it, which also
+   covers touch screens too low for the desktop one (a phone held sideways). WIDE_SCREEN in lib/appearance.ts. */
+@custom-variant wide {
+  @media (min-width: 48rem) and (min-height: 32rem), (min-width: 48rem) and (pointer: fine) {
+    @slot;
+  }
+}
+@custom-variant narrow {
+  @media (max-width: 47.99rem), (max-height: 31.99rem) and (pointer: coarse) {
+    @slot;
+  }
+}
+
 /* Gradient: a soft glow in the tint color from the top left corner that fades out well before the page
    center (one color, eased with an extra stop so there is no visible band) */
 :root {
@@ -29,7 +42,7 @@
     );
 }
 /* Let the wash show through the sidebar (not on small screens, where it lies over the page) and the board */
-@media (min-width: 48rem) {
+@media (min-width: 48rem) and (min-height: 32rem), (min-width: 48rem) and (pointer: fine) {
     :root[data-gradient='true'] [data-sidebar-panel] {
         background-color: color-mix(in oklch, var(--sidebar) 70%, transparent);
     }
@@ -318,10 +331,14 @@
   }
 }
 
-/* The phone format bar (MobileFormatBar): the full width of the screen, scrolling sideways when the buttons
-   don't fit. Below the sidebar overlay (z-30/40) and dialogs. */
+/* The format bar on touch screens (MobileFormatBar): the width of the page (on a tablet it starts beside the
+   docked sidebar: App sets --main-left), scrolling sideways when the buttons don't fit. Below the sidebar overlay
+   (z-30/40) and dialogs. */
 .bn-mobile-formatting-toolbar.note-format-bar {
   z-index: 20;
+  left: var(--main-left, 0px);
+  width: calc(100vw - var(--main-left, 0px));
+  border-top: 1px solid var(--border);
   /* BlockNote pads the bar above a phone's gesture bar; fill that strip like the bar, not with the page */
   background-color: var(--popover);
   /* BlockNote's own transform, except that before it has measured the screen (each time a note opens) the bar
@@ -333,10 +350,17 @@
   width: 100%;
   max-width: none;
   overflow-x: auto;
-  border-width: 1px 0 0;
+  border-width: 0;
   border-radius: 0;
   box-shadow: none;
   scrollbar-width: none;
+}
+/* On a tablet the buttons sit in the middle of the bar (they still scroll when they don't fit) */
+@media (min-width: 48rem) and (min-height: 32rem), (min-width: 48rem) and (pointer: fine) {
+  .bn-mobile-formatting-toolbar.note-format-bar .bn-toolbar {
+    width: auto;
+    max-width: 100%;
+  }
 }
 .bn-root.bn-shadcn .bn-editor {
   padding-inline: var(--page-gutter);
@@ -445,7 +469,7 @@ html .react-flow.light {
 html [data-board] .react-flow__panel.top {
   margin-top: calc(3rem + 15px);
 }
-@media (min-width: 48rem) {
+@media (min-width: 48rem) and (min-height: 32rem), (min-width: 48rem) and (pointer: fine) {
   :root[data-sidebar='floating'] [data-board] .react-flow__panel.top {
     margin-top: calc(3.5rem + 15px);
   }

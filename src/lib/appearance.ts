@@ -8,8 +8,12 @@ export * from './appearance-options'
 // and CSS variables. index.css turns them into the look (tinted surfaces, gradient, floating sidebar, grain).
 
 const TEXT_SIZES = { s: '0.9375rem', m: '1rem', l: '1.125rem' } as const
-/** The floating sidebar is a desktop look: on narrow screens the sidebar lies over the page, so it stays connected there */
-export const WIDE_SCREEN = '(min-width: 48rem)'
+/**
+ * The desktop layout: wide enough for the sidebar beside the page, and tall enough too unless there is a mouse. Below
+ * it (phones, and a phone held sideways) the sidebar lies over the page, so it stays connected there. The same query
+ * as the wide and narrow variants in index.css.
+ */
+export const WIDE_SCREEN = '(min-width: 48rem) and (min-height: 32rem), (min-width: 48rem) and (pointer: fine)'
 
 const schema = z.object({
   tint: z.enum(TINTS.map((t) => t.id) as [Tint, ...Tint[]]).catch('neutral'),

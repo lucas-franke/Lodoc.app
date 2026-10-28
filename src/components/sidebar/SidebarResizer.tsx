@@ -30,7 +30,7 @@ export function SidebarResizer({
       aria-valuemax={sidebarMaxWidth()}
       aria-valuenow={width}
       tabIndex={0}
-      className="group/resizer absolute inset-y-0 -right-1.5 z-20 hidden w-3 cursor-col-resize touch-none outline-none md:block"
+      className="group/resizer absolute inset-y-0 -right-1.5 z-20 hidden w-3 cursor-col-resize touch-none outline-none wide:block"
       onPointerDown={(e) => {
         e.preventDefault()
         e.currentTarget.setPointerCapture(e.pointerId)

@@ -202,7 +202,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
         onKeyDown={(e) => {
           if (e.key === 'Escape' && selected.size && !(e.target as HTMLElement).closest('input')) clearSelection()
         }}
-        className="relative flex h-full w-64 shrink-0 flex-col pointer-coarse:max-md:w-72 border-r bg-sidebar max-md:safe-area-padding-y text-sidebar-foreground floating:rounded-xl floating:border floating:shadow-sm md:w-(--sidebar-width)"
+        className="relative flex h-full w-64 shrink-0 flex-col pointer-coarse:narrow:w-72 border-r bg-sidebar narrow:safe-area-padding-y text-sidebar-foreground floating:rounded-xl floating:border floating:shadow-sm wide:w-(--sidebar-width)"
         style={{ '--sidebar-width': `${sidebarWidth.width}px` } as React.CSSProperties}
       >
         {/* Same height and padding as the page header, so this toggle and "Show sidebar" sit on the same spot */}

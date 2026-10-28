@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { FilePlus, PanelLeftOpen } from 'lucide-react'
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { BoardBreadcrumb } from '@/components/board/BoardBreadcrumb'
 import { CommandPalette } from '@/components/CommandPalette'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
@@ -29,6 +29,7 @@ import { useMilestones } from '@/hooks/useMilestones'
 import { useMarkdownImport } from '@/hooks/useMarkdownImport'
 import { openNote, openSettings, useActivityTab, useRoute, useSettingsTab, useTagRoute, type RouteType } from '@/hooks/useRoute'
 import { useAppEvent } from '@/lib/app-events'
+import { WIDE_SCREEN } from '@/lib/appearance'
 import { cn } from '@/lib/utils'
 
 // The editor is the bulk of the bundle; load it separately so the shell appears fast
@@ -42,7 +43,7 @@ const BoardPage = lazy(() => import('@/components/board/BoardPage'))
 // A note's history (with a read-only editor for the preview), loaded when it is first opened
 const NoteHistoryDialog = lazy(() => import('@/components/note/NoteHistoryDialog'))
 
-const isNarrow = () => window.matchMedia('(max-width: 767px)').matches
+const isNarrow = () => !window.matchMedia(WIDE_SCREEN).matches
 /** Typing "?" in a field or the editor must not open the shortcut list */
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
@@ -116,6 +117,17 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
+  // The format bar on touch screens is fixed to the screen: on a tablet it starts where the page does, beside the
+  // docked sidebar (index.css)
+  const mainRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const main = mainRef.current
+    if (!main) return
+    const observer = new ResizeObserver(() => document.documentElement.style.setProperty('--main-left', `${main.getBoundingClientRect().left}px`))
+    observer.observe(main)
+    return () => observer.disconnect()
+  }, [])
+
   const onBoard = current?.type === 'board'
   // Boards pan with sideways swipes, so the edge swipe doesn't open the sidebar there
   useSidebarSwipe({ open: sidebarOpen, setOpen: setSidebarOpen, canOpen: !onBoard, enabled: isNarrow })
@@ -167,18 +179,19 @@ export default function App() {
         {sidebarOpen && (
           <>
             <div
-              className="fixed inset-y-0 left-0 z-40 floating:p-2 md:relative md:z-auto md:floating:pr-0"
+              className="fixed inset-y-0 left-0 z-40 floating:p-2 wide:relative wide:z-auto wide:floating:pr-0"
               // the gap around a floating sidebar is part of the page, so it gets the page texture (not on boards)
               data-texture-surface={current?.type === 'board' ? undefined : 'frame'}
             >
               <Sidebar onCollapse={() => setSidebarOpen(false)} />
             </div>
-            <div data-sidebar-backdrop className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
+            <div data-sidebar-backdrop className="fixed inset-0 z-30 bg-black/30 wide:hidden" onClick={() => setSidebarOpen(false)} />
           </>
         )}
 
         <main
-          className={cn('relative flex min-w-0 flex-1 flex-col', !onBoard && 'md:floating:pt-2')}
+          ref={mainRef}
+          className={cn('relative flex min-w-0 flex-1 flex-col', !onBoard && 'wide:floating:pt-2')}
           data-board={onBoard ? '' : undefined}
           // the texture covers the page; a board (header included) stays plain so it reads as one canvas with dots
           data-texture-surface={onBoard ? undefined : ''}
@@ -199,7 +212,7 @@ export default function App() {
                 'icons-lg flex h-12 shrink-0 items-center gap-1 border-b border-transparent px-3 text-sm transition-colors',
                 scrolled && current && !onBoard && 'border-border',
                 // On a board the canvas runs behind the header: it floats on top and only its controls take clicks
-                onBoard && 'pointer-events-none absolute inset-x-0 top-0 z-10 *:pointer-events-auto md:floating:top-2',
+                onBoard && 'pointer-events-none absolute inset-x-0 top-0 z-10 *:pointer-events-auto wide:floating:top-2',
               )}
             >
               {!sidebarOpen && (
