@@ -26,6 +26,7 @@ export const SHORTCUT_GROUPS: { title: string; items: [keys: string[], what: str
     title: 'On a board',
     items: [
       [['Ctrl', 'V'], 'Paste an image'],
+      [['Ctrl', 'Z'], 'Undo Tidy up'],
       [['Delete'], 'Remove the selected items (notes are kept)'],
       [['Esc'], 'Finish editing a card'],
       [['Double-click'], 'Edit a card in place'],

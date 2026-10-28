@@ -555,7 +555,13 @@ function Canvas({ board }: { board: Board }) {
     [commit, rf],
   )
 
-  /** Every item in neat rows, without overlaps (see tidy.ts); Undo puts them back where they were */
+  /** The last tidy-up: where the items were before, and where it put them */
+  const lastTidy = useRef<{ previous: Map<string, Move>; tidied: Map<string, Move> } | null>(null)
+
+  /**
+   * Every item in neat rows, without overlaps (see tidy.ts). Quietly, without a message: the change is right
+   * there to see. Ctrl+Z puts them back where they were, as long as nothing has moved since.
+   */
   const tidyUp = useCallback(() => {
     const before = nodesRef.current
     if (before.length < 2) return
@@ -571,9 +577,29 @@ function Canvas({ board }: { board: Board }) {
     const frames = new Set(before.filter((n) => n.data.type === 'frame').map((n) => n.id))
     const moves = new Map<string, Move>([...boxes].map(([id, box]) => [id, frames.has(id) ? box : { x: box.x, y: box.y }]))
     const previous = new Map<string, Move>(before.map((n) => [n.id, { x: n.position.x, y: n.position.y, width: n.width, height: n.height }]))
+    lastTidy.current = { previous, tidied: moves }
     moveTo(moves)
-    notify('Board tidied up', { action: { label: 'Undo', onClick: () => moveTo(previous) } })
   }, [rf, moveTo])
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'z') return
+      if ((e.target as HTMLElement | null)?.closest('input, textarea, [contenteditable="true"]')) return
+      const last = lastTidy.current
+      if (!last) return
+      // Only while the board still looks the way the tidy-up left it
+      const untouched = nodesRef.current.every((n) => {
+        const box = last.tidied.get(n.id)
+        return !box || (Math.abs(n.position.x - box.x) < 0.5 && Math.abs(n.position.y - box.y) < 0.5)
+      })
+      lastTidy.current = null
+      if (!untouched) return
+      e.preventDefault()
+      moveTo(last.previous)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [moveTo])
 
   useAppEvent('tidy-board', tidyUp)
 
