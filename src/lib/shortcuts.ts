@@ -9,6 +9,7 @@ export const SHORTCUT_GROUPS: { title: string; items: [keys: string[], what: str
       [['Ctrl', 'Alt', 'J'], "Today's journal"],
       [['Ctrl', '\\'], 'Show or hide the sidebar'],
       [['Ctrl', ','], 'Settings'],
+      [['Esc'], 'Leave Settings or Activity, back to where you were'],
       [['?'], 'All keyboard shortcuts'],
     ],
   },

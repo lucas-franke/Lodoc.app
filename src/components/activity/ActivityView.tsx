@@ -1,12 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { CircleAlert, CircleCheck, FileText, Folder, History, Info, LayoutGrid, RotateCcw, Trash2, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { BackLink } from '@/components/BackLink'
 import { Button } from '@/components/ui/button'
 import { markActivitySeen } from '@/db/activity'
 import { boardTitle } from '@/db/boards'
 import { db } from '@/db/db'
 import { noteTitle } from '@/db/notes'
 import type { ActivityEntry } from '@/db/schema'
+import { useEscapeToLeave } from '@/hooks/useEscapeToLeave'
 import { activityHash, type ActivityTab } from '@/hooks/useRoute'
 import { formatDateTime, formatLongDate, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -24,12 +26,14 @@ const ITEM_ICONS = { note: FileText, folder: Folder, board: LayoutGrid } as cons
 /**
  * Activity: a changelog of what happened to the notes (created, renamed, moved, deleted, restored, imported,
  * backed up), every message the app showed (they close by themselves, so this is where to read them again),
- * and the trash, as the "Deleted" tab.
+ * and the trash, as the "Deleted" tab. "Back to …" (or Escape) returns to where you came from.
  */
 export function ActivityView({ tab }: { tab: ActivityTab }) {
   const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
+  useEscapeToLeave('activity')
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-8 pb-24 sm:px-12">
+      <BackLink section="activity" />
       <h1 className="font-page text-4xl font-bold tracking-tight">Activity</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         What changed, what was deleted and the messages you were shown, newest first.

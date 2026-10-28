@@ -65,16 +65,28 @@ export function openSettings(tab: SettingsTab = 'appearance') {
   window.location.hash = settingsHash(tab)
 }
 
-// Where Settings was opened from, so Escape there goes back to it (the overview after a reload on Settings)
-let beforeSettings = ''
+/** The pages you step into and back out of (their "Back to …" link and Escape) */
+export type ReturnSection = 'settings' | 'activity'
+
+const sectionOf = (hash: string): ReturnSection | null =>
+  hash.startsWith('#/settings') ? 'settings' : hash.startsWith('#/activity') || hash === '#/trash' ? 'activity' : null
+
+// Where each was opened from; moving between its tabs keeps it. The overview ('') after a reload on the page.
+const returnTo: Record<ReturnSection, string> = { settings: '', activity: '' }
 window.addEventListener('hashchange', (e) => {
   const from = new URL(e.oldURL).hash
-  if (!from.startsWith('#/settings')) beforeSettings = from
+  const to = sectionOf(window.location.hash)
+  if (to && sectionOf(from) !== to) returnTo[to] = from
 })
 
-/** Back to the page Settings was opened from */
-export function leaveSettings() {
-  window.location.hash = beforeSettings
+/** The page (its hash) that Settings or Activity was opened from */
+export function useReturnTo(section: ReturnSection): string {
+  return useSyncExternalStore(subscribe, () => returnTo[section])
+}
+
+/** Back to the page Settings or Activity was opened from */
+export function leavePage(section: ReturnSection) {
+  window.location.hash = returnTo[section]
 }
 
 /** The tag whose notes are shown (#/tag/<name>), or null */

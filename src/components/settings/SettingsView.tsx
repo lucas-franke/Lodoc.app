@@ -1,10 +1,12 @@
 import { ArchiveRestore, Palette } from 'lucide-react'
-import { useEffect, type ComponentType } from 'react'
+import type { ComponentType } from 'react'
+import { BackLink } from '@/components/BackLink'
 import { UniversalAccess } from '@/components/icons/UniversalAccess'
 import { AccessibilitySettings } from '@/components/settings/AccessibilitySettings'
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings'
 import { BackupSettings } from '@/components/settings/BackupSettings'
-import { leaveSettings, settingsHash, type SettingsTab } from '@/hooks/useRoute'
+import { useEscapeToLeave } from '@/hooks/useEscapeToLeave'
+import { settingsHash, type SettingsTab } from '@/hooks/useRoute'
 import { cn } from '@/lib/utils'
 
 const TABS: { id: SettingsTab; title: string; icon: ComponentType<{ className?: string }> }[] = [
@@ -13,33 +15,17 @@ const TABS: { id: SettingsTab; title: string; icon: ComponentType<{ className?: 
   { id: 'backup', title: 'Backup', icon: ArchiveRestore },
 ]
 
-/** Escape belongs to whatever is open on top (a menu, a dialog, a tooltip) or to the field being typed in */
-const escapeTaken = (e: KeyboardEvent) => {
-  const target = e.target as HTMLElement | null
-  return (
-    e.defaultPrevented ||
-    !!target?.closest('input, textarea, select, [contenteditable="true"]') ||
-    !!document.querySelector('[role=dialog], [role=alertdialog], [role=menu], [role=listbox], [role=tooltip]')
-  )
-}
-
 /**
  * Settings, as a page like Activity: Appearance, Accessibility and Backup as tabs (links, so Back walks
- * through them). The app around it shows each change at once; Escape goes back to where you came from.
+ * through them). The app around it shows each change at once; "Back to …" (or Escape) returns to where you
+ * came from.
  */
 export function SettingsView({ tab }: { tab: SettingsTab }) {
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || escapeTaken(e)) return
-      e.preventDefault()
-      leaveSettings()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  useEscapeToLeave('settings')
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-8 pb-24 sm:px-12">
+      <BackLink section="settings" />
       <h1 className="font-page text-4xl font-bold tracking-tight">Settings</h1>
       <p className="mt-2 text-sm text-muted-foreground">How Lodoc looks and works, and your backups. Saved in this browser.</p>
       <nav aria-label="Settings" className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-border)] [scrollbar-width:none]">
