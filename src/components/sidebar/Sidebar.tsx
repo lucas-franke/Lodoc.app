@@ -227,7 +227,8 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
             onClick={() => emitAppEvent('open-palette')}
             aria-label="Search and commands"
             aria-keyshortcuts="Control+K"
-            className="flex h-9 w-full items-center gap-2 rounded-md bg-sidebar-accent/70 pr-1.5 pl-2.5 text-sm text-muted-foreground outline-none hover:bg-sidebar-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+            // Looks like a field (page color, a fine outline), not like the highlighted rows below it
+            className="flex h-9 w-full items-center gap-2 rounded-md border border-sidebar-border bg-background pr-1.5 pl-2.5 text-sm text-muted-foreground shadow-xs outline-none hover:border-control-border hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <Search aria-hidden className="size-4 shrink-0" />
             <span className="flex-1 text-left">Search…</span>
