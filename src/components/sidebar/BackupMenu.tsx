@@ -1,4 +1,5 @@
-import { ArchiveRestore, CircleAlert, Download, FileText, FolderInput, Settings, Upload } from 'lucide-react'
+import { ArchiveRestore, Download, FileText, FolderInput, Settings, Upload } from 'lucide-react'
+import { AlertFilled } from '@/components/icons/AlertFilled'
 import { useImportFile } from '@/hooks/useImportFile'
 import {
   DropdownMenu,
@@ -14,7 +15,7 @@ import { cn } from '@/lib/utils'
 
 /**
  * One footer control for export and import: the label, and where the backups stand in a small pill. Grey while
- * all is well; amber with an alert icon once a backup is due (none yet, a week since the last, or the automatic
+ * all is well; amber with a filled alert icon once a backup is due (none yet, a week since the last, or the automatic
  * backup paused or failing), so it is noticed. Automatic backups and keeping data safe live in Settings → Backup.
  */
 export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
@@ -45,7 +46,8 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
               data-backup-pill
               data-overdue={overdue || undefined}
             >
-              {overdue && <CircleAlert className="size-3.5 shrink-0" />}
+              {/* Filled, so it shows at this size; the "!" in the pill color */}
+              {overdue && <AlertFilled className="size-3.5 shrink-0" markClassName="text-amber-100 dark:text-sidebar" />}
               <span className="truncate">{status}</span>
             </span>
           </button>
