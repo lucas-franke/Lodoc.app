@@ -10,11 +10,14 @@ import { TEXTURE_STRENGTH_DEFAULT } from '@/lib/appearance'
 import { cn } from '@/lib/utils'
 
 // The building blocks of the Settings tabs. Every control has an outline of at least 3:1 against the panel
-// (--control-border, WCAG 1.4.11), and a chosen option shows a line in the text color plus a check.
+// (--control-border, WCAG 1.4.11), and a chosen option is filled in the text color, plus a check.
 
-/** How a chosen tile or toggle looks: a 2px line in the text color, the accent fill and medium weight */
+/**
+ * How a chosen tile looks: filled in the text color, its label in the page color (black in light mode, white in
+ * dark), plus the check. Clear at a glance, without a heavy outline around it. Its previews draw in currentColor.
+ */
 export const SELECTED_CLASSES =
-  'border-control-border hover:bg-accent/60 focus-visible:border-control-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=on]:border-foreground data-[state=on]:bg-accent data-[state=on]:font-medium data-[state=on]:inset-ring data-[state=on]:inset-ring-foreground'
+  'border-control-border hover:bg-accent/60 focus-visible:border-control-border data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:font-medium data-[state=on]:text-background data-[state=on]:hover:bg-foreground data-[state=on]:hover:text-background'
 
 /** A tab's own actions (Appearance: Randomize, Reset all), at its top right */
 export function SettingsToolbar({ children }: { children: ReactNode }) {
@@ -98,7 +101,7 @@ export function Tiles<T extends string>({
         >
           {/* The check makes the choice clear without relying on color */}
           {o.value === value && (
-            <span aria-hidden className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-foreground text-background">
+            <span aria-hidden className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-background text-foreground">
               <Check className="size-3" strokeWidth={3} />
             </span>
           )}

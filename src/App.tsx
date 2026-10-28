@@ -188,7 +188,9 @@ export default function App() {
             className={cn(
               // icons-lg: the header's buttons (sidebar, star, ⋯) carry 20px icons
               'icons-lg flex h-12 shrink-0 items-center gap-1 border-b border-transparent px-3 text-sm transition-colors',
-              scrolled && !onBoard && 'border-border',
+              // Only where the header holds something (breadcrumbs, actions); on Settings, Activity or the
+              // overview it is empty, and a line under nothing looks odd
+              scrolled && current && !onBoard && 'border-border',
               // On a board the canvas runs behind the header: it floats on top and only its controls take clicks
               onBoard && 'pointer-events-none absolute inset-x-0 top-0 z-10 *:pointer-events-auto md:floating:top-2',
             )}

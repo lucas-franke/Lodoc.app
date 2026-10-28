@@ -64,14 +64,14 @@ export function AccessibilitySettings() {
 function SystemName({ now }: { now: string }) {
   return (
     <>
-      System <span className="block text-[0.6875rem] font-normal text-muted-foreground">now {now}</span>
+      System <span className="block text-[0.6875rem] font-normal opacity-75">now {now}</span>
     </>
   )
 }
 
 /** "Aa" in faint or strong ink */
 function ContrastSample({ high }: { high: boolean }) {
-  return <span className={cn('text-lg leading-none font-semibold', high ? 'text-foreground' : 'text-muted-foreground')}>Aa</span>
+  return <span className={cn('text-lg leading-none font-semibold', !high && 'opacity-50')}>Aa</span>
 }
 
 /** A dot with motion lines behind it, or a still dot */
@@ -80,12 +80,12 @@ function MotionSample({ moving }: { moving: boolean }) {
     <span className="flex items-center gap-0.5">
       {moving && (
         <span className="flex flex-col gap-0.5">
-          <span className="h-0.5 w-2 rounded-full bg-muted-foreground/60" />
-          <span className="h-0.5 w-3 rounded-full bg-muted-foreground/60" />
-          <span className="h-0.5 w-2 rounded-full bg-muted-foreground/60" />
+          <span className="h-0.5 w-2 rounded-full bg-current opacity-50" />
+          <span className="h-0.5 w-3 rounded-full bg-current opacity-50" />
+          <span className="h-0.5 w-2 rounded-full bg-current opacity-50" />
         </span>
       )}
-      <span className="size-3 rounded-full bg-foreground/70" />
+      <span className="size-3 rounded-full bg-current opacity-80" />
     </span>
   )
 }

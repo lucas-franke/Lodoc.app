@@ -315,7 +315,7 @@ function SidebarPreview({ floating }: { floating: boolean }) {
 function CornerPreview({ px }: { px: number }) {
   return (
     <span
-      className="block size-7 border-t-2 border-l-2 border-foreground/60"
+      className="block size-7 border-t-2 border-l-2 border-current opacity-70"
       style={{ borderTopLeftRadius: Math.round(px * 1.4) }}
     />
   )
