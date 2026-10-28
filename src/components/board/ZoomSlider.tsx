@@ -3,6 +3,7 @@ import { Map as MapIcon, Maximize, Minus, Plus } from 'lucide-react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { motionMs } from '@/lib/joy'
+import { FIT_PADDING } from './board-context'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 2
@@ -59,7 +60,7 @@ export function ZoomSlider({ minimap, onMinimapChange }: { minimap: boolean; onM
           size="icon-xs"
           className="size-8"
           aria-label="Fit everything in view"
-          onClick={() => void fitView({ duration: motionMs(250), padding: 0.2, maxZoom: 1 })}
+          onClick={() => void fitView({ duration: motionMs(250), padding: FIT_PADDING, maxZoom: 1 })}
         >
           <Maximize />
         </Button>

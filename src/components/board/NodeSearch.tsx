@@ -1,4 +1,3 @@
-import { Panel } from '@xyflow/react'
 import { FileText, SquareDashed, Type } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
@@ -67,8 +66,8 @@ export function NodeSearch({
   }
 
   return (
-    // Phones: narrower, so it stays clear of the card size menu on the right
-    <Panel position="top-left" className="nodrag nopan nowheel w-64 max-sm:w-[calc(100%-14.75rem)]">
+    // Under the board's title (BoardPage), in the top-left corner
+    <div className="w-64">
       <Command
         shouldFilter={false}
         label="Find on board"
@@ -113,6 +112,6 @@ export function NodeSearch({
           </CommandGroup>
         </CommandList>
       </Command>
-    </Panel>
+    </div>
   )
 }

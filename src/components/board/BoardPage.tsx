@@ -24,6 +24,8 @@ import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { useAppEvent } from '@/lib/app-events'
 import { motionMs, playOnce, reducedMotion } from '@/lib/joy'
+import { BoardTitle } from './BoardTitle'
+import { FIT_PADDING } from './board-context'
 import { notify } from '@/lib/notify'
 import { useRegisterCanvasDrop } from '@/components/dnd/dnd-registry'
 import type { DndData } from '@/components/sidebar/tree-dnd'
@@ -62,8 +64,6 @@ import { TextNode } from './nodes/TextNode'
 
 /** Height of the page header that floats over the canvas (App.tsx, h-12) */
 const HEADER_HEIGHT = 48
-/** Fitting items into view: clear of the header with the search and card controls under it, and of the zoom bar */
-const FIT_PADDING = { top: '120px', bottom: '88px', x: '32px' } as const
 
 const nodeTypes = { note: NoteNode, text: TextNode, image: ImageNode, frame: FrameNode }
 const edgeTypes = { arrow: ArrowEdge }
@@ -744,7 +744,11 @@ function Canvas({ board }: { board: Board }) {
               nodeBorderRadius={4}
             />
           )}
-          {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
+          {/* The title, and "Find on board" under it once there is something to find; clear of the card size menu */}
+          <Panel position="top-left" className="nodrag nopan nowheel flex max-w-[calc(100%-6rem)] flex-col items-start gap-2">
+            <BoardTitle board={board} />
+            {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
+          </Panel>
           <Panel position="top-right" className="flex gap-1.5">
             {nodes.length > 1 && (
               <Tip label="Tidy up">

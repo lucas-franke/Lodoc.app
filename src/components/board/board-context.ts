@@ -46,3 +46,7 @@ export function useBoard() {
   if (!ctx) throw new Error('useBoard must be used inside the board canvas')
   return ctx
 }
+
+/** Fitting items into view: clear of the header, the board title with "Find on board" under it and the card
+ *  controls, and of the zoom bar (BoardPage, ZoomSlider) */
+export const FIT_PADDING = { top: '184px', bottom: '88px', x: '32px' } as const

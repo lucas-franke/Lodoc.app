@@ -4,7 +4,7 @@ description: An endless canvas for a topic, with your notes as cards, text, imag
 order: 4
 ---
 
-A board is a canvas you can pan and zoom, to lay out a topic: your notes as cards, text, images, and arrows between them.
+A board is a canvas you can pan and zoom, to lay out a topic: your notes as cards, text, images, and arrows between them. Its name sits large at the top left, like a note's title: click it to rename the board. A new board starts there, ready for its name.
 
 <figure class="shot">
   <img src="../img/board-light.png" class="dark:hidden" alt="A board with note cards inside a frame, a label and arrows between the cards" width="1280" height="800" loading="lazy" />
