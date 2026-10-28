@@ -186,11 +186,19 @@
     scroll-behavior: auto !important;
 }
 
-/* High contrast (the Accessibility menu): a clear focus outline on everything that takes keyboard focus (text fields and the editor
-   show their caret, so they keep their own ring) */
-:root[data-contrast='high'] :focus-visible:not(input, textarea, [contenteditable]) {
-    outline: 2px solid var(--ring);
+/* Keyboard focus: one 2px outline in --focus (about 8-9:1 against the page; WCAG 2.4.7, 1.4.11 and the 2px of
+   2.4.13) on everything that takes focus, in place of the components' own faint rings. Unlayered, so it wins
+   over the Tailwind utilities. Text fields and the editor show their caret and a border; menu items, palette
+   results and options their highlight. In the sidebar and in tab rows that scroll, the outline is drawn inside,
+   where an outer one would be cut off. */
+:focus-visible:not(input, textarea, select, [contenteditable], [role^='menuitem'], [role='option'], [cmdk-item]) {
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-ring-offset-shadow: 0 0 #0000;
+}
+:is(aside[data-sidebar-panel], [data-focus-inset]) :focus-visible:not(input, textarea, select, [contenteditable]) {
+    outline-offset: -2px;
 }
 
 /* The preview tiles show the texture a few times stronger */

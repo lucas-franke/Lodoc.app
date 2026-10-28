@@ -30,6 +30,18 @@
   }
 }
 
+/* Keyboard focus: the app's 2px outline in --focus (about 8-9:1 against the page), in place of the faint rings */
+:focus-visible:not(input, textarea, select) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+}
+/* The docs' page list scrolls sideways on phones: the outline inside, where an outer one would be cut off */
+nav[aria-label='Docs'] ul :focus-visible {
+  outline-offset: -2px;
+}
+
 /* Room for the scrollbar on every page, scrolling or not, so the centered layout stays put between pages */
 html {
   scrollbar-gutter: stable;

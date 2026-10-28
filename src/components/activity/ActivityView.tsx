@@ -38,7 +38,7 @@ export function ActivityView({ tab }: { tab: ActivityTab }) {
       <p className="mt-2 text-sm text-muted-foreground">
         What changed, what was deleted and the messages you were shown, newest first.
       </p>
-      <nav aria-label="Filter" className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-border)]">
+      <nav aria-label="Filter" data-focus-inset className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-border)]">
         {TABS.map(({ tab: t, label }) => (
           <a
             key={t}

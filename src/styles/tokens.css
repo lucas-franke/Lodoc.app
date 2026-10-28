@@ -80,7 +80,7 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --ring: oklch(0.55 0 0);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -117,7 +117,7 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --ring: oklch(0.68 0 0);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -194,10 +194,13 @@
 :root,
 [data-look] {
     --control-border: oklch(0.6 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
+    /* Keyboard focus: a 2px outline about 8-9:1 against the page (index.css), clear without the full text color */
+    --focus: oklch(0.4 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
 }
 :root.dark,
 [data-look].dark {
     --control-border: oklch(0.56 calc(var(--tint-c, 0) * 0.6) var(--tint-h, 0));
+    --focus: oklch(0.78 calc(var(--tint-c, 0) * 0.6) var(--tint-h, 0));
 }
 
 /* High contrast (the Accessibility menu; lib/appearance.ts sets data-contrast from the choice or the
@@ -220,6 +223,7 @@
     --sidebar-border: oklch(0.55 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
     --sidebar-ring: oklch(0.3 0 0);
     --control-border: oklch(0.45 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
+    --focus: oklch(0.1 0 0);
 }
 :root:root.dark[data-contrast='high'],
 [data-look][data-look].dark[data-contrast='high'] {
@@ -237,4 +241,5 @@
     --sidebar-border: oklch(0.62 calc(var(--tint-c, 0) * 0.6) var(--tint-h, 0));
     --sidebar-ring: oklch(0.85 0 0);
     --control-border: oklch(0.7 calc(var(--tint-c, 0) * 0.6) var(--tint-h, 0));
+    --focus: oklch(1 0 0);
 }
