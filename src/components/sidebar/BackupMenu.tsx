@@ -9,14 +9,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { exportBackup, useBackupStatus } from '@/hooks/useBackupStatus'
 import { emitAppEvent } from '@/lib/app-events'
-import { cn } from '@/lib/utils'
 
 /**
- * One calm footer control for export and import. An overdue backup shows a small amber dot instead of loud
- * warning text. Automatic backups and keeping data safe live in Settings → Backup, one click away.
+ * One calm footer control for export and import: the label, and where the backups stand in a small grey pill.
+ * Automatic backups and keeping data safe live in Settings → Backup, one click away.
  */
 export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
-  const { auto, status, overdue, urgent, refresh } = useBackupStatus(hasNotes)
+  const { auto, status, overdue, refresh } = useBackupStatus(hasNotes)
   const importFile = useImportFile()
   const autoSummary =
     auto.status === 'on' ? `Backing up to “${auto.folder}”` : auto.status === 'paused' ? 'Automatic backup paused' : 'Automatic backup: off'
@@ -31,14 +30,9 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
             className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring/60 data-[state=open]:bg-sidebar-accent"
           >
             <ArchiveRestore className="size-4 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-2">
-                Backup
-                {overdue && <span className="size-2 rounded-full bg-amber-500" aria-hidden />}
-              </span>
-              <span className={cn('block truncate text-xs', urgent ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground')}>
-                {status}
-              </span>
+            <span className="shrink-0">Backup</span>
+            <span aria-hidden className="ml-auto min-w-0 truncate rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground" data-backup-pill>
+              {status}
             </span>
           </button>
         </DropdownMenuTrigger>
