@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 
 /** Files from public/ that the offline copy needs besides the build output */
-const PUBLIC_FILES = ['favicon.svg', 'favicon.ico', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png']
+const PUBLIC_FILES = ['favicon.svg', 'favicon.ico', 'manifest.webmanifest', 'android-chrome-192x192.png', 'android-chrome-512x512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'favicon-16x16.png', 'favicon-32x32.png']
 
 /**
  * Writes sw.js (the service worker that makes Lodoc work offline) with the list of every built file, and a

@@ -36,7 +36,10 @@ const nav = [
     <meta property="og:type" content="website" />
     {imageUrl && <meta property="og:image" content={imageUrl} />}
     {imageUrl && <meta name="twitter:card" content="summary_large_image" />}
+    <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
+    <link rel="icon" type="image/png" sizes="16x16" href={`${base}favicon-16x16.png`} />
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
     <link rel="alternate" type="application/rss+xml" title="Lodoc: what's new" href={`${base}changelog/rss.xml`} />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)" />
