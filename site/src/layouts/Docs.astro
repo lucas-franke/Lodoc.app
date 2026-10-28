@@ -28,7 +28,7 @@ const href = (id: string) => `${base}docs/${id}/`
               <a
                 href={href(page.id)}
                 aria-current={page.id === current ? 'page' : undefined}
-                class="block rounded-md px-2.5 py-1.5 whitespace-nowrap text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-foreground max-md:border"
+                class="block rounded-md px-2.5 py-1.5 whitespace-nowrap text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-foreground max-md:border max-md:border-control-border"
               >
                 {page.data.title}
               </a>
@@ -47,9 +47,9 @@ const href = (id: string) => `${base}docs/${id}/`
         current && (
           <nav aria-label="More docs" class="mt-16 grid gap-3 border-t pt-6 text-sm sm:grid-cols-2">
             {previous ? (
-              <a href={href(previous.id)} class="rounded-lg border p-3 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
+              <a href={href(previous.id)} class="rounded-lg border border-control-border p-3 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
                 <span class="block text-xs text-muted-foreground">Previous</span>
-                {previous.data.title}
+                <span class="text-link underline underline-offset-4 hover:no-underline">{previous.data.title}</span>
               </a>
             ) : (
               <span />
@@ -57,7 +57,7 @@ const href = (id: string) => `${base}docs/${id}/`
             {next && (
               <a href={href(next.id)} class="rounded-lg border p-3 text-right outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
                 <span class="block text-xs text-muted-foreground">Next</span>
-                {next.data.title}
+                <span class="text-link underline underline-offset-4 hover:no-underline">{next.data.title}</span>
               </a>
             )}
           </nav>

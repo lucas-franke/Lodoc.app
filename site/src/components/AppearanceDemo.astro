@@ -1,21 +1,35 @@
 ---
 // "Make it yours", live: a small mock-up of Lodoc that takes the same looks as the app (the app's own tints,
 // textures and corners, src/lib/appearance-options.ts, and its colour rules for [data-look] in tokens.css).
-// Only the mock-up changes; the page around it keeps its plain look, and nothing is carried over to the app.
-import { RADIUS_PRESETS, TEXTURES, TINTS, tintSwatchColor } from '../../../src/lib/appearance-options'
+// Four ready-made looks, picked with their swatches. Only the mock-up changes; the page around it keeps its
+// plain look, and nothing is carried over to the app.
+import { RADIUS_PRESETS, TINTS, tintSwatchColor } from '../../../src/lib/appearance-options'
 import Icon from './Icon.astro'
-import { __iconData as dice } from 'lucide-react/dist/esm/icons/dices.mjs'
 import { __iconData as chevron } from 'lucide-react/dist/esm/icons/chevron-down.mjs'
 
-const groups = [
-  { name: 'mode', label: 'Mode', options: [{ id: 'light', name: 'Light' }, { id: 'dark', name: 'Dark' }] },
-  { name: 'texture', label: 'Texture', options: TEXTURES.map((t) => ({ id: t.id, name: t.id === 'laid' ? 'Laid' : t.id === 'dots' ? 'Dots' : t.name })) },
-  { name: 'pageFont', label: 'Font', options: [{ id: 'sans', name: 'Sans' }, { id: 'serif', name: 'Serif' }] },
-  { name: 'corners', label: 'Corners', options: RADIUS_PRESETS.map((r) => ({ id: r.id, name: r.name })) },
-  { name: 'sidebar', label: 'Sidebar', options: [{ id: 'connected', name: 'Connected' }, { id: 'floating', name: 'Floating' }] },
-]
-const segment =
-  'h-8 rounded-md px-2.5 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm'
+const LOOKS = [
+  { id: 'clean', name: 'Clean', mode: 'light', tint: 'neutral', texture: 'none', pageFont: 'sans', corners: 'sharp', sidebar: 'connected', contrast: 'standard' },
+  { id: 'evergreen', name: 'Evergreen', mode: 'dark', tint: 'sage', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'floating', contrast: 'standard' },
+  { id: 'rose-paper', name: 'Rose paper', mode: 'light', tint: 'rose', texture: 'laid', pageFont: 'serif', corners: 'round', sidebar: 'floating', contrast: 'standard' },
+  { id: 'high-contrast', name: 'High contrast', mode: 'dark', tint: 'sand', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'connected', contrast: 'high' },
+] as const
+type Look = (typeof LOOKS)[number]
+
+const tint = (l: Look) => TINTS.find((t) => t.id === l.tint)!
+/** What a look is made of, in words: shown under the mock-up and read out with the swatch */
+const describe = (l: Look) =>
+  [
+    l.mode === 'dark' ? 'Dark' : 'Light',
+    `${tint(l).name.toLowerCase()} tint`,
+    l.sidebar === 'floating' ? 'floating sidebar' : 'attached sidebar',
+    l.texture === 'laid' ? 'laid paper texture' : null,
+    `${RADIUS_PRESETS.find((r) => r.id === l.corners)!.name.toLowerCase()} corners`,
+    l.pageFont === 'serif' ? 'serif font' : 'sans-serif font',
+    l.contrast === 'high' ? 'high contrast' : null,
+  ]
+    .filter(Boolean)
+    .join(', ')
+const looks = LOOKS.map((l) => ({ ...l, description: describe(l), swatch: tintSwatchColor(tint(l), l.mode) }))
 ---
 
 <div data-demo class="not-prose">
@@ -27,14 +41,14 @@ const segment =
     data-texture="none"
     data-page-font="sans"
     data-sidebar="connected"
-    style="--tint-h: 0; --tint-c: 0; --radius: 0.625rem; --page-font: 'Geist Variable', sans-serif;"
+    style="--tint-h: 0; --tint-c: 0; --radius: 0rem; --page-font: 'Geist Variable', sans-serif;"
     class="demo-window relative flex h-72 overflow-hidden rounded-xl border bg-background text-foreground shadow-sm sm:h-80"
     role="img"
     aria-label="A small model of Lodoc showing the chosen look"
   >
     <div data-demo-sidebar class="demo-sidebar relative z-[2] flex w-[34%] max-w-44 shrink-0 flex-col gap-1 border-r bg-sidebar p-2.5 text-[11px] text-sidebar-foreground">
       <span class="mb-1 flex items-center gap-1 px-1 font-semibold">Lodoc <Icon icon={chevron} class="size-3 text-muted-foreground" /></span>
-      <span class="mb-1 rounded-md bg-sidebar-accent px-2 py-1 text-muted-foreground">Search…</span>
+      <span class="mb-1 rounded-md border px-2 py-1 text-muted-foreground">Search…</span>
       <span class="truncate rounded-md px-2 py-1">Overview</span>
       <span class="truncate rounded-md px-2 py-1">Activity</span>
       <span class="mt-2 px-2 text-[10px] text-muted-foreground">Folders</span>
@@ -54,70 +68,44 @@ const segment =
     </div>
   </div>
 
-  <!-- The choices -->
-  <div class="mt-4 space-y-2" data-demo-controls>
-    <div class="flex items-center gap-3" role="radiogroup" aria-label="Tint">
-      <span class="w-14 shrink-0 text-xs text-muted-foreground">Tint</span>
-      <div class="flex flex-wrap gap-1.5">
-        {
-          TINTS.map((t) => (
-            <button
-              type="button"
-              role="radio"
-              data-choice="tint"
-              data-value={t.id}
-              aria-checked={t.id === 'neutral' ? 'true' : 'false'}
-              title={t.name}
-              aria-label={t.name}
-              class="size-7 rounded-full border outline-none focus-visible:ring-2 focus-visible:ring-ring/60 aria-checked:ring-2 aria-checked:ring-foreground/70 aria-checked:ring-offset-2 aria-checked:ring-offset-background"
-              style={`background: ${tintSwatchColor(t, 'light')}; --swatch-dark: ${tintSwatchColor(t, 'dark')}`}
-            />
-          ))
-        }
-      </div>
-    </div>
+  <!-- The four looks; arrow keys move between them, like any group of radio buttons -->
+  <div class="mt-4 flex flex-wrap gap-x-4 gap-y-3" role="radiogroup" aria-label="Look" data-demo-looks>
     {
-      groups.map((g) => (
-        <div class="flex items-center gap-3">
-          <span class="w-14 shrink-0 text-xs text-muted-foreground">{g.label}</span>
-          <div class="inline-flex gap-0.5 rounded-lg bg-muted p-0.5" role="group" aria-label={g.label}>
-            {g.options.map((o, i) => (
-              <button type="button" data-choice={g.name} data-value={o.id} aria-pressed={i === 0 ? 'true' : 'false'} class={segment}>
-                {o.name}
-              </button>
-            ))}
-          </div>
-        </div>
+      looks.map((l, i) => (
+        <button
+          type="button"
+          role="radio"
+          data-look-preset={JSON.stringify(l)}
+          aria-checked={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          aria-describedby={`look-${l.id}`}
+          class="group flex w-20 flex-col items-center gap-1.5 rounded-lg p-1 text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-checked:font-medium aria-checked:text-foreground"
+        >
+          <span
+            aria-hidden="true"
+            class="size-9 rounded-full border border-control-border group-aria-checked:ring-2 group-aria-checked:ring-foreground group-aria-checked:ring-offset-2 group-aria-checked:ring-offset-background"
+            style={`background: ${l.swatch}`}
+          />
+          {l.name}
+          <span id={`look-${l.id}`} class="sr-only">{l.description}</span>
+        </button>
       ))
     }
   </div>
-
-  <div class="mt-5 flex flex-wrap items-center gap-2">
-    <button type="button" data-demo-random class="inline-flex h-9 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60">
-      <Icon icon={dice} class="size-4" /> Randomize
-    </button>
-  </div>
+  <p class="mt-2 text-sm text-muted-foreground" data-demo-description aria-hidden="true">{looks[0].description}</p>
 </div>
 
 <script>
-  import { RADIUS_PRESETS, TEXTURES, TINTS } from '../../../src/lib/appearance-options'
+  import { RADIUS_PRESETS, TINTS } from '../../../src/lib/appearance-options'
   import { showPaperTexture } from '../../../src/lib/paper-texture'
 
-  type Look = { mode: 'light' | 'dark'; tint: string; texture: string; pageFont: string; corners: string; sidebar: string }
+  type Look = { mode: 'light' | 'dark'; tint: string; texture: string; pageFont: string; corners: string; sidebar: string; contrast: string; description: string }
   const root = document.querySelector<HTMLElement>('[data-demo]')
   const view = root?.querySelector<HTMLElement>('[data-demo-window]')
-  if (root && view) {
-    // Starts in the page's own mode
-    const look: Look = {
-      mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-      tint: 'neutral',
-      texture: 'none',
-      pageFont: 'sans',
-      corners: 'rounded',
-      sidebar: 'connected',
-    }
-
-    const apply = () => {
+  const radios = [...(root?.querySelectorAll<HTMLButtonElement>('[data-look-preset]') ?? [])]
+  if (root && view && radios.length) {
+    const apply = (button: HTMLButtonElement) => {
+      const look = JSON.parse(button.dataset.lookPreset!) as Look
       view.classList.toggle('dark', look.mode === 'dark')
       const tint = TINTS.find((t) => t.id === look.tint) ?? TINTS[0]
       view.dataset.tint = tint.id
@@ -130,37 +118,29 @@ const segment =
       const corners = RADIUS_PRESETS.find((r) => r.id === look.corners) ?? RADIUS_PRESETS[1]
       view.style.setProperty('--radius', `${corners.px / 16}rem`)
       view.dataset.sidebar = look.sidebar
-      // The swatches show their colour in the mode the mock-up is in
-      root.querySelectorAll<HTMLElement>('[data-choice="tint"]').forEach((b) => b.classList.toggle('demo-swatch-dark', look.mode === 'dark'))
-      root.querySelectorAll<HTMLElement>('[data-choice]').forEach((b) => {
-        const on = look[b.dataset.choice as keyof Look] === b.dataset.value
-        b.setAttribute(b.getAttribute('role') === 'radio' ? 'aria-checked' : 'aria-pressed', String(on))
-      })
+      view.dataset.contrast = look.contrast
+      root.querySelector('[data-demo-description]')!.textContent = look.description
+      for (const r of radios) {
+        r.setAttribute('aria-checked', String(r === button))
+        r.tabIndex = r === button ? 0 : -1
+      }
     }
 
     root.addEventListener('click', (e) => {
-      const button = (e.target as HTMLElement).closest<HTMLElement>('[data-choice]')
-      if (!button) return
-      ;(look as Record<string, string>)[button.dataset.choice!] = button.dataset.value!
-      apply()
+      const button = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-look-preset]')
+      if (button) apply(button)
+    })
+    root.querySelector('[data-demo-looks]')?.addEventListener('keydown', (e) => {
+      const key = (e as KeyboardEvent).key
+      const step = key === 'ArrowRight' || key === 'ArrowDown' ? 1 : key === 'ArrowLeft' || key === 'ArrowUp' ? -1 : 0
+      const at = radios.indexOf(document.activeElement as HTMLButtonElement)
+      if (!step || at < 0) return
+      e.preventDefault()
+      const next = radios[(at + step + radios.length) % radios.length]
+      apply(next)
+      next.focus()
     })
 
-    // Like Randomize in the app: style only, the light/dark mode stays
-    const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]
-    root.querySelector('[data-demo-random]')?.addEventListener('click', (e) => {
-      const before = JSON.stringify(look)
-      while (JSON.stringify(look) === before) {
-        look.tint = pick(TINTS).id
-        look.texture = pick(TEXTURES).id
-        look.pageFont = pick(['sans', 'serif'])
-        look.corners = pick(RADIUS_PRESETS).id
-        look.sidebar = pick(['connected', 'floating'])
-      }
-      const icon = (e.currentTarget as HTMLElement).querySelector('svg')
-      if (icon && !matchMedia('(prefers-reduced-motion: reduce)').matches) icon.animate([{ transform: 'rotate(-90deg) scale(0.85)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.3, 1.4, 0.5, 1)' })
-      apply()
-    })
-
-    apply()
+    apply(radios[0])
   }
 </script>

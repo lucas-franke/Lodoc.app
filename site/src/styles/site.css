@@ -8,10 +8,17 @@
 
 :root {
   --page-font: 'Geist Variable', sans-serif;
+  /* Links: blue and underlined, so they stand out from text by more than colour (WCAG 1.4.1); 4.5:1 or more on
+     the page and on cards in both modes */
+  --link: oklch(0.5 0.2 262);
   color-scheme: light;
 }
 :root.dark {
+  --link: oklch(0.78 0.12 255);
   color-scheme: dark;
+}
+@theme inline {
+  --color-link: var(--link);
 }
 
 /* Lines in the theme's border color, like in the app (Tailwind would use the text color) */
@@ -71,6 +78,7 @@ body {
   margin: 0.85rem 0;
 }
 .prose-lodoc a {
+  color: var(--link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }

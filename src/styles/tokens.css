@@ -202,8 +202,10 @@
 
 /* High contrast (the Accessibility menu; lib/appearance.ts sets data-contrast from the choice or the
    system's setting): near-black or white text, darker secondary text and clearly visible lines. Surfaces keep
-   their tint; tinted text gives way to contrast. :root:root is there to outrank the tint and text rules above. */
-:root:root:not(.dark)[data-contrast='high'] {
+   their tint; tinted text gives way to contrast. :root:root (and [data-look] twice, for the website's demo) is there
+   to outrank the tint and text rules above. */
+:root:root:not(.dark)[data-contrast='high'],
+[data-look][data-look]:not(.dark)[data-contrast='high'] {
     --foreground: oklch(0.1 0 0);
     --card-foreground: oklch(0.1 0 0);
     --popover-foreground: oklch(0.1 0 0);
@@ -219,7 +221,8 @@
     --sidebar-ring: oklch(0.3 0 0);
     --control-border: oklch(0.45 calc(var(--tint-c, 0) * 0.8) var(--tint-h, 0));
 }
-:root:root.dark[data-contrast='high'] {
+:root:root.dark[data-contrast='high'],
+[data-look][data-look].dark[data-contrast='high'] {
     --foreground: oklch(1 0 0);
     --card-foreground: oklch(1 0 0);
     --popover-foreground: oklch(1 0 0);
