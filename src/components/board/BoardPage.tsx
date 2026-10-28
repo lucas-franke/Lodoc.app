@@ -744,12 +744,12 @@ function Canvas({ board }: { board: Board }) {
               nodeBorderRadius={4}
             />
           )}
-          {/* The title, and "Find on board" under it once there is something to find; clear of the card size menu */}
-          <Panel position="top-left" className="nodrag nopan nowheel flex max-w-[calc(100%-6rem)] flex-col items-start gap-2">
+          {/* The title, clear of the controls on the right */}
+          <Panel position="top-left" className="nodrag nopan nowheel max-w-[calc(100%-6rem)]">
             <BoardTitle board={board} />
-            {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
           </Panel>
-          <Panel position="top-right" className="flex gap-1.5">
+          <Panel position="top-right" className="nopan nowheel flex gap-1.5">
+            {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
             {nodes.length > 1 && (
               <Tip label="Tidy up">
                 <Button variant="outline" size="icon-sm" className="nodrag bg-background shadow-sm" onClick={tidyUp} aria-label="Tidy up">
