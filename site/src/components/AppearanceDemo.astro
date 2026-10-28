@@ -1,26 +1,27 @@
 ---
 // "Make it yours", live: a small mock-up of Lodoc that takes the same looks as the app (the app's own tints,
 // textures and corners, src/lib/appearance-options.ts, and its colour rules for [data-look] in tokens.css).
-// Four ready-made looks, picked with their swatches. Only the mock-up changes; the page around it keeps its
+// Four ready-made looks, picked with their swatches: three light ones and a dark one in high contrast. Only the mock-up changes; the page around it keeps its
 // plain look, and nothing is carried over to the app.
-import { RADIUS_PRESETS, TINTS, tintSwatchColor } from '../../../src/lib/appearance-options'
+import { RADIUS_PRESETS, TINTS } from '../../../src/lib/appearance-options'
 import Icon from './Icon.astro'
 import { __iconData as chevron } from 'lucide-react/dist/esm/icons/chevron-down.mjs'
 
 const LOOKS = [
-  { id: 'clean', name: 'Clean', mode: 'light', tint: 'neutral', texture: 'none', pageFont: 'sans', corners: 'sharp', sidebar: 'connected', contrast: 'standard' },
-  { id: 'evergreen', name: 'Evergreen', mode: 'dark', tint: 'sage', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'floating', contrast: 'standard' },
-  { id: 'rose-paper', name: 'Rose paper', mode: 'light', tint: 'rose', texture: 'laid', pageFont: 'serif', corners: 'round', sidebar: 'floating', contrast: 'standard' },
-  { id: 'high-contrast', name: 'High contrast', mode: 'dark', tint: 'sand', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'connected', contrast: 'high' },
+  { id: 'clean', name: 'Clean', mode: 'light', tint: 'neutral', texture: 'none', pageFont: 'sans', corners: 'sharp', sidebar: 'connected', contrast: 'standard', swatch: 'oklch(1 0 0)' },
+  { id: 'sage', name: 'Sage', mode: 'light', tint: 'sage', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'floating', contrast: 'standard', swatch: 'oklch(0.86 0.07 150)' },
+  { id: 'rose-paper', name: 'Rose paper', mode: 'light', tint: 'rose', texture: 'laid', pageFont: 'serif', corners: 'round', sidebar: 'floating', contrast: 'standard', swatch: 'oklch(0.87 0.06 10)' },
+  // Half black, half white: the usual sign for contrast
+  { id: 'high-contrast', name: 'High contrast', mode: 'dark', tint: 'neutral', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'connected', contrast: 'high', swatch: 'linear-gradient(90deg, oklch(0.145 0 0) 50%, oklch(1 0 0) 50%)' },
 ] as const
 type Look = (typeof LOOKS)[number]
 
 const tint = (l: Look) => TINTS.find((t) => t.id === l.tint)!
-/** What a look is made of, in words: shown under the mock-up and read out with the swatch */
+/** What a look is made of, in words: read out with its swatch (the mock-up shows it) */
 const describe = (l: Look) =>
   [
     l.mode === 'dark' ? 'Dark' : 'Light',
-    `${tint(l).name.toLowerCase()} tint`,
+    l.tint === 'neutral' ? null : `${tint(l).name.toLowerCase()} tint`,
     l.sidebar === 'floating' ? 'floating sidebar' : 'attached sidebar',
     l.texture === 'laid' ? 'laid paper texture' : null,
     `${RADIUS_PRESETS.find((r) => r.id === l.corners)!.name.toLowerCase()} corners`,
@@ -29,7 +30,7 @@ const describe = (l: Look) =>
   ]
     .filter(Boolean)
     .join(', ')
-const looks = LOOKS.map((l) => ({ ...l, description: describe(l), swatch: tintSwatchColor(tint(l), l.mode) }))
+const looks = LOOKS.map((l) => ({ ...l, description: describe(l) }))
 ---
 
 <div data-demo class="not-prose">
@@ -79,7 +80,7 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l), swatch: tintSw
           aria-checked={i === 0 ? 'true' : 'false'}
           tabindex={i === 0 ? 0 : -1}
           aria-describedby={`look-${l.id}`}
-          class="group flex w-20 flex-col items-center gap-1.5 rounded-lg p-1 text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-checked:font-medium aria-checked:text-foreground"
+          class="group flex min-w-20 flex-col whitespace-nowrap items-center gap-1.5 rounded-lg p-1 text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-checked:font-medium aria-checked:text-foreground"
         >
           <span
             aria-hidden="true"
@@ -92,14 +93,13 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l), swatch: tintSw
       ))
     }
   </div>
-  <p class="mt-2 text-sm text-muted-foreground" data-demo-description aria-hidden="true">{looks[0].description}</p>
 </div>
 
 <script>
   import { RADIUS_PRESETS, TINTS } from '../../../src/lib/appearance-options'
   import { showPaperTexture } from '../../../src/lib/paper-texture'
 
-  type Look = { mode: 'light' | 'dark'; tint: string; texture: string; pageFont: string; corners: string; sidebar: string; contrast: string; description: string }
+  type Look = { mode: 'light' | 'dark'; tint: string; texture: string; pageFont: string; corners: string; sidebar: string; contrast: string }
   const root = document.querySelector<HTMLElement>('[data-demo]')
   const view = root?.querySelector<HTMLElement>('[data-demo-window]')
   const radios = [...(root?.querySelectorAll<HTMLButtonElement>('[data-look-preset]') ?? [])]
@@ -119,7 +119,6 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l), swatch: tintSw
       view.style.setProperty('--radius', `${corners.px / 16}rem`)
       view.dataset.sidebar = look.sidebar
       view.dataset.contrast = look.contrast
-      root.querySelector('[data-demo-description]')!.textContent = look.description
       for (const r of radios) {
         r.setAttribute('aria-checked', String(r === button))
         r.tabIndex = r === button ? 0 : -1
