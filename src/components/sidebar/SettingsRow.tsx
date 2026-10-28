@@ -2,7 +2,7 @@ import { Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { emitAppEvent } from '@/lib/app-events'
 
-/** The sidebar footer's way into Settings, above Backup; it stays highlighted while the panel is open */
+/** The sidebar footer's way into Settings, above Backup; it stays highlighted while Settings is open */
 export function SettingsRow() {
   const open = useSettingsOpen()
   return (

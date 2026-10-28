@@ -2,12 +2,11 @@ import { Check, Dices, FileText, Monitor, Moon, PanelLeft, Palette, RotateCcw, S
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { AppearancePreview } from '@/components/settings/AppearancePreview'
-import { Row, SectionBlock, StrengthSlider, SwitchRow, Tiles } from '@/components/settings/controls'
+import { Row, SECTION_SCROLL, SectionBlock, SettingsFooter, StrengthSlider, SwitchRow, Tiles } from '@/components/settings/controls'
 import { useRootData } from '@/hooks/useRootData'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { db } from '@/db/db'
 import {
   getAppearance,
   resetAppearance,
@@ -17,7 +16,7 @@ import {
 } from '@/hooks/useAppearance'
 import { useWideScreen } from '@/hooks/useWideScreen'
 import { crossfade, playOnce } from '@/lib/joy'
-import { openNote, useRoute } from '@/hooks/useRoute'
+import { useRoute } from '@/hooks/useRoute'
 import {
   APPEARANCE_SECTIONS,
   DEFAULT_APPEARANCE,
@@ -41,9 +40,8 @@ const TEXT_SIZE_OPTIONS = [
 type Section = 'theme' | 'pages' | 'interface'
 
 /**
- * The Appearance tab of Settings: the settings grouped by where they show up (Theme everywhere, Pages,
- * Interface). Beside the page it needs no preview; on a phone, where the panel covers the page, a small note
- * preview sits on top.
+ * The Appearance tab of Settings: a live preview on top (Settings covers the page), then the settings in one
+ * column, grouped by where they show up (Theme everywhere, Pages, Interface), so looks can be combined freely.
  */
 export function AppearanceSettings() {
   const a = useAppearance()
@@ -108,19 +106,20 @@ export function AppearanceSettings() {
     highlight()
   }
 
-  const openLatestNote = async () => {
-    const latest = await db.notes.orderBy('updatedAt').last()
-    if (latest) openNote(latest.id)
-  }
-
   return (
     <>
-      {/* Only on a phone, where the panel covers the page; wider, the page beside it shows every change */}
-      <div className="border-b p-4 sm:hidden">
-        <AppearancePreview autoCover={a.autoCover} flash={flash} />
+      {/* Settings covers the page, so the preview stays in view while the settings below scroll */}
+      <div className="border-b p-4 sm:px-6">
+        {/* On a phone just the note: the sidebar there lies over the page anyway */}
+        <div className="sm:hidden">
+          <AppearancePreview sidebar="connected" autoCover={a.autoCover} flash={flash} compact />
+        </div>
+        <div className="hidden sm:block">
+          <AppearancePreview sidebar={wide ? a.sidebar : 'connected'} autoCover={a.autoCover} flash={flash} />
+        </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+      <div className={SECTION_SCROLL}>
         <SectionBlock
           icon={Palette}
           title="Theme"
@@ -194,11 +193,7 @@ export function AppearanceSettings() {
         >
           {onBoard && (
             <p className="rounded-md bg-muted/60 px-2.5 py-2 text-xs text-muted-foreground" data-board-hint>
-              Boards don't show page width or texture. To see them,{' '}
-              <button type="button" onClick={openLatestNote} className="font-medium text-foreground underline underline-offset-2">
-                open your latest note
-              </button>
-              .
+              Boards don't show page width or texture; the page in the preview above does.
             </p>
           )}
           <Row label="Font">
@@ -306,7 +301,7 @@ export function AppearanceSettings() {
         </SectionBlock>
       </div>
 
-      <div className="flex items-center gap-2 border-t p-3">
+      <SettingsFooter>
         <Button variant="ghost" size="sm" onClick={resetAll}>
           <RotateCcw /> Reset all
         </Button>
@@ -314,14 +309,14 @@ export function AppearanceSettings() {
           <Dices /> Randomize
         </Button>
         {undo && (
-          <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground" role="status">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground" role="status">
             {undo.status}
             <Button variant="outline" size="xs" onClick={undoReset}>
               Undo
             </Button>
           </span>
         )}
-      </div>
+      </SettingsFooter>
     </>
   )
 }

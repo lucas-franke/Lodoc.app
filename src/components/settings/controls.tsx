@@ -1,6 +1,7 @@
 import { Check, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { DialogClose } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Slider } from '@/components/ui/slider'
@@ -15,6 +16,23 @@ import { cn } from '@/lib/utils'
 /** How a chosen tile or toggle looks: a 2px line in the text color, the accent fill and medium weight */
 export const SELECTED_CLASSES =
   'border-control-border hover:bg-accent/60 focus-visible:border-control-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover data-[state=on]:border-foreground data-[state=on]:bg-accent data-[state=on]:font-medium data-[state=on]:inset-ring data-[state=on]:inset-ring-foreground'
+
+/** The scrolling body of a Settings tab */
+export const SECTION_SCROLL = 'min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6'
+
+/** The bar at the bottom of a tab: its own actions on the left, Done on the right */
+export function SettingsFooter({ children }: { children?: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t p-3 sm:px-4">
+      {children}
+      <DialogClose asChild>
+        <Button size="sm" className="ml-auto">
+          Done
+        </Button>
+      </DialogClose>
+    </div>
+  )
+}
 
 export function SectionBlock({
   icon: Icon,

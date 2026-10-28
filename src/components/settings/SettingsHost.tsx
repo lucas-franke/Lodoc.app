@@ -2,11 +2,11 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { SettingsTab } from '@/components/settings/SettingsPanel'
 import { useAppEvent } from '@/lib/app-events'
 
-// The panel (and its slider/switch/toggle components) is only loaded once it is opened
+// Settings (and its slider/switch/toggle components) is only loaded once it is opened
 const SettingsPanel = lazy(() => import('@/components/settings/SettingsPanel').then((m) => ({ default: m.SettingsPanel })))
 
 /**
- * Holds the Settings panel. It opens from the sidebar, the Lodoc menu, the Backup menu, the command palette
+ * Holds the Settings window. It opens from the sidebar, the Lodoc menu, the Backup menu, the command palette
  * and Ctrl+, via the "open-settings" event, optionally with a tab ({ tab: 'backup' }).
  */
 export function SettingsHost() {
@@ -28,7 +28,7 @@ export function SettingsHost() {
     }, []),
   )
 
-  // Lets the page make room for the panel on wide screens (index.css), and the sidebar row show it is open
+  // Lets the sidebar row show that Settings is open
   useEffect(() => {
     document.documentElement.toggleAttribute('data-settings-open', open)
     return () => document.documentElement.removeAttribute('data-settings-open')
