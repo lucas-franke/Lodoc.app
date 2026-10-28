@@ -50,7 +50,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
   const toggle = <CardViewToggle value={cardView} onChange={setCardView} label="Card view" />
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
+    <div className="mx-auto w-full max-w-4xl px-4 pt-12 pb-32 sm:px-12">
       <p className="mb-1 text-sm text-muted-foreground" data-greeting>
         {hello}
       </p>

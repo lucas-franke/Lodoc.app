@@ -32,7 +32,7 @@ export function ActivityView({ tab }: { tab: ActivityTab }) {
   const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
   useEscapeToLeave('activity')
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-8 pb-24 sm:px-12">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
       <BackLink section="activity" />
       <h1 className="font-page text-4xl font-bold tracking-tight">Activity</h1>
       <p className="mt-2 text-sm text-muted-foreground">

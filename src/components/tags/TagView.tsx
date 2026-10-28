@@ -17,7 +17,7 @@ export function TagView({ tag }: { tag: string }) {
   const others = tagCounts(notes).filter((t) => t.tag !== tag)
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
+    <div className="mx-auto w-full max-w-4xl px-4 pt-12 pb-32 sm:px-12">
       <h1 className="flex items-center gap-2 font-page text-4xl font-bold tracking-tight">
         <Hash aria-hidden className="size-8 shrink-0 text-muted-foreground" strokeWidth={1.5} />
         {tag}

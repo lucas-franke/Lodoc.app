@@ -24,7 +24,7 @@ export function SettingsView({ tab }: { tab: SettingsTab }) {
   useEscapeToLeave('settings')
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-8 pb-24 sm:px-12">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
       <BackLink section="settings" />
       <h1 className="font-page text-4xl font-bold tracking-tight">Settings</h1>
       <p className="mt-2 text-sm text-muted-foreground">How Lodoc looks and works, and your backups. Saved in this browser.</p>
