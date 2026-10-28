@@ -34,7 +34,7 @@ export function RenameInput({ initial, onDone }: { initial: string; onDone: (nam
         if (e.key === 'Enter') finish(value)
         if (e.key === 'Escape') finish(null)
       }}
-      className="h-7 min-w-0 flex-1 rounded-md border border-input bg-background px-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+      className="h-7 min-w-0 flex-1 rounded-md border border-input bg-background px-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50 pointer-coarse:text-base"
     />
   )
 }

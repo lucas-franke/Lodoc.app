@@ -20,6 +20,7 @@ import { nanoid } from 'nanoid'
 import { useTheme } from 'next-themes'
 import { LayoutGrid } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useBottomUi } from '@/hooks/useBottomUi'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { useAppEvent } from '@/lib/app-events'
@@ -89,6 +90,8 @@ export default function BoardPage({ board }: { board: Board }) {
  */
 function Canvas({ board }: { board: Board }) {
   const { resolvedTheme } = useTheme()
+  // Notifications keep clear of the + button and the zoom bar
+  useBottomUi('board')
   const [nodes, setNodes] = useState<BoardFlowNode[]>(() => board.nodes.map(toFlowNode))
   const [edges, setEdges] = useState<BoardFlowEdge[]>(() => (board.edges ?? []).map(toFlowEdge))
   const [interacting, setInteracting] = useState(false)
@@ -770,20 +773,25 @@ function Canvas({ board }: { board: Board }) {
               nodeBorderRadius={4}
             />
           )}
-          {/* The title, clear of the controls on the right */}
-          <Panel position="top-left" className="nodrag nopan nowheel max-w-[calc(100%-6rem)]">
-            <BoardTitle board={board} />
-          </Panel>
-          <Panel position="top-right" className="nopan nowheel flex gap-1.5">
-            {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
-            {nodes.length > 1 && (
-              <Tip label="Tidy up">
-                <Button variant="outline" size="icon-sm" className="nodrag bg-background shadow-sm" onClick={tidyUp} aria-label="Tidy up">
-                  <LayoutGrid />
-                </Button>
-              </Tip>
-            )}
-            <CardViewMenu value={noteView} onChange={setAllCardViews} />
+          {/* One row across the top: the title takes what the controls leave (and is cut off with … on a narrow
+              canvas), so the two never overlap. Only the title and the controls take touches; the canvas between
+              them still pans. */}
+          <Panel position="top-left" className="pointer-events-none right-0 flex items-start gap-2">
+            <div className="nodrag nopan nowheel pointer-events-auto min-w-0">
+              <BoardTitle board={board} />
+            </div>
+            {/* Positioned, so the Find field opens under the controls, right-aligned */}
+            <div className="nopan nowheel pointer-events-auto relative ml-auto flex shrink-0 gap-1.5">
+              {nodes.length > 0 && <NodeSearch nodes={nodes} notes={notes} onFind={focusNode} />}
+              {nodes.length > 1 && (
+                <Tip label="Tidy up">
+                  <Button variant="outline" size="icon-sm" className="nodrag bg-background shadow-sm" onClick={tidyUp} aria-label="Tidy up">
+                    <LayoutGrid />
+                  </Button>
+                </Tip>
+              )}
+              <CardViewMenu value={noteView} onChange={setAllCardViews} />
+            </div>
           </Panel>
         </ReactFlow>
         <BoardFab

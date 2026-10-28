@@ -80,7 +80,7 @@ function CaptionField({ editing, onDone }: { editing: Editing; onDone: (caption:
       placeholder="Add a caption"
       aria-label="Caption"
       style={editing.style}
-      className="absolute z-10 rounded-sm bg-background px-1 py-1 font-page text-[0.8em] outline-none ring-2 ring-ring/50 md:text-[14px]"
+      className="absolute z-10 rounded-sm bg-background px-1 py-1 font-page text-[0.8em] outline-none ring-2 ring-ring/50 pointer-coarse:text-base md:pointer-fine:text-[14px]"
     />
   )
 }

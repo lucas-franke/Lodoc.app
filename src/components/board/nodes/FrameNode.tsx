@@ -51,7 +51,7 @@ export function FrameNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
               defaultValue={title}
               aria-label="Frame name"
               placeholder="Untitled frame"
-              className="nodrag h-7 min-w-0 flex-1 rounded-md bg-background px-2 font-page text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="nodrag h-7 min-w-0 flex-1 rounded-md bg-background px-2 font-page text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring/60 pointer-coarse:text-base"
               onFocus={(e) => e.currentTarget.select()}
               onBlur={(e) => board.renameFrame(id, e.currentTarget.value)}
               onKeyDown={(e) => {

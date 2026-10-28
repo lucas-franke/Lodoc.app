@@ -71,7 +71,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Boar
               defaultValue={label}
               aria-label="Arrow label"
               placeholder="Label"
-              className="h-7 w-36 rounded-md border bg-background px-2 text-center font-page text-xs shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="h-7 w-36 rounded-md border bg-background px-2 text-center font-page text-xs shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/60 pointer-coarse:text-base"
               onBlur={(e) => board.setEdgeLabel(id, e.currentTarget.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') e.currentTarget.blur()

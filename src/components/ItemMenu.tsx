@@ -4,6 +4,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
@@ -14,12 +15,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useWideScreen } from '@/hooks/useWideScreen'
 import { isTouchScreen } from '@/lib/keyboard'
 
 export type MenuEntry =
@@ -27,9 +30,13 @@ export type MenuEntry =
   | { type: 'separator' }
   | { type: 'sub'; label: string; icon?: LucideIcon; entries: MenuEntry[] }
 
+/** What a menu shows: its entries, and the name of a submenu laid out inline (see `inlineSubmenus`) */
+type ShownEntry = MenuEntry | { type: 'label'; label: string; icon?: LucideIcon }
+
 const parts = {
   context: {
     Item: ContextMenuItem,
+    Label: ContextMenuLabel,
     Separator: ContextMenuSeparator,
     Sub: ContextMenuSub,
     SubTrigger: ContextMenuSubTrigger,
@@ -37,6 +44,7 @@ const parts = {
   },
   dropdown: {
     Item: DropdownMenuItem,
+    Label: DropdownMenuLabel,
     Separator: DropdownMenuSeparator,
     Sub: DropdownMenuSub,
     SubTrigger: DropdownMenuSubTrigger,
@@ -48,8 +56,8 @@ const parts = {
  * Drops what would be useless or look odd when entries are left out conditionally: submenus with
  * nothing in them, and separators at the start, at the end or twice in a row.
  */
-function tidyEntries(entries: MenuEntry[]): MenuEntry[] {
-  const out: MenuEntry[] = []
+function tidyEntries<T extends ShownEntry>(entries: T[]): T[] {
+  const out: T[] = []
   for (const entry of entries) {
     if (entry.type === 'sub' && tidyEntries(entry.entries).length === 0) continue
     if (entry.type === 'separator' && (out.length === 0 || out[out.length - 1].type === 'separator')) continue
@@ -59,11 +67,37 @@ function tidyEntries(entries: MenuEntry[]): MenuEntry[] {
   return out
 }
 
+/**
+ * Narrow screens have no room for a submenu beside the menu (on a phone "Move to" opened off the screen), so
+ * a submenu's entries follow inline there: set apart by separators, under its name, indented one step.
+ */
+function inlineSubmenus(entries: MenuEntry[]): ShownEntry[] {
+  return entries.flatMap((entry): ShownEntry[] =>
+    entry.type === 'sub'
+      ? [
+          { type: 'separator' },
+          { type: 'label', label: entry.label, icon: entry.icon },
+          ...entry.entries.map((e) => (e.type === 'item' ? { ...e, indent: (e.indent ?? 0) + 1 } : e)),
+          { type: 'separator' },
+        ]
+      : [entry],
+  )
+}
+
 function Entries({ entries: rawEntries, kind }: { entries: MenuEntry[]; kind: keyof typeof parts }) {
   const P = parts[kind]
-  const entries = tidyEntries(rawEntries)
+  const wide = useWideScreen()
+  const entries = tidyEntries(wide ? rawEntries : inlineSubmenus(rawEntries))
   return entries.map((entry, i) => {
     if (entry.type === 'separator') return <P.Separator key={i} />
+    if (entry.type === 'label') {
+      return (
+        <P.Label key={i} className="flex items-center gap-1.5 [&_svg]:size-(--icon-sm)">
+          {entry.icon && <entry.icon aria-hidden />}
+          {entry.label}
+        </P.Label>
+      )
+    }
     if (entry.type === 'sub') {
       return (
         <P.Sub key={i}>

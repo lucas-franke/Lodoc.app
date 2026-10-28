@@ -79,7 +79,7 @@ export function NoteTags({ note }: { note: Note }) {
               onBlur={() => commit(false)}
               placeholder="Tag name"
               aria-label="New tag"
-              className="h-6 w-28 rounded-full border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="h-6 w-28 rounded-full border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring/60 pointer-coarse:h-8 pointer-coarse:w-36 pointer-coarse:text-base"
             />
             <datalist id={listId}>
               {known.filter((t) => !note.tags.includes(t)).map((t) => (

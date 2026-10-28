@@ -324,6 +324,10 @@
   z-index: 20;
   /* BlockNote pads the bar above a phone's gesture bar; fill that strip like the bar, not with the page */
   background-color: var(--popover);
+  /* BlockNote's own transform, except that before it has measured the screen (each time a note opens) the bar
+     waits at the bottom: with its fallback of 0 it started at the top and slid down over the page */
+  transform: translate(var(--bn-vv-left, 0px), calc(var(--bn-vv-top, 0px) + var(--bn-vv-height, 100dvh))) translateY(-100%)
+    scale(calc(1 / var(--bn-vv-scale, 1)));
 }
 .bn-mobile-formatting-toolbar.note-format-bar .bn-toolbar {
   width: 100%;
@@ -512,6 +516,14 @@ html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
   html [data-sonner-toaster] [data-sonner-toast] [data-button] {
     height: 2.75rem;
   }
+}
+/* Notifications sit above what is fixed at the bottom of the page (Notifications.tsx adds --toast-lift): the
+   phone format bar, and a board's + button and zoom bar */
+:root[data-bottom-ui='format-bar'] {
+  --toast-lift: 3rem;
+}
+:root[data-bottom-ui='board'] {
+  --toast-lift: 4.5rem;
 }
 
 /* Phones draw the app behind their system bars (viewport-fit=cover in index.html): surfaces reach under the

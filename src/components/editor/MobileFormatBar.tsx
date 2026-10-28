@@ -1,6 +1,7 @@
 import {
   BasicTextStyleButton,
   BlockTypeSelect,
+  blockTypeSelectItems,
   ColorStyleButton,
   CreateLinkButton,
   FileCaptionButton,
@@ -17,12 +18,16 @@ import {
   UnnestBlockButton,
   useBlockNoteEditor,
   useComponentsContext,
+  useDictionary,
   useEditorState,
   usePortalElement,
   useVirtualKeyboard,
+  type BlockTypeSelectItem,
 } from '@blocknote/react'
 import { List, ListChecks, Redo2, Undo2, type LucideIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import { useBottomUi } from '@/hooks/useBottomUi'
 
 /**
  * Phones: the formatting toolbar as a full-width bar at the bottom of the screen, always there (so a heading
@@ -34,6 +39,7 @@ import { createPortal } from 'react-dom'
  */
 export function MobileFormatBar() {
   useVirtualKeyboard()
+  useBottomUi('format-bar')
   return (
     // Rendered at the body level: a fixed bar inside the scrolling page can be painted behind it on iOS
     <PortalElementOverride target={document.body}>
@@ -54,7 +60,7 @@ function Bar() {
       <FormattingToolbar>
         <HistoryButton action="undo" />
         <HistoryButton action="redo" />
-        <BlockTypeSelect />
+        <PhoneBlockTypeSelect />
         <ListButton type="bulletListItem" />
         <ListButton type="checkListItem" />
         <NestBlockButton />
@@ -95,6 +101,37 @@ function HistoryButton({ action }: { action: 'undo' | 'redo' }) {
       }}
     />
   )
+}
+
+/** The block types a phone offers: headings 1–3, the lists and quotes (not headings 4–6 or toggle headings) */
+const onPhone = (item: BlockTypeSelectItem) =>
+  item.type === 'heading' ? Number(item.props?.level) <= 3 && !item.props?.isToggleable : true
+
+/** Whether an item is the block's own type, the way BlockNote's select decides it */
+const isBlockType = (item: BlockTypeSelectItem, block: { type: string; props: Record<string, unknown> }) =>
+  item.type === block.type && Object.entries(item.props ?? {}).every(([key, value]) => block.props[key] === value)
+
+/**
+ * The block type menu with the types a phone needs, so it fits above the keyboard without scrolling. The current
+ * block's own type is added when it is another one (a heading 4, say): without a selected item BlockNote hides
+ * the menu altogether.
+ */
+function PhoneBlockTypeSelect() {
+  const editor = useBlockNoteEditor()
+  const dictionary = useDictionary()
+  // A string, so the menu only re-renders when the block's type changes
+  const current = useEditorState({
+    editor,
+    selector: ({ editor }) => {
+      const { type, props } = (editor.getSelection()?.blocks ?? [editor.getTextCursorPosition().block])[0]
+      return JSON.stringify({ type, props })
+    },
+  })
+  const items = useMemo(() => {
+    const block = JSON.parse(current) as { type: string; props: Record<string, unknown> }
+    return blockTypeSelectItems(dictionary).filter((item) => onPhone(item) || isBlockType(item, block))
+  }, [dictionary, current])
+  return <BlockTypeSelect items={items} />
 }
 
 const LISTS: Record<'bulletListItem' | 'checkListItem', { label: string; icon: LucideIcon }> = {

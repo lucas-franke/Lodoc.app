@@ -23,7 +23,8 @@ export function CardViewMenu({ value, onChange }: { value: NoteCardView; onChang
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="nodrag bg-background shadow-sm">
           <Icon />
-          Cards: {label}
+          {/* Phones: just the icon, so the board's title keeps room beside the controls */}
+          <span className="max-sm:sr-only">Cards: {label}</span>
           <ChevronDown className="text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>

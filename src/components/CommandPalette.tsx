@@ -244,7 +244,7 @@ function Item({
     <CommandItem value={value} onSelect={onSelect}>
       <Icon />
       <span className="min-w-0 flex-1 truncate">{children}</span>
-      {hint && <span className="shrink-0 text-xs text-muted-foreground">{hint}</span>}
+      {hint && <span className="max-w-[40%] shrink-0 truncate text-xs text-muted-foreground">{hint}</span>}
     </CommandItem>
   )
 }
@@ -259,7 +259,8 @@ function NoteItem({ note, folder, query, onSelect }: { note: Note; folder?: stri
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span className="truncate">{query ? <Highlight text={title} query={query} /> : title}</span>
-          {folder && <span className="shrink-0 text-xs text-muted-foreground">{folder}</span>}
+          {/* At most 40% of the row, so a long folder name never squeezes out the title */}
+          {folder && <span className="max-w-[40%] shrink-0 truncate text-xs text-muted-foreground">{folder}</span>}
         </span>
         {excerpt && (
           <span className="block truncate text-xs text-muted-foreground">

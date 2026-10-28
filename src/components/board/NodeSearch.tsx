@@ -77,8 +77,8 @@ export function NodeSearch({
   }
 
   return (
-    // Not positioned itself: the field anchors to the right edge of the whole control group (the canvas panel),
-    // so on a phone it stays on screen
+    // Not positioned itself: the field anchors to the right edge of the whole control group (BoardPage), so on a
+    // phone it stays on screen
     <div>
       <Tip label="Find on board">
         <Button
