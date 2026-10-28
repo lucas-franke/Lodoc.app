@@ -100,6 +100,10 @@ export interface Board {
   nodes: BoardNode[]
   /** Arrows between items; missing in boards from before arrows existed */
   edges?: BoardEdge[]
+  /** Shown under Favorites; missing = no */
+  favorite?: boolean
+  /** Listed before the other boards; missing = no */
+  pinned?: boolean
 }
 
 /** Image bytes, kept out of the board document so boards stay small. */

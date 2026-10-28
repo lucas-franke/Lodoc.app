@@ -361,6 +361,12 @@ export function BoardCard({ board }: { board: Board }) {
           },
         }
       }
+      badges={
+        <>
+          {board.favorite && <Star className="size-3.5 shrink-0 text-muted-foreground" aria-label="Favorite" />}
+          {board.pinned && <Pin className="size-3.5 shrink-0 text-muted-foreground" aria-label="Pinned" />}
+        </>
+      }
     >
       <div className="flex flex-1 flex-col px-4 pt-1 pb-3">
         <CardMeta

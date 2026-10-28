@@ -2,6 +2,7 @@ import { MoreHorizontal, Star } from 'lucide-react'
 import { RowDropdownMenu } from '@/components/ItemMenu'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
+import { toggleBoardFavorite } from '@/db/boards'
 import { toggleFavorite } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { useBoardMenuEntries, useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
@@ -17,14 +18,9 @@ function selectTitle(label: string) {
 
 export function NotePageActions({ note }: { note: Note }) {
   const entries = useNoteMenuEntries(note, { onRename: () => selectTitle('Note title') })
-  const favLabel = note.favorite ? 'Remove from favorites' : 'Add to favorites'
   return (
     <>
-      <Tip label={favLabel}>
-        <Button variant="ghost" size="icon-sm" aria-label={favLabel} aria-pressed={note.favorite} onClick={() => toggleFavorite(note.id)}>
-          <Star className={cn(note.favorite && 'fill-current')} />
-        </Button>
-      </Tip>
+      <FavoriteButton favorite={note.favorite} onToggle={() => toggleFavorite(note.id)} />
       <MoreMenu label="Note actions" entries={entries} />
     </>
   )
@@ -41,7 +37,12 @@ export function FolderPageActions({ folder }: { folder: Folder }) {
 
 export function BoardPageActions({ board }: { board: Board }) {
   const entries = useBoardMenuEntries(board, { onRename: () => selectTitle('Board title') })
-  return <MoreMenu label="Board actions" entries={entries} />
+  return (
+    <>
+      <FavoriteButton favorite={!!board.favorite} onToggle={() => toggleBoardFavorite(board.id)} />
+      <MoreMenu label="Board actions" entries={entries} />
+    </>
+  )
 }
 
 function MoreMenu({ label, entries }: { label: string; entries: Parameters<typeof RowDropdownMenu>[0]['entries'] }) {
@@ -55,5 +56,17 @@ function MoreMenu({ label, entries }: { label: string; entries: Parameters<typeo
         </Button>
       }
     />
+  )
+}
+
+/** The star in the page header (notes and boards) */
+function FavoriteButton({ favorite, onToggle }: { favorite: boolean; onToggle: () => void }) {
+  const label = favorite ? 'Remove from favorites' : 'Add to favorites'
+  return (
+    <Tip label={label}>
+      <Button variant="ghost" size="icon-sm" aria-label={label} aria-pressed={favorite} onClick={onToggle}>
+        <Star className={cn(favorite && 'fill-current')} />
+      </Button>
+    </Tip>
   )
 }

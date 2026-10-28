@@ -75,6 +75,8 @@ const boardSchema = z.object({
   noteView: cardViewSchema.optional(),
   nodes: z.array(boardNodeSchema),
   edges: z.array(boardEdgeSchema).optional(),
+  favorite: z.boolean().optional(),
+  pinned: z.boolean().optional(),
 })
 
 /** An image in the file: the bytes as base64 text. */

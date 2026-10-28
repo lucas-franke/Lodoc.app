@@ -64,7 +64,32 @@ export function boardTitle(board: Pick<Board, 'title'>) {
   return board.title.trim() || 'Untitled board'
 }
 
-/** Newest first, like new notes. Stable while you work (unlike sorting by last edit). */
+/** Pinned first, then newest first, like new notes. Stable while you work (unlike sorting by last edit). */
 export function sortBoards(boards: Board[]): Board[] {
-  return [...boards].sort((a, b) => b.createdAt - a.createdAt)
+  return [...boards].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.createdAt - a.createdAt)
+}
+
+export async function toggleBoardFavorite(id: string) {
+  const board = await db.boards.get(id)
+  if (board) await db.boards.update(id, { favorite: !board.favorite })
+}
+
+export async function toggleBoardPinned(id: string) {
+  const board = await db.boards.get(id)
+  if (board) await db.boards.update(id, { pinned: !board.pinned })
+}
+
+/**
+ * A copy of a board, "<title> (copy)", in the same place with the same items and arrows. Note cards still
+ * show the same notes (they are references, not copies), and images are shared by id, which is safe: an image
+ * is only removed once nothing uses it. Not favorited, pinned like the original. Returns its id.
+ */
+export async function duplicateBoard(id: string): Promise<string | undefined> {
+  const board = await db.boards.get(id)
+  if (!board) return undefined
+  const now = Date.now()
+  const copy: Board = { ...structuredClone(board), id: nanoid(), title: `${boardTitle(board)} (copy)`, favorite: false, createdAt: now, updatedAt: now }
+  await db.boards.add(copy)
+  logChange(`Duplicated "${boardTitle(board)}"`, { type: 'board', id: copy.id, title: copy.title })
+  return copy.id
 }

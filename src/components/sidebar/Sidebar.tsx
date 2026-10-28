@@ -187,6 +187,7 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
   useRegisterSidebarDnd({ folders, notes, onExpand: (id) => toggleExpanded(id, true), selected: selectedItems, clearSelection })
 
   const favorites = sortNotes(notes.filter((n) => n.favorite))
+  const favoriteBoards = sortBoards(boards.filter((b) => b.favorite))
   const tags = tagCounts(notes)
   const recent = [...notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, RECENT_COUNT)
   const unfiled = notesByFolder.get(null) ?? []
@@ -265,10 +266,13 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
                   ))}
                 </Section>
               )}
-              {favorites.length > 0 && (
+              {favorites.length + favoriteBoards.length > 0 && (
                 <Section title="Favorites" collapsible="favorites">
                   {favorites.map((note) => (
                     <NoteItem key={note.id} note={note} hint={folderName(note.folderId)} section="favorites" />
+                  ))}
+                  {favoriteBoards.map((board) => (
+                    <BoardItem key={board.id} board={board} hint={folderName(board.folderId ?? null)} section="favorites" />
                   ))}
                 </Section>
               )}

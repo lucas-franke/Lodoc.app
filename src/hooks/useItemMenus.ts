@@ -28,7 +28,7 @@ import { isInstalledApp, setCollectNoteId, useCollectNoteId } from '@/lib/collec
 import type { MenuEntry } from '@/components/ItemMenu'
 import { db } from '@/db/db'
 import { holdKeyboard } from '@/lib/keyboard'
-import { boardTitle, createBoard, moveBoard } from '@/db/boards'
+import { boardTitle, createBoard, duplicateBoard, moveBoard, toggleBoardFavorite, toggleBoardPinned } from '@/db/boards'
 import { duplicateFolder, duplicateNote } from '@/db/duplicate'
 import { createFolder, descendantIds, moveFolder } from '@/db/folders'
 import { createNote, moveNote, noteTitle, setTemplate, toggleFavorite, togglePinned } from '@/db/notes'
@@ -310,8 +310,29 @@ export function useBoardMenuEntries(
   const folders = useAllFolders()
   const route = useRoute()
 
+  // Like a note's menu, without what only notes have (templates, history, Markdown)
   return [
     renameEntry(onRename),
+    {
+      type: 'item',
+      label: board.favorite ? 'Remove from favorites' : 'Add to favorites',
+      icon: board.favorite ? StarOff : Star,
+      onSelect: () => toggleBoardFavorite(board.id),
+    },
+    {
+      type: 'item',
+      label: board.pinned ? 'Unpin' : 'Pin to top',
+      icon: board.pinned ? PinOff : Pin,
+      onSelect: () => toggleBoardPinned(board.id),
+    },
+    {
+      type: 'item',
+      label: 'Duplicate',
+      icon: Copy,
+      onSelect: async () => {
+        if (await duplicateBoard(board.id)) notify(`Duplicated "${boardTitle(board)}"`, { level: 'success', logged: true })
+      },
+    },
     ...moveToEntries(folders, board.folderId ?? null, (folderId) => {
       void moveBoard(board.id, folderId)
       onMoved?.(folderId)

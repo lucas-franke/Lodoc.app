@@ -36,6 +36,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
   if (!notes.length && !folders.length && !boards.length) return empty
 
   const favorites = sortNotes(notes.filter((n) => n.favorite))
+  const favoriteBoards = sortBoards(boards.filter((b) => b.favorite))
   const recent = [...notes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, RECENT_COUNT)
   // The note you had open last, or else the latest edit; an empty note isn't worth continuing
   const hasSomething = (n: Note) => n.title !== '' || n.content.length > 0
@@ -81,10 +82,13 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
         </Button>
       </div>
 
-      {favorites.length > 0 && (
+      {favorites.length + favoriteBoards.length > 0 && (
         <CardSection title="Favorites">
           {favorites.map((note) => (
             <NoteCard key={note.id} note={note} view={cardView} />
+          ))}
+          {favoriteBoards.map((board) => (
+            <BoardCard key={board.id} board={board} />
           ))}
         </CardSection>
       )}
