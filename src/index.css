@@ -200,6 +200,41 @@
 :is(aside[data-sidebar-panel], [data-focus-inset]) :focus-visible:not(input, textarea, select, [contenteditable]) {
     outline-offset: -2px;
 }
+/* The highlighted item in a menu or the palette: its soft fill plus a 2px bar in --focus at its left edge, so
+   the item the arrow keys are on stands out (the fill alone is about 1.1:1 against the menu) */
+:is(
+        [data-slot='dropdown-menu-item'],
+        [data-slot='dropdown-menu-checkbox-item'],
+        [data-slot='dropdown-menu-radio-item'],
+        [data-slot='dropdown-menu-sub-trigger'],
+        [data-slot='context-menu-item'],
+        [data-slot='context-menu-checkbox-item'],
+        [data-slot='context-menu-radio-item'],
+        [data-slot='context-menu-sub-trigger']
+    )[data-highlighted],
+[data-slot='command-item'][data-selected='true'] {
+    position: relative;
+}
+:is(
+        [data-slot='dropdown-menu-item'],
+        [data-slot='dropdown-menu-checkbox-item'],
+        [data-slot='dropdown-menu-radio-item'],
+        [data-slot='dropdown-menu-sub-trigger'],
+        [data-slot='context-menu-item'],
+        [data-slot='context-menu-checkbox-item'],
+        [data-slot='context-menu-radio-item'],
+        [data-slot='context-menu-sub-trigger']
+    )[data-highlighted]::before,
+[data-slot='command-item'][data-selected='true']::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.5rem;
+    left: 0;
+    width: 2px;
+    border-radius: 9999px;
+    background: var(--focus);
+    pointer-events: none;
+}
 
 /* The preview tiles show the texture a few times stronger */
 [data-texture-sample] {
