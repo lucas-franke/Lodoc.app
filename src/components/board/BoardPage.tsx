@@ -274,6 +274,29 @@ function Canvas({ board }: { board: Board }) {
     [commit],
   )
 
+  const setImageStyle = useCallback(
+    (id: string, style: 'plain' | 'polaroid') =>
+      void commit(nodesRef.current.map((n) => (n.id === id && n.data.type === 'image' ? { ...n, data: { ...n.data, style } } : n))),
+    [commit],
+  )
+
+  const setImageCaption = useCallback(
+    (id: string, caption: string) => {
+      setEditingId(null)
+      const alt = caption.trim()
+      void commit(
+        nodesRef.current.map((n) => {
+          if (n.id !== id || n.data.type !== 'image') return n
+          const data = { ...n.data }
+          if (alt) data.alt = alt
+          else delete data.alt
+          return { ...n, data }
+        }),
+      )
+    },
+    [commit],
+  )
+
   // ---- arrows ----------------------------------------------------------------------------
 
   const commitEdges = useCallback(
@@ -672,13 +695,15 @@ function Canvas({ board }: { board: Board }) {
       commitText,
       setTextSize,
       renameFrame,
+      setImageStyle,
+      setImageCaption,
       connectFrom: setConnectingFrom,
       setEdgeLabel,
       reverseEdge,
       removeEdges,
       beginInteraction: () => setInteracting(true),
     }),
-    [notes, editingId, editNote, removeNodes, setCardView, resizeEnd, growText, commitText, setTextSize, renameFrame, setEdgeLabel, reverseEdge, removeEdges],
+    [notes, editingId, editNote, removeNodes, setCardView, resizeEnd, growText, commitText, setTextSize, renameFrame, setImageStyle, setImageCaption, setEdgeLabel, reverseEdge, removeEdges],
   )
 
   const [minimap, setMinimap] = useMinimapSetting()

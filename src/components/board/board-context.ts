@@ -29,6 +29,10 @@ export interface BoardContextValue {
   setTextSize: (id: string, size: 's' | 'm' | 'l') => void
   /** Frame: save the name (ends editing) */
   renameFrame: (id: string, title: string) => void
+  /** Image: plain, or framed as a Polaroid with its caption */
+  setImageStyle: (id: string, style: 'plain' | 'polaroid') => void
+  /** Image: save its caption, which is also its description (ends editing; empty removes it) */
+  setImageCaption: (id: string, caption: string) => void
   /** Open the "Connect to…" picker for an arrow starting at this item */
   connectFrom: (id: string) => void
   /** Arrow: save the label (ends editing; empty removes it) */

@@ -605,6 +605,36 @@ html .react-flow__connection-path {
   padding-inline: 12px;
 }
 
+/* Board images as a Polaroid (ImageNode): a white frame with a deeper bottom for the caption, in the page font and
+   sized to the image, slightly tilted until selected. A little dimmer in dark mode, so the frame doesn't glare. */
+.react-flow .polaroid {
+  container-type: inline-size;
+  padding: 5% 5% 0;
+  background: #fbfaf6;
+  color: #2d2c29;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.15), 0 8px 20px -8px oklch(0 0 0 / 0.35);
+  transition: transform 160ms ease-out;
+}
+.dark .react-flow .polaroid {
+  background: #e9e7e0;
+}
+.react-flow .polaroid-tilt {
+  transform: rotate(var(--tilt));
+}
+.react-flow .polaroid-caption {
+  flex: none;
+  min-height: 2.6em;
+  padding: 0.55em 0.3em 0.7em;
+  font-family: var(--page-font);
+  font-size: clamp(0.6875rem, 6.5cqi, 1.25rem);
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Zoomed out on a board, the titles of cards and frames stay about 13px on screen, like place names on a map: below
    about 93% they grow as the board shrinks (BoardPage sets --board-zoom), and below 30% they shrink with it again.
    A card shown as its title alone has a fixed height, so its title stops at what fits. */

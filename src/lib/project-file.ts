@@ -7,8 +7,9 @@ import { getAppearance } from '@/hooks/useAppearance'
 import { coverAssetId, type Asset, type Board, type Folder, type Note } from '@/db/schema'
 
 // Version 2 adds boards and the images they use; version 3 adds note covers and card views; version 4 adds
-// the theme and appearance settings. Older files still import (and leave the current settings as they are).
-const FORMAT_VERSION = 4
+// the theme and appearance settings; version 5 the style of images on boards (plain or Polaroid). Older files
+// still import (and leave the current settings as they are).
+const FORMAT_VERSION = 5
 const LAST_EXPORT_KEY = 'localnotes:lastExport'
 
 const folderSchema = z.object({
@@ -55,7 +56,7 @@ const boardNodeSchema = z.discriminatedUnion('type', [
     restoreHeight: z.number().optional(),
   }),
   z.object({ ...nodeBase, type: z.literal('text'), text: z.string(), size: z.enum(['s', 'm', 'l']) }),
-  z.object({ ...nodeBase, type: z.literal('image'), assetId: z.string(), alt: z.string().optional() }),
+  z.object({ ...nodeBase, type: z.literal('image'), assetId: z.string(), alt: z.string().optional(), style: z.enum(['plain', 'polaroid']).optional() }),
   z.object({ ...nodeBase, type: z.literal('frame'), title: z.string() }),
 ])
 

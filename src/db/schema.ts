@@ -77,7 +77,8 @@ export type BoardNode = BoardNodeBase &
         restoreHeight?: number
       }
     | { type: 'text'; text: string; size: 's' | 'm' | 'l' }
-    | { type: 'image'; assetId: string; alt?: string }
+    /** `alt` describes the image (a Polaroid shows it as its caption); `style` missing means 'plain' */
+    | { type: 'image'; assetId: string; alt?: string; style?: 'plain' | 'polaroid' }
     /** An area that groups the items on top of it; moving it moves them along */
     | { type: 'frame'; title: string }
   )
