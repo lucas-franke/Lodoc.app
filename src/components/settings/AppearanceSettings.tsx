@@ -185,7 +185,7 @@ export function AppearanceSettings() {
             ]}
           />
         </OptionGroup>
-        <OptionGroup label="Text size">
+        <OptionGroup label="Text size" hint="Notes, cards and text on boards">
           <Choice
             label="Text size"
             value={a.textSize}
