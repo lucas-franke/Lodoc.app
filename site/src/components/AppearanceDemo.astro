@@ -26,7 +26,7 @@ const GROUPS = [
   { key: 'pageFont', label: 'Page font', options: [{ value: 'sans', name: 'Sans', sample: 'sans' }, { value: 'serif', name: 'Serif', sample: 'serif' }] },
   { key: 'textSize', label: 'Text size', options: [{ value: 's', name: 'Small' }, { value: 'm', name: 'Default' }, { value: 'l', name: 'Large' }] },
   { key: 'corners', label: 'Corners', options: RADIUS_PRESETS.map((r) => ({ value: r.id, name: r.name })) },
-  { key: 'sidebar', label: 'Sidebar', hint: 'On this website, the bar at the top (on wider screens)', options: [{ value: 'connected', name: 'Attached' }, { value: 'floating', name: 'Floating' }] },
+  { key: 'sidebar', label: 'Sidebar', hint: 'On this website, the bar at the top', options: [{ value: 'connected', name: 'Attached' }, { value: 'floating', name: 'Floating' }] },
   { key: 'texture', label: 'Page texture', options: TEXTURES.map((t) => ({ value: t.id, name: t.name })) },
   { key: 'contrast', label: 'Contrast', options: [{ value: 'system', name: 'System' }, { value: 'standard', name: 'Standard' }, { value: 'more', name: 'More' }] },
 ] as const
@@ -192,8 +192,9 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l) }))
 </div>
 
 <script>
-  import { applyAppearance, DEFAULT_APPEARANCE, RADIUS_PRESETS, readAppearance, saveAppearance, TINTS, type Appearance } from '../../../src/lib/appearance'
+  import { DEFAULT_APPEARANCE, RADIUS_PRESETS, readAppearance, saveAppearance, TINTS, type Appearance } from '../../../src/lib/appearance'
   import { showPaperTexture } from '../../../src/lib/paper-texture'
+  import { showLook } from '../scripts/show-look'
   import { getTheme, onThemeChange, setTheme, type Theme } from '../scripts/theme'
 
   /** What the mock-up shows: a preset, or your own look */
@@ -251,7 +252,7 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l) }))
     const change = (next: Appearance, message = 'Saved') => {
       mine = next
       saveAppearance(mine)
-      applyAppearance(mine)
+      showLook(mine)
       showSettings()
       show(yours())
       status.textContent = message

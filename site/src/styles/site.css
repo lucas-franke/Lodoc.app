@@ -27,8 +27,9 @@
   --page-font: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
 }
 
-/* A floating sidebar in the app makes the site's top navigation float (Base.astro), like the app's own variant */
-@custom-variant floating (&:is([data-sidebar='floating'] *));
+/* A floating sidebar in the app makes the site's top bar float (Base.astro), on every screen: data-site-nav, set
+   from the same setting (scripts/show-look.ts) */
+@custom-variant floating (&:is([data-site-nav='floating'] *));
 
 /* Lines in the theme's border color, like in the app (Tailwind would use the text color) */
 @layer base {

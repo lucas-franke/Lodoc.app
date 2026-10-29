@@ -1,0 +1,74 @@
+---
+// Phones: the site's links behind a menu button, in a panel under the top bar (attached or floating), so the bar keeps
+// just the name, light/dark and Open app. A disclosure, not an app-style menu: the links are ordinary links.
+import Icon from './Icon.astro'
+import { __iconData as menu } from 'lucide-react/dist/esm/icons/menu.mjs'
+import { __iconData as close } from 'lucide-react/dist/esm/icons/x.mjs'
+
+interface Props {
+  items: { href: string; label: string }[]
+}
+const { items } = Astro.props
+const path = Astro.url.pathname
+---
+
+<div class="sm:hidden" data-site-menu>
+  <button
+    type="button"
+    aria-expanded="false"
+    aria-controls="site-menu"
+    aria-label="Menu"
+    data-site-menu-button
+    class="group/menu inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground"
+  >
+    <span class="group-aria-expanded/menu:hidden"><Icon icon={menu} class="size-5" /></span>
+    <span class="hidden group-aria-expanded/menu:inline"><Icon icon={close} class="size-5" /></span>
+  </button>
+  <nav
+    id="site-menu"
+    aria-label="Site"
+    hidden
+    data-site-menu-panel
+    class="absolute inset-x-2 top-full z-20 mt-2 rounded-xl border bg-popover p-1.5 text-popover-foreground shadow-md"
+  >
+    <ul>
+      {
+        items.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              aria-current={path.startsWith(item.href) ? 'page' : undefined}
+              class="flex h-11 items-center rounded-lg px-3 text-base outline-none hover:bg-accent focus-visible:bg-accent aria-[current=page]:font-medium"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-site-menu]')) {
+    const button = root.querySelector<HTMLButtonElement>('[data-site-menu-button]')!
+    const panel = root.querySelector<HTMLElement>('[data-site-menu-panel]')!
+    const setOpen = (open: boolean, focusButton = false) => {
+      panel.hidden = !open
+      button.setAttribute('aria-expanded', String(open))
+      button.setAttribute('aria-label', open ? 'Close menu' : 'Menu')
+      if (open) panel.querySelector<HTMLAnchorElement>('a')?.focus()
+      else if (focusButton) button.focus()
+    }
+    button.addEventListener('click', () => setOpen(panel.hidden))
+    // Escape closes it, and so does a tap elsewhere or a window wide enough for the links in the bar
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.hidden) {
+        e.preventDefault()
+        setOpen(false, true)
+      }
+    })
+    document.addEventListener('pointerdown', (e) => !panel.hidden && !root.contains(e.target as Node) && setOpen(false))
+    matchMedia('(min-width: 40rem)').addEventListener('change', (e) => e.matches && setOpen(false))
+  }
+</script>
