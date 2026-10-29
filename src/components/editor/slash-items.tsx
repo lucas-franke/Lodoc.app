@@ -8,7 +8,9 @@ type Editor = BlockNoteEditor<typeof editorSchema.blockSchema, typeof editorSche
 
 /** The "/" menu: BlockNote's own items with a callout after the quote */
 function allItems(editor: Editor): DefaultReactSuggestionItem[] {
-  const items = getDefaultReactSlashMenuItems(editor)
+  // BlockNote's code block promises syntax highlighting, which Lodoc doesn't load
+  const codeTitle = editor.dictionary.slash_menu.code_block.title
+  const items = getDefaultReactSlashMenuItems(editor).map((item) => (item.title === codeTitle ? { ...item, subtext: 'Code or a snippet' } : item))
   const callout: DefaultReactSuggestionItem = {
     title: 'Callout',
     subtext: 'A box that stands out, for a tip or a warning',
