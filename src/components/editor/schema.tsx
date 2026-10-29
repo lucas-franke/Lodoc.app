@@ -1,5 +1,6 @@
-import { BlockNoteSchema, defaultInlineContentSpecs } from '@blocknote/core'
+import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from '@blocknote/core'
 import { createReactInlineContentSpec } from '@blocknote/react'
+import { Callout } from './Callout'
 import { NoteLinkChip } from './NoteLinkChip'
 
 /**
@@ -19,7 +20,8 @@ export const NoteLink = createReactInlineContentSpec(
   },
 )
 
-/** The editor schema: BlockNote's defaults plus note links */
+/** The editor schema: BlockNote's defaults plus callouts and note links */
 export const editorSchema = BlockNoteSchema.create({
+  blockSpecs: { ...defaultBlockSpecs, callout: Callout() },
   inlineContentSpecs: { ...defaultInlineContentSpecs, noteLink: NoteLink },
 })

@@ -26,4 +26,7 @@ const pages = (await getCollection('docs')).sort((a, b) => a.data.order - b.data
       ))
     }
   </ul>
+  <p class="mt-12 text-sm text-muted-foreground">
+    Curious how Lodoc is put together? <a href={`${base}components/`} class="text-link underline underline-offset-4 hover:no-underline">See all its components</a>, live: the colours and type, the interface, a note with every block, cards and a board.
+  </p>
 </Docs>

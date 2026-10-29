@@ -5,14 +5,16 @@ import { applyAppearance, DEFAULT_APPEARANCE, readAppearance, saveAppearance, ty
 let current: Appearance = readAppearance()
 const listeners = new Set<() => void>()
 
-function set(next: Appearance) {
+function set(next: Appearance, save = true) {
   current = next
   applyAppearance(next)
-  saveAppearance(next)
+  if (save) saveAppearance(next)
   listeners.forEach((l) => l())
 }
 
 export const updateAppearance = (patch: Partial<Appearance>) => set({ ...current, ...patch })
+/** Shows a look without keeping it (the components page): the app's saved settings stay as they are */
+export const previewAppearance = (patch: Partial<Appearance>) => set({ ...current, ...patch }, false)
 /** Back to the default look; contrast and motion (the Accessibility menu) stay as they are */
 export const resetAppearance = () => set({ ...DEFAULT_APPEARANCE, contrast: current.contrast, motion: current.motion })
 /** All settings at once, e.g. from a backup */

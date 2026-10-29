@@ -1,5 +1,6 @@
 import { BlockNoteEditor } from '@blocknote/core'
 import { unzipSync } from 'fflate'
+import { quoteToCallout } from './callout'
 import { editorSchema } from '@/components/editor/schema'
 import { logChange } from '@/db/activity'
 import { db } from '@/db/db'
@@ -13,8 +14,9 @@ import { blobToDataUrl, compressImage, NOTE_IMAGE } from './image-compress'
 // so BlockNote's parser and the zip library stay out of the main bundle.
 //
 // Per file: YAML front matter is dropped (its tags are kept), a first "# Heading" becomes the title (else the
-// file name), images that came along are put into the note, and [[Wiki links]] or links to other imported
-// .md files become note links. Notion's ids at the end of names ("Page 1a2b…") are left out.
+// file name), quotes starting with "[!TIP]" and the like become callouts, images that came along are put into the
+// note, and [[Wiki links]] or links to other imported .md files become note links. Notion's ids at the end of names
+// ("Page 1a2b…") are left out.
 
 type Source = { path: string; blob: Blob; modified?: number }
 type Converter = BlockNoteEditor<typeof editorSchema.blockSchema, typeof editorSchema.inlineContentSchema, typeof editorSchema.styleSchema>
@@ -154,6 +156,7 @@ export async function importMarkdown(files: File[], onProgress?: (done: number, 
     // Obsidian's image embeds (![[photo.png]]) as plain Markdown images
     const markdown = body.replace(/!\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]/g, (_, name: string) => `![](${encodeURI(name.trim())})`)
     const blocks = converter.tryParseMarkdownToBlocks(markdown) as unknown as Block[]
+    walkBlocks(blocks, quoteToCallout)
 
     // Images that came along go into the note (compressed, like images added in the editor)
     const pending: Promise<void>[] = []

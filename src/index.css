@@ -243,7 +243,7 @@
         [data-slot='context-menu-checkbox-item'],
         [data-slot='context-menu-radio-item'],
         [data-slot='context-menu-sub-trigger']
-    )[data-highlighted],
+    )[data-highlighted]:not([data-swatch]),
 [data-slot='command-item'][data-selected='true'] {
     position: relative;
 }
@@ -256,7 +256,7 @@
         [data-slot='context-menu-checkbox-item'],
         [data-slot='context-menu-radio-item'],
         [data-slot='context-menu-sub-trigger']
-    )[data-highlighted]::before,
+    )[data-highlighted]:not([data-swatch])::before,
 [data-slot='command-item'][data-selected='true']::before {
     content: '';
     position: absolute;
@@ -266,6 +266,12 @@
     border-radius: 9999px;
     background: var(--focus);
     pointer-events: none;
+}
+/* A swatch in a menu (the cover gradients) is highlighted with an outline around it: the bar beside a text row would
+   sit oddly on a square of colour */
+[data-swatch][data-highlighted] {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
 }
 
 /* The preview tiles show the texture a few times stronger */
@@ -448,17 +454,251 @@
   box-decoration-break: clone;
 }
 
-/* Quotes: body text color (BlockNote greys them, about 4:1 on white); the line on the left stays, in the
-   theme's secondary text color so it follows tints and dark mode */
-.bn-root.bn-shadcn [data-content-type='quote'] blockquote {
-  color: inherit;
-  border-left-color: var(--muted-foreground);
+/* The elements of a note, drawn in the app's own way rather than BlockNote's defaults. Fills are mixed with
+   transparent, so a page texture still shows through them. */
+:root {
+  --code-font: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
-/* Table lines: BlockNote draws them in one fixed grey (1.4:1 on white, glaring on dark pages). Mixed from
-   the theme's text and background instead, they sit around 2.5–3.5:1 in every theme and tint. */
+/* Quotes: Source Serif italic in body text color (with either page font), a size up, and a large quotation mark
+   in the accent color in the indent. Each paragraph of a quote is a block of its own: only the first of a run
+   gets the mark, so a long quote reads as one. */
+.bn-root.bn-shadcn [data-content-type='quote'] blockquote {
+  position: relative;
+  color: inherit;
+  border-left: 0;
+  padding-left: 1.5em;
+  font-family: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+  font-style: italic;
+  font-size: 1.125em;
+}
+.bn-root.bn-shadcn [data-content-type='quote'] blockquote::before {
+  content: '\201C' / '';
+  position: absolute;
+  left: -0.05em;
+  top: -0.12em;
+  font-size: 2.6em;
+  line-height: 1;
+  font-style: normal;
+  color: color-mix(in oklch, var(--joy) 75%, var(--foreground));
+  pointer-events: none;
+}
+.bn-root .bn-block-outer:has(> .bn-block > [data-content-type='quote'])
+  + .bn-block-outer
+  > .bn-block
+  > [data-content-type='quote']
+  blockquote::before {
+  content: none;
+}
+
+/* Code blocks: a quiet panel in the page's own colors (BlockNote's is black in every theme) */
+.bn-root.bn-shadcn .bn-block-content[data-content-type='codeBlock'] {
+  color: var(--foreground);
+  background-color: color-mix(in oklch, var(--foreground) 4%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.dark .bn-root.bn-shadcn .bn-block-content[data-content-type='codeBlock'] {
+  background-color: color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+.bn-root.bn-shadcn .bn-block-content[data-content-type='codeBlock'] > pre {
+  padding: 0.875rem 1rem;
+  font-family: var(--code-font);
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+/* Inline code: a light pill, so it stands apart from the text around it */
+.bn-root .bn-editor .bn-inline-content code {
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-family: var(--code-font);
+  font-size: 0.875em;
+  background-color: color-mix(in oklch, var(--foreground) 7%, transparent);
+  box-decoration-break: clone;
+}
+
+/* Links in the text color with a soft underline, like links to notes (shadcn's styles bring back the browser's
+   blue and visited purple) */
+.bn-root.bn-shadcn .bn-editor a:not([data-note-link]) {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in oklch, var(--muted-foreground) 60%, transparent);
+  text-underline-offset: 0.2em;
+}
+.bn-root.bn-shadcn .bn-editor a:not([data-note-link]):hover {
+  text-decoration-color: currentColor;
+}
+/* Links to notes keep their own look (NoteLinkChip's classes): shadcn's unlayered rule beat them, so they were
+   browser blue too. revert-layer takes it back to the layered styles, the chip's utilities. */
+.bn-root.bn-shadcn .bn-editor a[data-note-link] {
+  color: revert-layer;
+  text-decoration: revert-layer;
+}
+
+/* List markers (bullets, numbers, the toggle's arrow) in the secondary text color, so the text leads */
+.bn-root .bn-block-content:is([data-content-type='bulletListItem'], [data-content-type='numberedListItem'])::before {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.bn-root .bn-toggle-button {
+  color: var(--muted-foreground);
+}
+
+/* Checklists: a drawn box like the one on note cards (NoteExcerpt), filled with a check once done; a done item's
+   text steps back. The box keeps the native one's place (24px with its margins), so the text doesn't move. */
+.bn-root .bn-block-content[data-content-type='checkListItem'] > div > input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 14px;
+  height: 14px;
+  margin: 5px 6px 0 4px;
+  border: 1.5px solid var(--muted-foreground);
+  border-radius: 4px;
+  background-color: transparent;
+  transition: background-color 120ms, border-color 120ms;
+}
+.bn-root .bn-block-content[data-content-type='checkListItem'] > div > input:hover {
+  border-color: var(--foreground);
+}
+.bn-root .bn-block-content[data-content-type='checkListItem'] > div > input:checked {
+  border-color: transparent;
+  background-color: color-mix(in oklch, var(--foreground) 75%, transparent);
+}
+.bn-root .bn-block-content[data-content-type='checkListItem'] > div > input:checked::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background-color: var(--background);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.bn-root .bn-block-content[data-content-type='checkListItem'] > div > input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.bn-root .bn-block-content[data-content-type='checkListItem'][data-checked='true'] .bn-inline-content {
+  color: var(--muted-foreground);
+  text-decoration-color: color-mix(in oklch, var(--muted-foreground) 60%, transparent);
+}
+
+/* Tables: a rounded frame, a softly filled header row, and lighter lines between the columns than between the
+   rows. The lines are mixed from the theme's text and background (BlockNote's one fixed grey is 1.4:1 on white
+   and glaring on dark pages). */
+.bn-root.bn-shadcn .bn-editor [data-content-type='table'] {
+  --table-line: color-mix(in oklch, var(--foreground) 30%, var(--background));
+  --table-line-soft: color-mix(in oklch, var(--foreground) 16%, var(--background));
+}
+.bn-root.bn-shadcn .bn-editor [data-content-type='table'] table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--table-line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
 .bn-root.bn-shadcn .bn-editor :is(td, th) {
-  border-color: color-mix(in oklch, var(--foreground) 38%, var(--background));
+  border: 0;
+  border-bottom: 1px solid var(--table-line);
+  border-right: 1px solid var(--table-line-soft);
+}
+.bn-root.bn-shadcn .bn-editor tr > :is(td, th):last-child {
+  border-right: 0;
+}
+.bn-root.bn-shadcn .bn-editor tr:last-child > :is(td, th) {
+  border-bottom: 0;
+}
+.bn-root.bn-shadcn .bn-editor th {
+  font-weight: 600;
+  text-align: left;
+  background-color: color-mix(in oklch, var(--foreground) 5%, transparent);
+}
+
+/* Highlighted text: a marker stroke over the lower part of the line instead of a flat box. BlockNote's own
+   colors (also its color picker's swatches), a bit stronger in light mode and see-through in dark mode, where
+   BlockNote's are heavy. */
+.bn-root .bn-editor [data-style-type='backgroundColor'] {
+  --marker-mix: color-mix(in oklch, var(--marker) 85%, var(--marker-ink));
+  background-color: transparent;
+  background-image: linear-gradient(to bottom, transparent 38%, var(--marker-mix) 38%, var(--marker-mix) 94%, transparent 94%);
+  border-radius: 2px;
+  box-decoration-break: clone;
+}
+.bn-root[data-color-scheme='dark'] .bn-editor [data-style-type='backgroundColor'] {
+  --marker-mix: color-mix(in oklch, var(--marker) 55%, transparent);
+}
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='gray'] { --marker: var(--bn-colors-highlights-gray-background); --marker-ink: var(--bn-colors-highlights-gray-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='brown'] { --marker: var(--bn-colors-highlights-brown-background); --marker-ink: var(--bn-colors-highlights-brown-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='red'] { --marker: var(--bn-colors-highlights-red-background); --marker-ink: var(--bn-colors-highlights-red-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='orange'] { --marker: var(--bn-colors-highlights-orange-background); --marker-ink: var(--bn-colors-highlights-orange-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='yellow'] { --marker: var(--bn-colors-highlights-yellow-background); --marker-ink: var(--bn-colors-highlights-yellow-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='green'] { --marker: var(--bn-colors-highlights-green-background); --marker-ink: var(--bn-colors-highlights-green-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='blue'] { --marker: var(--bn-colors-highlights-blue-background); --marker-ink: var(--bn-colors-highlights-blue-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='purple'] { --marker: var(--bn-colors-highlights-purple-background); --marker-ink: var(--bn-colors-highlights-purple-text); }
+.bn-root .bn-editor [data-style-type='backgroundColor'][data-value='pink'] { --marker: var(--bn-colors-highlights-pink-background); --marker-ink: var(--bn-colors-highlights-pink-text); }
+
+/* Dividers: a line mixed from the theme's colors (BlockNote's is one fixed grey), with a little more room */
+.bn-root.bn-shadcn [data-content-type='divider'] hr {
+  border-top-color: color-mix(in oklch, var(--foreground) 22%, var(--background));
+  margin-block: 0.875em;
+}
+
+/* Callouts (editor/Callout.tsx): a soft fill and an icon in the tone's color; the text stays the body color. The
+   tones are attributes of their own, so cards (NoteExcerpt) use them too. Tip is the tint's hue (gold without one). */
+[data-callout-tone='neutral'] {
+  --callout-fill: color-mix(in oklch, var(--foreground) 5%, transparent);
+  --callout-ink: var(--muted-foreground);
+}
+[data-callout-tone='tint'] {
+  --callout-fill: color-mix(in oklch, var(--joy) 16%, transparent);
+  --callout-ink: color-mix(in oklch, var(--joy) 65%, var(--foreground));
+}
+[data-callout-tone='green'] {
+  --callout-fill: oklch(0.72 0.11 150 / 0.15);
+  --callout-ink: oklch(0.5 0.11 150);
+}
+[data-callout-tone='warm'] {
+  --callout-fill: oklch(0.72 0.14 40 / 0.15);
+  --callout-ink: oklch(0.55 0.15 38);
+}
+.dark [data-callout-tone='green'] {
+  --callout-fill: oklch(0.72 0.11 150 / 0.14);
+  --callout-ink: oklch(0.8 0.11 150);
+}
+.dark [data-callout-tone='warm'] {
+  --callout-fill: oklch(0.72 0.14 40 / 0.14);
+  --callout-ink: oklch(0.78 0.13 45);
+}
+.bn-root .callout {
+  display: flex;
+  gap: 0.375em;
+  width: 100%;
+  padding: 0.5em 0.875em 0.5em 0.5em;
+  border-radius: var(--radius-md);
+  background-color: var(--callout-fill);
+}
+.bn-root .callout-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 4px;
+  color: var(--callout-ink);
+}
+.bn-root .callout-icon:enabled {
+  cursor: pointer;
+}
+.bn-root .callout-icon:enabled:hover {
+  background-color: color-mix(in oklch, var(--callout-ink) 14%, transparent);
+}
+.bn-root .callout .callout-icon svg {
+  width: 1.05em;
+  height: 1.05em;
+}
+.bn-root .callout-text {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Suggestion menus (/ and @): as wide as the slash menu at most, so long note titles wrap instead of
@@ -477,9 +717,13 @@
     max-height: 20rem;
   }
   .bn-root .bn-block-content[data-content-type='checkListItem'] > div > input {
-    width: 20px;
-    margin-left: 0;
-    margin-right: 4px;
+    width: 18px;
+    height: 18px;
+    margin: 3px 4px 0 2px;
+  }
+  .bn-root .bn-block-content[data-content-type='checkListItem'] > div > input:checked::before {
+    width: 12px;
+    height: 12px;
   }
 }
 /* On a phone (the narrow layout) the menu rows are 44px instead of 54px: a smaller margin around the icons, and "/"

@@ -1,0 +1,6 @@
+/* The components page only. On touch screens a note's format bar sits at the bottom of the screen for as long as the
+   note is open (MobileFormatBar); here the note is one part of a long page, so the bar shows while it is being typed
+   in, and leaves the rest of the page alone. */
+body:not(:has(.bn-editor:focus-within)) .note-format-bar {
+  display: none;
+}

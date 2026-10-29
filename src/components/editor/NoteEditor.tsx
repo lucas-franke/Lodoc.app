@@ -1,5 +1,5 @@
 import { isTouchDevice, type PartialBlock } from '@blocknote/core'
-import { SuggestionMenuController, useCreateBlockNote } from '@blocknote/react'
+import { FormattingToolbar, FormattingToolbarController, SuggestionMenuController, useCreateBlockNote, useDictionary } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/shadcn'
 import '@blocknote/shadcn/style.css'
 import { en } from '@blocknote/core/locales'
@@ -19,6 +19,7 @@ import { playOnce } from '@/lib/joy'
 import { cleanCopiedText } from './clipboard'
 import { indentSelectedFile, nestImagesAddedInLists } from './list-images'
 import { registerFlush } from '@/lib/pending-saves'
+import { blockTypeItems } from './Callout'
 import { AddCoverButton, CoverBanner } from './CoverBanner'
 import { noteLinkItems } from './note-link-items'
 import { NoteBacklinks } from './NoteLinks'
@@ -29,7 +30,8 @@ import { arrowsExtension } from './arrows'
 import { emptyLinesExtension } from './empty-lines'
 import { templateHintsExtension } from './template-hints'
 import { inlineTags, inlineTagsExtension, tagMenuItems, tagMenuShouldOpen } from './inline-tags'
-import { ABOVE_FORMAT_BAR, slashItems } from './touch-menus'
+import { slashItems } from './slash-items'
+import { ABOVE_FORMAT_BAR } from './touch-menus'
 import { useWideScreen } from '@/hooks/useWideScreen'
 import { NoteTags } from '@/components/note/NoteTags'
 import type { Note, StoredBlock } from '@/db/schema'
@@ -273,9 +275,10 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
       <BlockNoteView
         editor={editor}
         sideMenu={!compact}
-        formattingToolbar={!formatBar}
-        // With the format bar, "/" is our own menu below (touch-menus.ts)
-        slashMenu={!formatBar}
+        // Our own toolbar below (its block type menu has callouts), or the format bar on touch screens
+        formattingToolbar={false}
+        // "/" is our own menu below, with callouts (slash-items.tsx)
+        slashMenu={false}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
         onChange={() => {
           save({ content: editor.document as unknown as StoredBlock[] })
@@ -285,13 +288,11 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
         // A tag counts once the caret leaves it, so moving away (without typing) also adds it
         onSelectionChange={syncWrittenTags}
       >
-        {formatBar && (
-          <SuggestionMenuController
-            triggerCharacter="/"
-            floatingUIOptions={ABOVE_FORMAT_BAR}
-            getItems={async (query) => slashItems(editor, query, !wide)}
-          />
-        )}
+        <SuggestionMenuController
+          triggerCharacter="/"
+          floatingUIOptions={formatBar ? ABOVE_FORMAT_BAR : undefined}
+          getItems={async (query) => slashItems(editor, query, formatBar && !wide)}
+        />
         {/* "@" links to another note (or creates one with the typed name) */}
         <SuggestionMenuController
           triggerCharacter="@"
@@ -309,13 +310,18 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
           floatingUIOptions={formatBar ? ABOVE_FORMAT_BAR : undefined}
           getItems={(query) => tagMenuItems(query, (tag) => editor.insertInlineContent(['#' + tag + ' ']))}
         />
-        {formatBar && <MobileFormatBar />}
+        {formatBar ? <MobileFormatBar /> : <FormattingToolbarController formattingToolbar={NoteToolbar} />}
       </BlockNoteView>
       {caption.field}
       {!compact && <NoteBacklinks noteId={note.id} />}
       {!compact && <NoteOutline items={outline} />}
     </div>
   )
+}
+
+/** BlockNote's toolbar over selected text, with callouts in its block type menu */
+function NoteToolbar() {
+  return <FormattingToolbar blockTypeSelectItems={blockTypeItems(useDictionary())} />
 }
 
 /** A quiet line under the title: when it was edited and how long it is; for a brand-new empty note, that it isn't kept. */
