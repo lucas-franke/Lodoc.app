@@ -16,7 +16,7 @@ import { removeNoteCover, setNoteCover, setNoteGradient } from '@/db/notes'
 import type { Note } from '@/db/schema'
 import { useAppearance } from '@/hooks/useAppearance'
 import { resolveCover } from '@/lib/cover'
-import { COVER_GRADIENTS, gradientCss } from '@/lib/gradients'
+import { COVER_GRADIENTS, gradientStyle } from '@/lib/gradients'
 import { cn } from '@/lib/utils'
 
 async function chooseImage(noteId: string, file: File | undefined) {
@@ -50,8 +50,8 @@ function CoverMenu({ note, children }: { note: Note; children: ReactNode }) {
                 aria-label={g.name}
                 title={g.name}
                 data-gradient={g.id}
-                className="size-10 justify-center rounded-lg p-0 text-white focus:text-white"
-                style={{ backgroundImage: gradientCss(g) }}
+                className="cover-gradient size-10 justify-center rounded-lg p-0 text-white focus:text-white"
+                style={gradientStyle(g)}
                 onSelect={() => void setNoteGradient(note.id, g.id)}
               >
                 {currentGradient === g.id && <Check className="size-4 drop-shadow" />}

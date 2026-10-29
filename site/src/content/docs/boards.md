@@ -18,7 +18,7 @@ A board is a canvas you can pan and zoom, to lay out a topic: your notes as card
 - On a phone or tablet, tap an item before dragging it: a swipe that starts on an item you haven't tapped moves the board instead.
 - Paste an image with `Ctrl` + `V`, or drop image files onto the board.
 
-Cards show your notes as they are: editing a note anywhere updates every board it's on. Double-click a card (or use its pencil) to edit the note right on the board. Removing a card never deletes the note.
+Cards show your notes as they are: editing a note anywhere updates every board it's on. Double-click a card (or use its pencil, which shows when you point at the card or select it) to edit the note right on the board. Removing a card never deletes the note.
 
 ## Arrows and frames
 

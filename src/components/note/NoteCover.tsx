@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAssetUrl } from '@/hooks/useAssetUrl'
 import type { ResolvedCover } from '@/lib/cover'
-import { gradientById, gradientCss } from '@/lib/gradients'
+import { gradientById, gradientStyle } from '@/lib/gradients'
 import { cn } from '@/lib/utils'
 
 /** A note's cover (image or gradient), cropped to fill its box. Decorative, so it has no alt text. */
@@ -25,15 +25,15 @@ function GradientCover({ id, className }: { id: string; className?: string }) {
   return (
     <div
       data-testid="cover-gradient"
-      className={cn('relative overflow-hidden', className)}
-      style={{ backgroundImage: gradientCss(gradientById(shown)) }}
+      className={cn('cover-gradient relative overflow-hidden', className)}
+      style={gradientStyle(gradientById(shown))}
     >
       {previous && (
         <div
           key={previous + shown}
           aria-hidden
-          className="joy-fade-out absolute inset-0"
-          style={{ backgroundImage: gradientCss(gradientById(previous)) }}
+          className="cover-gradient joy-fade-out absolute inset-0"
+          style={gradientStyle(gradientById(previous))}
           onAnimationEnd={() => setPrevious(null)}
         />
       )}

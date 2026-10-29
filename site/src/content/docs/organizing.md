@@ -10,7 +10,7 @@ Folders can hold notes, boards and other folders. Notes outside any folder are l
 
 - Drag notes, boards and folders in the sidebar to reorder them or move them into a folder. **Move to** in an item's menu does the same.
 - Select several items with `Ctrl`-click (or `Shift`-click for a range) and move or delete them together.
-- A folder's page shows its contents as cards. Pick how much each card shows (*Full*, *Cover* or *Title*), sort the notes, or filter them by text.
+- A folder's page shows its contents as cards. Pick how much each card shows (*Full*, *Cover* or *Title*), sort the notes, or filter them by text. *Full* shows the start of a note as you wrote it (headings, lists, checklists with how many are done), its tags and when it was edited. Folder cards list their newest notes, and board cards show a small map of the board.
 - New notes go into the folder you're in.
 
 ## Favorites, pins and recent notes

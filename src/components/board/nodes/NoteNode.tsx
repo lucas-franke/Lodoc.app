@@ -1,10 +1,10 @@
 import { NodeResizer, useStore, type NodeProps } from '@xyflow/react'
-import { Check, ExternalLink, FileText, MoreHorizontal, Pencil, Spline, X } from 'lucide-react'
+import { Check, ExternalLink, MoreHorizontal, Pencil, Spline, X } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { RowDropdownMenu, type MenuEntry } from '@/components/ItemMenu'
 import { Button } from '@/components/ui/button'
 import { CARD_VIEW_INFO } from '@/components/note/card-views'
-import { NoteCardBody } from '@/components/note/NoteCardBody'
+import { NoteCardBody, NoteCardTop } from '@/components/note/NoteCardBody'
 import { noteTitle } from '@/db/notes'
 import { NOTE_CARD_VIEWS, type BoardNode } from '@/db/schema'
 import { openNote } from '@/hooks/useRoute'
@@ -66,62 +66,69 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
         data-testid="board-note"
         data-editing={editing}
         className={cn(
-          'flex h-full w-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm',
+          'group/board-card flex h-full w-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm',
           selected && 'border-ring',
           editing && 'ring-2 ring-ring/40',
         )}
         onDoubleClick={() => note && !editing && board.editNote(id)}
       >
-        <div className={cn('flex min-h-10 shrink-0 items-center gap-1 pr-1 pl-3', !collapsed && 'border-b')}>
-          <FileText className={cn('mr-1 size-4 shrink-0 text-muted-foreground', titleOnly && 'hidden')} />
+        {/* Like the cards on the overview: the cover first (not while editing, where the editor is the card) */}
+        {note && !editing && <NoteCardTop note={note} view={view} fill />}
+        <div className={cn('relative flex min-h-10 shrink-0 items-center gap-1 px-3', editing && 'border-b pr-1')}>
           {/* While editing, the editor's own title field is right below, so the header doesn't repeat it */}
           <span
             className={cn(
-              'board-title min-w-0 flex-1 font-page text-sm font-medium',
+              'board-title min-w-0 flex-1 font-page text-sm font-semibold',
               collapsed && 'board-title-short',
               titleOnly && !collapsed ? 'line-clamp-2 break-words' : 'truncate',
-              editing && 'text-muted-foreground',
+              editing && 'font-medium text-muted-foreground',
             )}
             data-testid="board-note-title"
           >
             {editing ? 'Editing' : title}
           </span>
-          {note &&
-            (editing ? (
-              <Button
-                variant="secondary"
-                size="icon-xs"
-                className="nodrag pointer-coarse:size-9"
-                aria-label="Finish editing"
-                onClick={() => board.setEditingId(null)}
-              >
-                <Check />
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className={cn('nodrag pointer-coarse:size-9', titleOnly && 'hidden')}
-                aria-label={`Edit ${title}`}
-                onClick={() => board.editNote(id)}
-              >
-                <Pencil />
-              </Button>
-            ))}
-          <RowDropdownMenu
-            align="end"
-            entries={entries}
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className={cn('nodrag pointer-coarse:size-9', titleOnly && 'hidden')}
-                aria-label={`Actions for ${title}`}
-              >
-                <MoreHorizontal />
-              </Button>
-            }
-          />
+          {/* The buttons: while editing, and otherwise over the end of the title on hover or once the card is
+              selected (on a touch screen: tapped), so the title has the card's width the rest of the time */}
+          <div
+            className={cn(
+              'flex shrink-0 items-center gap-0.5',
+              !editing && 'absolute top-1/2 right-1 -translate-y-1/2 rounded-md bg-card/85 backdrop-blur-sm',
+              !editing && !selected && 'hidden group-focus-within/board-card:flex group-hover/board-card:flex has-data-[state=open]:flex',
+              titleOnly && 'hidden!',
+            )}
+          >
+            {note &&
+              (editing ? (
+                <Button
+                  variant="secondary"
+                  size="icon-xs"
+                  className="nodrag pointer-coarse:size-9"
+                  aria-label="Finish editing"
+                  onClick={() => board.setEditingId(null)}
+                >
+                  <Check />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  className="nodrag pointer-coarse:size-9"
+                  aria-label={`Edit ${title}`}
+                  onClick={() => board.editNote(id)}
+                >
+                  <Pencil />
+                </Button>
+              ))}
+            <RowDropdownMenu
+              align="end"
+              entries={entries}
+              trigger={
+                <Button variant="ghost" size="icon-xs" className="nodrag pointer-coarse:size-9" aria-label={`Actions for ${title}`}>
+                  <MoreHorizontal />
+                </Button>
+              }
+            />
+          </div>
         </div>
         {editing ? (
           // nodrag / nowheel / nopan: typing, selecting and scrolling must not move the card or the canvas.
@@ -139,7 +146,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
             </Suspense>
           </div>
         ) : note ? (
-          <NoteCardBody note={note} view={view} fill hideMeta={zoomedOut} />
+          <NoteCardBody note={note} view={view} fill hideMeta={zoomedOut} className="px-3" />
         ) : (
           <p className="min-h-0 flex-1 overflow-hidden p-3 text-sm text-muted-foreground">This note was deleted.</p>
         )}

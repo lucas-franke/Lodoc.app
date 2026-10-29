@@ -31,7 +31,7 @@ Taking a tag out of the text removes it again. Tags added with **Add tag** stay 
 
 ## Covers
 
-Every note gets a colour gradient as its cover. Click the cover to pick another gradient, upload an image, drop an image file on it, or remove it. **Shuffle** picks another gradient at random. If you'd rather have covers only where you chose one, turn off *Automatic covers* in [Appearance](../appearance/).
+Every note gets a colour gradient as its cover. Click the cover to pick another gradient, upload an image, drop an image file on it, or remove it. **Shuffle** picks another gradient at random. On cards, a gradient the note got by itself is a thin band of colour at the top; one you picked, or an image, is the card's cover. If you'd rather have covers only where you chose one, turn off *Automatic covers* in [Appearance](../appearance/).
 
 ## Templates
 

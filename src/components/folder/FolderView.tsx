@@ -22,12 +22,13 @@ import { Input } from '@/components/ui/input'
 import { boardTitle, createBoard, renameBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder, renameFolder } from '@/db/folders'
-import { createNote, isListed, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
+import { createNote, isListed, latestNotesIn, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
 import type { Board, Folder, Note, NoteCardView } from '@/db/schema'
 import { useBoardMenuEntries, useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
+import { BoardMap } from '@/components/board/BoardMap'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
-import { NoteCardBody } from '@/components/note/NoteCardBody'
-import { CardMeta } from '@/components/note/NoteCardMeta'
+import { NoteCardBody, NoteCardTop } from '@/components/note/NoteCardBody'
+import { CardFooter } from '@/components/note/NoteCardMeta'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
 import { useNoteSort } from '@/hooks/useNoteSort'
 import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
@@ -60,11 +61,13 @@ export function FolderView({ folder }: { folder: Folder }) {
   const counts = (id: string) => ({
     notes: notes.filter((n) => n.folderId === id).length,
     folders: folders.filter((f) => f.parentId === id).length,
+    latest: latestNotesIn(notes, id),
   })
   const empty = allSubfolders.length === 0 && allNotes.length === 0 && allBoards.length === 0
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12">
+    // Wider on large screens, for more columns of cards
+    <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12 2xl:max-w-6xl">
       <div className="flex items-center gap-3">
         <FolderOpen className="size-8 shrink-0 text-muted-foreground" strokeWidth={1.5} />
         <FolderTitle folder={folder} />
@@ -160,7 +163,6 @@ export function NoteCard({ note, view }: { note: Note; view: NoteCardView }) {
   return (
     <CardShell
       href={`#/note/${encodeURIComponent(note.id)}`}
-      icon={FileText}
       title={noteTitle(note)}
       entries={entries}
       rename={
@@ -172,16 +174,21 @@ export function NoteCard({ note, view }: { note: Note; view: NoteCardView }) {
           },
         }
       }
-      badges={
-        <>
-          {note.favorite && <Star className="size-3.5 shrink-0 text-muted-foreground" aria-label="Favorite" />}
-          {note.pinned && <Pin className="size-3.5 shrink-0 text-muted-foreground" aria-label="Pinned" />}
-        </>
-      }
-      className={view === 'full' ? 'min-h-44' : undefined}
+      badges={<ItemBadges favorite={note.favorite} pinned={note.pinned} />}
+      top={<NoteCardTop note={note} view={view} />}
     >
-      <NoteCardBody note={note} view={view} />
+      <NoteCardBody note={note} view={view} className="max-sm:px-3" />
     </CardShell>
+  )
+}
+
+/** Favorite and pinned, as small marks after a card's title (filled, so they read as a state, not a button) */
+function ItemBadges({ favorite, pinned }: { favorite?: boolean; pinned?: boolean }) {
+  return (
+    <>
+      {favorite && <Star className="mt-1 size-3.5 shrink-0 fill-current text-muted-foreground" aria-label="Favorite" />}
+      {pinned && <Pin className="mt-1 size-3.5 shrink-0 fill-current text-muted-foreground" aria-label="Pinned" />}
+    </>
   )
 }
 
@@ -189,15 +196,19 @@ export function FolderCard({
   folder,
   notes,
   folders,
+  latest,
   view,
 }: {
   folder: Folder
   notes: number
   folders: number
+  /** Its newest notes (latestNotesIn), listed on the card */
+  latest: Note[]
   view: NoteCardView
 }) {
   const [renaming, setRenaming] = useState(false)
   const entries = useFolderMenuEntries(folder, { onRename: () => setRenaming(true) })
+  const edited = latest[0]?.updatedAt
 
   return (
     <CardShell
@@ -216,16 +227,26 @@ export function FolderCard({
       }
     >
       {view !== 'title' && (
-        <div className="flex flex-1 flex-col px-4 pt-1 pb-3">
-          <CardMeta
-            primary={
-              <>
-                {plural(notes, 'note')}
-                {folders > 0 && ` · ${plural(folders, 'folder')}`}
-              </>
-            }
-            created={folder.createdAt}
-          />
+        <div className="flex flex-1 flex-col gap-2 px-4 pb-3 max-sm:px-3">
+          {latest.length > 0 ? (
+            <ul className="grid gap-0.5 font-page text-sm leading-relaxed text-muted-foreground">
+              {latest.map((note) => (
+                <li key={note.id} className="flex min-w-0 items-center gap-1.5">
+                  <FileText aria-hidden className="size-3.5 shrink-0" />
+                  <span className="truncate">{noteTitle(note)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="font-page text-sm text-muted-foreground">No notes yet</p>
+          )}
+          <CardFooter>
+            <span className="truncate">
+              {plural(notes, 'note')}
+              {folders > 0 && ` · ${plural(folders, 'folder')}`}
+              {edited !== undefined && ` · Edited ${formatRelative(edited)}`}
+            </span>
+          </CardFooter>
         </div>
       )}
     </CardShell>
@@ -233,8 +254,9 @@ export function FolderCard({
 }
 
 /**
- * A card whose title link stretches over the whole card (`after:inset-0`), so the card is one
- * big click target while the "…" button can sit on top of it without nesting interactive elements.
+ * A card whose title link stretches over the whole card (`after:inset-0`), so the card is one big click target while
+ * the "…" button can sit beside the title without nesting interactive elements. `top` (a cover, a board's map) comes
+ * above the title, the rest below it.
  */
 export function CardShell({
   href,
@@ -243,15 +265,17 @@ export function CardShell({
   entries,
   rename,
   badges,
+  top,
   className,
   children,
 }: {
   href: string
-  icon: LucideIcon
+  icon?: LucideIcon
   title: string
   entries: MenuEntry[]
   rename: false | { initial: string; onDone: (value: string | null) => void }
   badges?: ReactNode
+  top?: ReactNode
   className?: string
   children: ReactNode
 }) {
@@ -259,12 +283,13 @@ export function CardShell({
     <RowContextMenu entries={entries}>
       <div
         className={cn(
-          'group/card relative flex min-w-0 flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-ring/60 hover:bg-accent/40 has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring/60',
+          'group/card relative flex min-w-0 flex-col overflow-hidden rounded-lg border bg-card shadow-xs transition-colors hover:border-ring/60 hover:bg-accent/40 has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring/60',
           className,
         )}
       >
-        <div className="flex h-11 shrink-0 items-center gap-2 pr-12 pl-4">
-          <Icon className="size-(--icon-sm) shrink-0 text-muted-foreground" />
+        {top}
+        <div className="relative flex min-h-11 shrink-0 items-start gap-2 py-2.5 pr-11 pl-4 max-sm:pr-10 max-sm:pl-3">
+          {Icon && <Icon className="mt-0.5 size-(--icon-sm) shrink-0 text-muted-foreground" />}
           {rename ? (
             <RenameInput initial={rename.initial} onDone={rename.onDone} />
           ) : (
@@ -272,25 +297,25 @@ export function CardShell({
               href={href}
               // It covers the whole card (::after), so on touch screens a long press there opens the card menu: no link
               // preview or text selection from the browser
-              className="min-w-0 flex-1 truncate font-page font-medium outline-none after:absolute after:inset-0 after:rounded-lg pointer-coarse:select-none pointer-coarse:[-webkit-touch-callout:none]"
+              className="line-clamp-2 min-w-0 flex-1 font-page leading-snug font-semibold outline-none after:absolute after:inset-0 after:rounded-lg max-sm:text-sm pointer-coarse:select-none pointer-coarse:[-webkit-touch-callout:none]"
             >
               {title}
             </a>
           )}
           {badges}
+          <div className="absolute top-1.5 right-1.5 z-10 hidden rounded-md bg-card/80 backdrop-blur-sm group-focus-within/card:flex group-hover/card:flex pointer-coarse:flex has-data-[state=open]:flex">
+            <RowDropdownMenu
+              align="end"
+              entries={entries}
+              trigger={
+                <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label={`Actions for ${title}`}>
+                  <MoreHorizontal />
+                </Button>
+              }
+            />
+          </div>
         </div>
         {children}
-        <div className="absolute top-2 right-2 z-10 hidden rounded-md bg-card/80 backdrop-blur-sm group-focus-within/card:flex group-hover/card:flex pointer-coarse:flex has-data-[state=open]:flex">
-          <RowDropdownMenu
-            align="end"
-            entries={entries}
-            trigger={
-              <Button variant="ghost" size="icon-xs" className="pointer-coarse:size-9" aria-label={`Actions for ${title}`}>
-                <MoreHorizontal />
-              </Button>
-            }
-          />
-        </div>
       </div>
     </RowContextMenu>
   )
@@ -303,7 +328,8 @@ export function CardSection({ title, action, children }: { title: string; action
         <h2 className="text-xs font-medium text-muted-foreground">{title}</h2>
         {action}
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-3">{children}</div>
+      {/* Two columns of smaller cards on phones, so more than one note fits on the screen */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-3 max-sm:grid-cols-2 max-sm:gap-2">{children}</div>
     </section>
   )
 }
@@ -363,22 +389,15 @@ export function BoardCard({ board }: { board: Board }) {
           },
         }
       }
-      badges={
-        <>
-          {board.favorite && <Star className="size-3.5 shrink-0 text-muted-foreground" aria-label="Favorite" />}
-          {board.pinned && <Pin className="size-3.5 shrink-0 text-muted-foreground" aria-label="Pinned" />}
-        </>
-      }
+      badges={<ItemBadges favorite={board.favorite} pinned={board.pinned} />}
+      top={<BoardMap board={board} className="aspect-[16/7] w-full shrink-0" />}
     >
-      <div className="flex flex-1 flex-col px-4 pt-1 pb-3">
-        <CardMeta
-          primary={
-            <>
-              {plural(board.nodes.length, 'item')} · Edited {formatRelative(board.updatedAt)}
-            </>
-          }
-          created={board.createdAt}
-        />
+      <div className="flex flex-1 flex-col px-4 pb-3 max-sm:px-3">
+        <CardFooter>
+          <span className="truncate">
+            {plural(board.nodes.length, 'item')} · Edited {formatRelative(board.updatedAt)}
+          </span>
+        </CardFooter>
       </div>
     </CardShell>
   )

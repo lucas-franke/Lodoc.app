@@ -285,6 +285,90 @@ export function notePreview(note: Note, maxLength = 200): string {
 
 const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim()
 
+/** One line of a card's preview, still what it was in the note */
+export type ExcerptLine =
+  | { kind: 'heading' | 'text' | 'bullet' | 'quote' | 'code'; text: string }
+  | { kind: 'number'; text: string; n: number }
+  | { kind: 'check'; text: string; checked: boolean }
+  | { kind: 'image'; url: string }
+
+type BlockLike = { type?: string; content?: unknown; props?: Record<string, unknown>; children?: unknown[] }
+
+/**
+ * The start of a note's body for its card: up to `max` lines, each block as what it is (a heading, a list item, a
+ * checklist item and whether it is ticked, an image), nested items in reading order. Empty lines are left out.
+ */
+export function noteExcerpt(note: Pick<Note, 'content'>, max = 8): ExcerptLine[] {
+  const lines: ExcerptLine[] = []
+  const walk = (blocks: unknown[]) => {
+    let n = 0
+    for (const block of blocks as BlockLike[]) {
+      if (lines.length >= max) return
+      n = block.type === 'numberedListItem' ? n + 1 : 0
+      const line = excerptLine(block, n)
+      if (line) lines.push(line)
+      if (block.children?.length) walk(block.children)
+    }
+  }
+  walk(note.content)
+  return lines
+}
+
+function excerptLine(block: BlockLike, n: number): ExcerptLine | null {
+  if (block.type === 'image') {
+    const url = block.props?.url
+    return typeof url === 'string' && url ? { kind: 'image', url } : null
+  }
+  const runs: string[] = []
+  const cells: string[] = []
+  collectInline(block.content, runs, cells)
+  // A table's cells come back separately: one line for the table
+  const text = oneLine(runs.length ? runs.join('') : cells.map(oneLine).filter(Boolean).join(BLOCK_SEPARATOR))
+  if (!text) return null
+  switch (block.type) {
+    case 'heading':
+      return { kind: 'heading', text }
+    case 'bulletListItem':
+    case 'toggleListItem':
+      return { kind: 'bullet', text }
+    case 'numberedListItem':
+      return { kind: 'number', text, n }
+    case 'checkListItem':
+      return { kind: 'check', text, checked: block.props?.checked === true }
+    case 'quote':
+      return { kind: 'quote', text }
+    case 'codeBlock':
+      return { kind: 'code', text }
+    default:
+      return { kind: 'text', text }
+  }
+}
+
+/** The newest notes directly in a folder, as its card lists them */
+export function latestNotesIn(notes: Note[], folderId: string, count = 3) {
+  return notes
+    .filter((n) => n.folderId === folderId)
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, count)
+}
+
+/** How many of a note's checklist items are ticked (nested ones too), or null when it has none */
+export function checklistProgress(note: Pick<Note, 'content'>): { done: number; total: number } | null {
+  let done = 0
+  let total = 0
+  const walk = (blocks: unknown[]) => {
+    for (const block of blocks as BlockLike[]) {
+      if (block.type === 'checkListItem') {
+        total++
+        if (block.props?.checked === true) done++
+      }
+      if (block.children?.length) walk(block.children)
+    }
+  }
+  walk(note.content)
+  return total ? { done, total } : null
+}
+
 function bodyParts(note: Note): string[] {
   // One entry per block (or table cell); styled runs inside it are joined without spaces
   const parts: string[] = []

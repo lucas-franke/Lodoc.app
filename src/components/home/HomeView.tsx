@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { createBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
-import { createNote, isListed, notePreview, noteTitle, sortNotes } from '@/db/notes'
+import { createNote, isListed, latestNotesIn, notePreview, noteTitle, sortNotes } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { useAppearance } from '@/hooks/useAppearance'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
@@ -46,11 +46,13 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
   const counts = (id: string) => ({
     notes: notes.filter((n) => n.folderId === id).length,
     folders: folders.filter((f) => f.parentId === id).length,
+    latest: latestNotesIn(notes, id),
   })
   const toggle = <CardViewToggle value={cardView} onChange={setCardView} label="Card view" />
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pt-12 pb-32 sm:px-12">
+    // Wider on large screens, for more columns of cards
+    <div className="mx-auto w-full max-w-4xl px-4 pt-12 pb-32 sm:px-12 2xl:max-w-6xl">
       <p className="mb-1 text-sm text-muted-foreground" data-greeting>
         {hello}
       </p>
