@@ -1,5 +1,5 @@
-import { Check, type LucideIcon } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -9,16 +9,10 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { TEXTURE_STRENGTH_DEFAULT } from '@/lib/appearance'
 import { cn } from '@/lib/utils'
 
-// The building blocks of the Settings tabs. Every option is a row with one kind of label (14 px, a hint below it),
-// under section titles one step larger. Every control has an outline of at least 3:1 against the panel
-// (--control-border, WCAG 1.4.11), and a chosen option is filled in the text color.
-
-/**
- * How a chosen option looks: filled in the text color, its label in the page color (black in light mode, white in
- * dark). Clear at a glance, without a heavy outline around it. Previews in tiles draw in currentColor.
- */
-export const SELECTED_CLASSES =
-  'border-control-border hover:bg-accent/60 focus-visible:border-control-border data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:font-medium data-[state=on]:text-background data-[state=on]:hover:bg-foreground data-[state=on]:hover:text-background'
+// The building blocks of the Settings tabs, one pattern for the whole page: a section title, then each option with
+// its label above (14 px medium, a hint below it) and its control under it. Every choice is a row of the same chips
+// (a radio dot, a small icon, the name); on/off settings are a switch beside their label. Every control has an
+// outline of at least 3:1 against the panel (--control-border, WCAG 1.4.11).
 
 /** A tab's own actions (Appearance: Randomize), at its top right */
 export function SettingsToolbar({ children }: { children: ReactNode }) {
@@ -43,7 +37,7 @@ export function SectionBlock({
 }) {
   return (
     <section aria-label={title}>
-      <div className="mb-4 flex min-h-8 items-start justify-between gap-2">
+      <div className="mb-5 flex min-h-8 items-start justify-between gap-2">
         <div>
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <Icon aria-hidden className="size-(--icon) text-muted-foreground" />
@@ -57,21 +51,18 @@ export function SectionBlock({
           </Button>
         )}
       </div>
-      <div className="space-y-5">{children}</div>
-      {!last && <Separator className="my-6" />}
+      <div className="space-y-6">{children}</div>
+      {!last && <Separator className="my-8" />}
     </section>
   )
 }
 
-/**
- * One option: its name (and a hint) on the left and its control on the right, or, `stacked`, the control below
- * (picture tiles that need the width). On a narrow screen the control wraps below the name.
- */
-export function Row({ label, hint, stacked = false, children }: { label: string; hint?: ReactNode; stacked?: boolean; children: ReactNode }) {
+/** One option: its label (and a hint) above, its control below */
+export function OptionGroup({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
   return (
-    <div className={cn('flex gap-x-4 gap-y-2', stacked ? 'flex-col' : 'flex-wrap items-center justify-between')}>
-      <div className="min-w-0 space-y-0.5">
-        <div className="text-sm">{label}</div>
+    <div className="space-y-2">
+      <div className="space-y-0.5">
+        <div className="text-sm font-medium">{label}</div>
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </div>
       {children}
@@ -79,8 +70,11 @@ export function Row({ label, hint, stacked = false, children }: { label: string;
   )
 }
 
-/** A few choices that need no picture, side by side; the chosen one is filled */
-export function Segmented<T extends string>({
+/**
+ * A choice of a few options, all as the same chip: a radio dot (filled on the chosen one, so the choice shows without
+ * relying on color), a small icon that previews the option, and its name. The chips wrap on narrow screens.
+ */
+export function Choice<T extends string>({
   label,
   value,
   onChange,
@@ -89,7 +83,7 @@ export function Segmented<T extends string>({
   label: string
   value: T
   onChange: (value: T) => void
-  options: { value: T; name: ReactNode; ariaLabel?: string; style?: CSSProperties }[]
+  options: { value: T; name: ReactNode; icon?: ReactNode; ariaLabel?: string }[]
 }) {
   return (
     <ToggleGroup
@@ -97,68 +91,41 @@ export function Segmented<T extends string>({
       value={value}
       onValueChange={(v) => v && onChange(v as T)}
       aria-label={label}
-      spacing={0}
-      className="max-w-full flex-wrap gap-0.5 rounded-lg border border-control-border p-0.5"
+      spacing={2}
+      className="w-full flex-wrap justify-start"
     >
-      {options.map((o) => (
-        <ToggleGroupItem
-          key={o.value}
-          value={o.value}
-          aria-label={o.ariaLabel}
-          style={o.style}
-          className="h-8 gap-1.5 rounded-md px-3 font-normal text-muted-foreground hover:bg-accent/60 data-[state=on]:bg-foreground data-[state=on]:font-medium data-[state=on]:text-background data-[state=on]:hover:bg-foreground data-[state=on]:hover:text-background pointer-coarse:h-10 [&_svg:not([class*='size-'])]:size-4"
-        >
-          {o.name}
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
-  )
-}
-
-/** One row of choices, all in the same tile style: a small preview on top, the name below */
-export function Tiles<T extends string>({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string
-  value: T
-  onChange: (value: T) => void
-  options: { value: T; name: ReactNode; preview: ReactNode; ariaLabel?: string }[]
-}) {
-  return (
-    <ToggleGroup
-      type="single"
-      variant="outline"
-      value={value}
-      onValueChange={(v) => v && onChange(v as T)}
-      aria-label={label}
-      className="w-full items-stretch"
-    >
-      {options.map((o) => (
-        <ToggleGroupItem
-          key={o.value}
-          value={o.value}
-          aria-label={o.ariaLabel}
-          className={cn('relative h-auto flex-1 flex-col gap-1 bg-background py-1.5', SELECTED_CLASSES)}
-        >
-          {/* The check makes the choice clear without relying on color */}
-          {o.value === value && (
-            <span aria-hidden className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-background text-foreground">
-              <Check className="size-3" strokeWidth={3} />
+      {options.map((o) => {
+        const chosen = o.value === value
+        return (
+          <ToggleGroupItem
+            key={o.value}
+            value={o.value}
+            aria-label={o.ariaLabel}
+            className="h-10 shrink-0 gap-2 rounded-lg border border-control-border bg-background px-3 text-sm font-normal hover:bg-accent/60 data-[state=on]:border-foreground data-[state=on]:bg-accent data-[state=on]:font-medium pointer-coarse:h-11"
+          >
+            <span
+              aria-hidden
+              className={cn(
+                'flex size-3.5 shrink-0 items-center justify-center rounded-full border',
+                chosen ? 'border-foreground' : 'border-control-border',
+              )}
+            >
+              {chosen && <span className="size-2 rounded-full bg-foreground" />}
             </span>
-          )}
-          <span aria-hidden className="flex h-5 items-end justify-center">
-            {o.preview}
-          </span>
-          <span className="text-xs">{o.name}</span>
-        </ToggleGroupItem>
-      ))}
+            {o.icon && (
+              <span aria-hidden className="flex h-5 min-w-5 items-center justify-center text-foreground/80 [&_svg]:size-4">
+                {o.icon}
+              </span>
+            )}
+            <span>{o.name}</span>
+          </ToggleGroupItem>
+        )
+      })}
     </ToggleGroup>
   )
 }
 
+/** An on/off setting: its label (and hint) on the left, the switch beside it */
 export function SwitchRow({
   id,
   label,
@@ -177,7 +144,7 @@ export function SwitchRow({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="space-y-0.5">
-        <Label htmlFor={id} className="leading-normal font-normal">
+        <Label htmlFor={id} className="leading-normal">
           {label}
         </Label>
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}

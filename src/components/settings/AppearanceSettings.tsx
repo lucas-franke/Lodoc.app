@@ -1,10 +1,9 @@
-import { Check, Dices, FileText, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun } from 'lucide-react'
+import { Dices, FileText, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { Row, SectionBlock, Segmented, SettingsToolbar, StrengthSlider, SwitchRow, Tiles } from '@/components/settings/controls'
+import { Choice, OptionGroup, SectionBlock, SettingsToolbar, StrengthSlider, SwitchRow } from '@/components/settings/controls'
 import { useRootData } from '@/hooks/useRootData'
 import { Button } from '@/components/ui/button'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   getAppearance,
   resetAppearance,
@@ -19,7 +18,6 @@ import {
   DEFAULT_APPEARANCE,
   randomAppearance,
   RADIUS_PRESETS,
-  TEXT_SIZES,
   TEXTURES,
   TINTS,
   tintSwatchColor,
@@ -28,10 +26,11 @@ import {
 import { showPaperTextureSamples } from '@/lib/paper-texture'
 import { cn } from '@/lib/utils'
 
+/** "Aa" at a size for each choice, smallest to largest */
 const TEXT_SIZE_OPTIONS = [
-  { id: 's', name: 'Small' },
-  { id: 'm', name: 'Default' },
-  { id: 'l', name: 'Large' },
+  { id: 's', name: 'Small', sample: 12 },
+  { id: 'm', name: 'Default', sample: 15 },
+  { id: 'l', name: 'Large', sample: 19 },
 ] as const
 
 /** The look's own sections; contrast and motion have the Accessibility tab */
@@ -53,7 +52,7 @@ export function AppearanceSettings() {
   // After "Reset all" or "Randomize": what to bring back with Undo (offered beside them until the next change)
   const [undo, setUndo] = useState<{ appearance: Appearance; theme: string | undefined; status: string } | null>(null)
 
-  // The texture tiles below show the shader-rendered papers, not only the chosen one. They are drawn just
+  // The texture swatches below show the shader-rendered papers, not only the chosen one. They are drawn just
   // after the page has appeared, so the shader work doesn't hold up showing it
   useEffect(() => {
     const id = window.setTimeout(showPaperTextureSamples, 150)
@@ -123,8 +122,8 @@ export function AppearanceSettings() {
         title="Theme"
         onReset={isDefault('theme') ? undefined : () => resetSection('theme')}
       >
-        <Row label="Mode">
-          <Segmented
+        <OptionGroup label="Mode">
+          <Choice
             label="Color mode"
             value={(theme ?? 'system') as 'light' | 'dark' | 'system'}
             onChange={(v) => {
@@ -132,40 +131,35 @@ export function AppearanceSettings() {
               setUndo(null)
             }}
             options={[
-              { value: 'light', name: <><Sun /> Light</>, ariaLabel: 'Light mode' },
-              { value: 'dark', name: <><Moon /> Dark</>, ariaLabel: 'Dark mode' },
-              { value: 'system', name: <><Monitor /> System</>, ariaLabel: 'Follow system' },
+              { value: 'light', name: 'Light', icon: <Sun />, ariaLabel: 'Light mode' },
+              { value: 'dark', name: 'Dark', icon: <Moon />, ariaLabel: 'Dark mode' },
+              { value: 'system', name: 'System', icon: <Monitor />, ariaLabel: 'Follow system' },
             ]}
           />
-        </Row>
-        <Row label="Tint">
-          <ToggleGroup
-            type="single"
+        </OptionGroup>
+        <OptionGroup label="Tint">
+          <Choice
+            label="Tint"
             value={a.tint}
-            onValueChange={choose('tint')}
-            aria-label="Tint"
-            className="flex-wrap items-start gap-x-2 gap-y-2"
-            spacing={2}
-          >
-            {/* Each swatch with its name under it, so the names show on touch screens too */}
-            {TINTS.map((t) => (
-              <span key={t.id} className="flex w-11 flex-col items-center gap-1">
-                <ToggleGroupItem
-                  value={t.id}
-                  aria-label={t.name}
-                  data-tint-swatch={t.id}
-                  className="size-9 rounded-full border border-control-border p-0 focus-visible:border-control-border aria-checked:ring-2 aria-checked:ring-foreground aria-checked:ring-offset-2 aria-checked:ring-offset-background"
-                  style={{ backgroundColor: tintSwatchColor(t, mode) }}
-                >
-                  {a.tint === t.id && <Check className="text-foreground" />}
-                </ToggleGroupItem>
-                <span aria-hidden className={cn('text-[0.6875rem] text-muted-foreground', a.tint === t.id && 'font-medium text-foreground')}>
-                  {t.name}
-                </span>
-              </span>
-            ))}
-          </ToggleGroup>
-        </Row>
+            onChange={choose('tint')}
+            options={TINTS.map((t) => ({
+              value: t.id,
+              name: t.name,
+              // A square in a fuller shade of the tint (the page colors themselves are too pale to tell apart at this
+              // size, and a circle would read as a second radio dot)
+              icon: (
+                <span
+                  className="size-4 rounded-[4px] border border-control-border"
+                  style={{
+                    backgroundColor: t.chroma
+                      ? `oklch(${mode === 'dark' ? 0.55 : 0.78} ${t.chroma * 5} ${t.hue})`
+                      : tintSwatchColor(t, mode),
+                  }}
+                />
+              ),
+            }))}
+          />
+        </OptionGroup>
         {/* High contrast leaves the gradient out, so the switch would do nothing then */}
         {!high && (
           <SwitchRow id="ap-gradient" label="Gradient" checked={a.gradient} onChange={(gradient) => change({ gradient })} />
@@ -186,30 +180,33 @@ export function AppearanceSettings() {
         title="Pages"
         onReset={isDefault('pages') ? undefined : () => resetSection('pages')}
       >
-        <Row label="Font" stacked>
-          <Tiles
+        <OptionGroup label="Font">
+          <Choice
             label="Page font"
             value={a.pageFont}
             onChange={choose('pageFont')}
             options={[
-              { value: 'sans', name: 'Sans serif', preview: <FontSample font="sans" /> },
-              { value: 'serif', name: 'Serif', preview: <FontSample font="serif" /> },
+              { value: 'sans', name: 'Sans serif', icon: <FontSample font="sans" /> },
+              { value: 'serif', name: 'Serif', icon: <FontSample font="serif" /> },
             ]}
           />
-        </Row>
-        <Row label="Text size">
-          {/* The names at the size they stand for, in the page font */}
-          <Segmented
+        </OptionGroup>
+        <OptionGroup label="Text size">
+          <Choice
             label="Text size"
             value={a.textSize}
             onChange={choose('textSize')}
             options={TEXT_SIZE_OPTIONS.map((s) => ({
               value: s.id,
-              name: <span data-font-sample={a.pageFont}>{s.name}</span>,
-              style: { fontSize: TEXT_SIZES[s.id] },
+              name: s.name,
+              icon: (
+                <span className="leading-none font-medium" data-font-sample={a.pageFont} style={{ fontSize: s.sample }}>
+                  Aa
+                </span>
+              ),
             }))}
           />
-        </Row>
+        </OptionGroup>
         <SwitchRow
           id="ap-auto-cover"
           label="Automatic covers"
@@ -217,26 +214,26 @@ export function AppearanceSettings() {
           checked={a.autoCover}
           onChange={(autoCover) => change({ autoCover })}
         />
-        <Row label="Texture" stacked>
-          <Tiles
+        <OptionGroup label="Texture">
+          <Choice
             label="Page texture"
             value={a.texture}
             onChange={choose('texture')}
             options={TEXTURES.map((t) => ({
               value: t.id,
               name: t.name,
-              preview: <span data-texture-sample={t.id} className="block size-5 rounded-[3px] border bg-background" />,
+              icon: <span data-texture-sample={t.id} className="block size-4 rounded-[3px] border border-control-border bg-background" />,
             }))}
           />
-        </Row>
+        </OptionGroup>
         {a.texture !== 'none' && (
-          <Row label="Strength" stacked>
+          <OptionGroup label="Strength">
             <StrengthSlider
               label="Page texture strength"
               value={a.textureStrength}
               onChange={(textureStrength) => change({ textureStrength })}
             />
-          </Row>
+          </OptionGroup>
         )}
       </SectionBlock>
 
@@ -248,26 +245,26 @@ export function AppearanceSettings() {
       >
         {/* Desktop only: on a phone the sidebar lies over the page, and a floating one would only take room */}
         {wide && (
-          <Row label="Sidebar" stacked>
-            <Tiles
+          <OptionGroup label="Sidebar">
+            <Choice
               label="Sidebar style"
               value={a.sidebar}
               onChange={choose('sidebar')}
               options={[
-                { value: 'connected', name: 'Connected', preview: <SidebarPreview floating={false} /> },
-                { value: 'floating', name: 'Floating', preview: <SidebarPreview floating /> },
+                { value: 'connected', name: 'Connected', icon: <SidebarPreview floating={false} /> },
+                { value: 'floating', name: 'Floating', icon: <SidebarPreview floating /> },
               ]}
             />
-          </Row>
+          </OptionGroup>
         )}
-        <Row label="Corners" stacked>
-          <Tiles
+        <OptionGroup label="Corners">
+          <Choice
             label="Corner style"
             value={a.corners}
             onChange={choose('corners')}
-            options={RADIUS_PRESETS.map((p) => ({ value: p.id, name: p.name, preview: <CornerPreview px={p.px} /> }))}
+            options={RADIUS_PRESETS.map((p) => ({ value: p.id, name: p.name, icon: <CornerPreview px={p.px} /> }))}
           />
-        </Row>
+        </OptionGroup>
         <SwitchRow
           id="ap-ui-grain"
           label="Grain"
@@ -276,13 +273,13 @@ export function AppearanceSettings() {
           onChange={(uiGrain) => change({ uiGrain })}
         />
         {a.uiGrain && (
-          <Row label="Intensity" stacked>
+          <OptionGroup label="Intensity">
             <StrengthSlider
               label="Interface grain intensity"
               value={a.uiGrainStrength}
               onChange={(uiGrainStrength) => change({ uiGrainStrength })}
             />
-          </Row>
+          </OptionGroup>
         )}
       </SectionBlock>
 
@@ -299,7 +296,7 @@ export function AppearanceSettings() {
 
 function FontSample({ font }: { font: 'sans' | 'serif' }) {
   return (
-    <span className="text-lg leading-none" data-font-sample={font}>
+    <span className="text-base leading-none font-medium" data-font-sample={font}>
       Ag
     </span>
   )
@@ -308,17 +305,12 @@ function FontSample({ font }: { font: 'sans' | 'serif' }) {
 /** A tiny drawing of the window: sidebar attached to the edge, or floating with a gap. */
 function SidebarPreview({ floating }: { floating: boolean }) {
   return (
-    <span className="flex h-5 w-8 overflow-hidden rounded-[3px] border bg-background">
-      <span className={cn('w-2 bg-muted-foreground/30', floating ? 'm-0.5 rounded-[2px]' : 'border-r')} />
+    <span className="flex h-3.5 w-5 overflow-hidden rounded-[3px] border border-current">
+      <span className={cn('w-1.5 bg-current opacity-40', floating ? 'm-px rounded-[1px]' : '')} />
     </span>
   )
 }
 
 function CornerPreview({ px }: { px: number }) {
-  return (
-    <span
-      className="block size-5 border-t-2 border-l-2 border-current opacity-70"
-      style={{ borderTopLeftRadius: Math.round(px * 1.1) }}
-    />
-  )
+  return <span className="block size-3.5 border-t-2 border-l-2 border-current" style={{ borderTopLeftRadius: Math.round(px * 0.7) }} />
 }
