@@ -72,7 +72,8 @@ export function OptionGroup({ label, hint, children }: { label: string; hint?: R
 
 /**
  * A choice of a few options, all as the same chip: a radio dot (filled on the chosen one, so the choice shows without
- * relying on color), a small icon that previews the option, and its name. The chips wrap on narrow screens.
+ * relying on color), a small icon that previews the option, and its name. The chips wrap on narrow screens. The
+ * name keeps its weight when chosen, so a chip doesn't change width.
  */
 export function Choice<T extends string>({
   label,
@@ -101,7 +102,7 @@ export function Choice<T extends string>({
             key={o.value}
             value={o.value}
             aria-label={o.ariaLabel}
-            className="h-10 shrink-0 gap-2 rounded-lg border border-control-border bg-background px-3 text-sm font-normal hover:bg-accent/60 data-[state=on]:border-foreground data-[state=on]:bg-accent data-[state=on]:font-medium pointer-coarse:h-11"
+            className="h-10 shrink-0 gap-2 rounded-lg border border-control-border bg-background px-3 text-sm font-normal hover:bg-accent/60 data-[state=on]:border-foreground data-[state=on]:bg-accent pointer-coarse:h-11"
           >
             <span
               aria-hidden
