@@ -33,6 +33,8 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
   const editing = !!note && board.editingId === id
   const view = cardView(data as NoteItem)
   const collapsed = view === 'title' && !editing
+  // Zoomed out, the title grows to stay readable (index.css): the buttons, too small to hit there, make room for it
+  const titleOnly = zoomedOut && !editing
 
   const entries: MenuEntry[] = [
     ...(note ? [{ type: 'item' as const, label: 'Open note', icon: ExternalLink, onSelect: () => openNote(noteId) }] : []),
@@ -70,11 +72,16 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
         )}
         onDoubleClick={() => note && !editing && board.editNote(id)}
       >
-        <div className={cn('flex h-10 shrink-0 items-center gap-1 pr-1 pl-3', !collapsed && 'border-b')}>
-          <FileText className="mr-1 size-4 shrink-0 text-muted-foreground" />
+        <div className={cn('flex min-h-10 shrink-0 items-center gap-1 pr-1 pl-3', !collapsed && 'border-b')}>
+          <FileText className={cn('mr-1 size-4 shrink-0 text-muted-foreground', titleOnly && 'hidden')} />
           {/* While editing, the editor's own title field is right below, so the header doesn't repeat it */}
           <span
-            className={cn('min-w-0 flex-1 truncate font-page text-sm font-medium', editing && 'text-muted-foreground')}
+            className={cn(
+              'board-title min-w-0 flex-1 font-page text-sm font-medium',
+              collapsed && 'board-title-short',
+              titleOnly && !collapsed ? 'line-clamp-2 break-words' : 'truncate',
+              editing && 'text-muted-foreground',
+            )}
             data-testid="board-note-title"
           >
             {editing ? 'Editing' : title}
@@ -94,7 +101,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
               <Button
                 variant="ghost"
                 size="icon-xs"
-                className="nodrag pointer-coarse:size-9"
+                className={cn('nodrag pointer-coarse:size-9', titleOnly && 'hidden')}
                 aria-label={`Edit ${title}`}
                 onClick={() => board.editNote(id)}
               >
@@ -105,7 +112,12 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
             align="end"
             entries={entries}
             trigger={
-              <Button variant="ghost" size="icon-xs" className="nodrag pointer-coarse:size-9" aria-label={`Actions for ${title}`}>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className={cn('nodrag pointer-coarse:size-9', titleOnly && 'hidden')}
+                aria-label={`Actions for ${title}`}
+              >
                 <MoreHorizontal />
               </Button>
             }

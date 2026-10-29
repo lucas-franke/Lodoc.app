@@ -30,6 +30,6 @@ Cards show your notes as they are: editing a note anywhere updates every board i
 - **Tidy up** (the grid button at the top right) lines everything up in neat rows without overlaps. Frames keep their cards, and `Ctrl` + `Z` puts everything back.
 - **Cards:** at the top right sets how much every note card shows: *Full*, *Cover* or *Title*. Each card can also be set on its own in its menu.
 - **Find on board** (the magnifier at the top right) searches the cards, text and frames on the board and jumps to the match.
-- The zoom bar at the bottom has zoom in and out, the current zoom (click it for 100 %), *fit all*, and a minimap.
+- The zoom bar at the bottom has zoom in and out, the current zoom (click it for 100 %), *fit all*, and a minimap. Zoomed out, the names of cards and frames stay readable, like place names on a map.
 
 Boards can live in folders, next to your notes.

@@ -566,6 +566,17 @@ html .react-flow__connection-path {
   padding-inline: 12px;
 }
 
+/* Zoomed out on a board, the titles of cards and frames stay about 13px on screen, like place names on a map: below
+   about 93% they grow as the board shrinks (BoardPage sets --board-zoom), and below 30% they shrink with it again.
+   A card shown as its title alone has a fixed height, so its title stops at what fits. */
+.react-flow .board-title {
+  font-size: max(0.875rem, calc(0.8125rem / max(var(--board-zoom, 1), 0.3)));
+  line-height: max(1.25rem, 1.2em);
+}
+.react-flow .board-title.board-title-short {
+  font-size: min(1.5rem, max(0.875rem, calc(0.8125rem / max(var(--board-zoom, 1), 0.3))));
+}
+
 /* Toasts with buttons (Undo, Open, Got it): the buttons get their own row under the text, right-aligned, at a
    size that's easy to read and hit (sonner's own are 24px high with 12px text, squeezed in beside the text) */
 html [data-sonner-toaster] [data-sonner-toast]:has([data-button]) {

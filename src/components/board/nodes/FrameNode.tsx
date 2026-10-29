@@ -44,7 +44,7 @@ export function FrameNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
           selected && 'border-ring',
         )}
       >
-        <div className="flex h-10 shrink-0 items-center gap-1 pr-1 pl-3" onDoubleClick={() => board.setEditingId(id)}>
+        <div className="flex min-h-10 shrink-0 items-center gap-1 pr-1 pl-3" onDoubleClick={() => board.setEditingId(id)}>
           {editing ? (
             <input
               autoFocus
@@ -65,7 +65,7 @@ export function FrameNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
           ) : (
             <span
               data-testid="board-frame-title"
-              className={cn('min-w-0 flex-1 truncate font-page text-sm font-semibold', !title.trim() && 'text-muted-foreground')}
+              className={cn('board-title min-w-0 flex-1 truncate font-page text-sm font-semibold', !title.trim() && 'text-muted-foreground')}
             >
               {name}
             </span>

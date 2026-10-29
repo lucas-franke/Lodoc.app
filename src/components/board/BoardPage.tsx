@@ -10,6 +10,7 @@ import {
   applyNodeChanges,
   useNodesInitialized,
   useReactFlow,
+  useStore,
   type Connection,
   type EdgeChange,
   type NodeChange,
@@ -19,7 +20,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { nanoid } from 'nanoid'
 import { useTheme } from 'next-themes'
 import { LayoutGrid } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useBottomUi } from '@/hooks/useBottomUi'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -765,6 +766,7 @@ function Canvas({ board }: { board: Board }) {
           attributionPosition="bottom-right"
         >
           <Background gap={20} size={1} />
+          <ZoomVar />
           <ZoomSlider minimap={minimap} onMinimapChange={setMinimap} />
           {minimap && nodes.length > 0 && (
             <MiniMap
@@ -818,4 +820,12 @@ function Canvas({ board }: { board: Board }) {
       </div>
     </BoardContext.Provider>
   )
+}
+
+/** The zoom as --board-zoom on the canvas, so titles can keep their size on screen when zoomed out (index.css) */
+function ZoomVar() {
+  const zoom = useStore((s) => s.transform[2])
+  const canvas = useStore((s) => s.domNode)
+  useLayoutEffect(() => canvas?.style.setProperty('--board-zoom', String(zoom)), [canvas, zoom])
+  return null
 }
