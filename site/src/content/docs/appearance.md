@@ -31,6 +31,12 @@ order: 7
 - **Corners**: sharp, rounded or round.
 - **Grain**: a fine grain on the sidebar, menus and panels.
 
+## On this website
+
+The docs, What's new and the About page take on your look too: tint, font and text size, corners, texture and contrast, and a floating sidebar makes the bar at the top float. The button next to **Open app** switches between light, dark and your system's setting, the same setting as in the app.
+
+On the About page, **Custom** under *Make it yours* has the options right there. What you choose there shows on the website at once, and Lodoc opens in it too.
+
 ## Accessibility
 
 The **Accessibility** tab in Settings has these two. Both follow your system at first, and you can turn them on or off for Lodoc. You can also switch them from the command palette.

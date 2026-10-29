@@ -50,7 +50,7 @@ const features = [
   },
   {
     title: 'Make it yours',
-    text: 'Soft colour tints, paper textures, a serif or sans font, and a floating sidebar. Try four of them right here.',
+    text: 'Soft colour tints, paper textures, a serif or sans font, and a floating sidebar. Try three looks right here, or make your own under Custom: it applies to this website and the app.',
     docs: 'docs/appearance/',
     more: 'More about appearance',
     // A live demo instead of a screenshot
@@ -119,8 +119,12 @@ const more = [
   <div class="mt-24 space-y-24">
     {
       features.map((f, i) => (
-        <section class="grid items-center gap-8 md:grid-cols-2 md:gap-12" aria-labelledby={`feature-${i}`}>
-          <div class:list={[i % 2 === 1 && 'md:order-2']}>
+        <section
+          class:list={['grid items-center gap-8 md:grid-cols-2 md:gap-12', f.demo && 'md:items-start']}
+          aria-labelledby={`feature-${i}`}
+        >
+          {/* Beside the demo the text keeps to the top and stays in view while Custom's options are open */}
+          <div class:list={[i % 2 === 1 && 'md:order-2', f.demo && 'md:sticky md:top-24 md:pt-16']}>
             <h2 id={`feature-${i}`} class="font-page text-3xl font-bold tracking-tight">{f.title}</h2>
             <p class="mt-3 text-lg text-muted-foreground">{f.text}</p>
             <a href={`${base}${f.docs}`} class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-link underline underline-offset-4 hover:no-underline">
