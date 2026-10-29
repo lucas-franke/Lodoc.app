@@ -40,7 +40,7 @@ export function TagView({ tag }: { tag: string }) {
       {tagged.length === 0 ? (
         <p className="mt-10 text-sm text-muted-foreground">No note has this tag (any more).</p>
       ) : (
-        <CardSection title="Notes" action={<CardViewToggle value={cardView} onChange={setCardView} label="Card view" />}>
+        <CardSection title="Notes" sectionKey="tag-notes" action={<CardViewToggle value={cardView} onChange={setCardView} label="Card view" />}>
           {tagged.map((note) => (
             <NoteCard key={note.id} note={note} view={cardView} />
           ))}

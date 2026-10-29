@@ -17,7 +17,7 @@ import { useNoteCardView } from '@/hooks/useNoteCardView'
 import { openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
 import { resolveCover } from '@/lib/cover'
-import { formatRelative, plural } from '@/lib/format'
+import { formatRelative } from '@/lib/format'
 import { openTodaysJournal } from '@/lib/journal'
 import { readLastNote } from '@/lib/last-note'
 
@@ -55,13 +55,9 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       <p className="mb-1 text-sm text-muted-foreground" data-greeting>
         {hello}
       </p>
-      <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <p className="text-sm text-muted-foreground">
-          {[plural(notes.length, 'note'), folders.length > 0 && plural(folders.length, 'folder'), boards.length > 0 && plural(boards.length, 'board')]
-            .filter(Boolean)
-            .join(' · ')}
-        </p>
+      {/* The counts are on each section's title; the week's writing days sit beside the page title */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
         <WritingDays notes={notes} />
       </div>
 
@@ -80,7 +76,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       </div>
 
       {favorites.length + favoriteBoards.length > 0 && (
-        <CardSection title="Favorites">
+        <CardSection title="Favorites" sectionKey="overview-favorites">
           {favorites.map((note) => (
             <NoteCard key={note.id} note={note} view={cardView} />
           ))}
@@ -91,7 +87,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       )}
 
       {recent.length > 0 && (
-        <CardSection title="Recently edited" action={toggle}>
+        <CardSection title="Recently edited" sectionKey="overview-recent" action={toggle}>
           {recent.map((note) => (
             <NoteCard key={note.id} note={note} view={cardView} />
           ))}
@@ -99,7 +95,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       )}
 
       {topFolders.length > 0 && (
-        <CardSection title="Folders">
+        <CardSection title="Folders" sectionKey="overview-folders">
           {topFolders.map((folder) => (
             <FolderCard key={folder.id} folder={folder} view={cardView} {...counts(folder.id)} />
           ))}
@@ -107,7 +103,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       )}
 
       {boards.length > 0 && (
-        <CardSection title="Boards">
+        <CardSection title="Boards" sectionKey="overview-boards">
           {sortBoards(boards).map((board) => (
             <BoardCard key={board.id} board={board} />
           ))}

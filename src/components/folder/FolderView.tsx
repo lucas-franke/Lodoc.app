@@ -1,6 +1,7 @@
 import { EmptyArt } from '@/components/EmptyArt'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
+  ChevronDown,
   FileText,
   Folder as FolderIcon,
   FolderOpen,
@@ -12,7 +13,7 @@ import {
   Star,
   type LucideIcon,
 } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Children, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { RowContextMenu, RowDropdownMenu, type MenuEntry } from '@/components/ItemMenu'
 import { RenameInput } from '@/components/sidebar/RenameInput'
 import { NewMenu } from '@/components/NewMenu'
@@ -30,6 +31,7 @@ import { NoteCardBody, NoteCardTop } from '@/components/note/NoteCardBody'
 import { CardFooter } from '@/components/note/NoteCardMeta'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
 import { useNoteSort } from '@/hooks/useNoteSort'
+import { useSectionOpen } from '@/hooks/useSectionOpen'
 import { openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
 import { formatDate, formatDateTime, formatRelative, plural } from '@/lib/format'
@@ -72,10 +74,7 @@ export function FolderView({ folder }: { folder: Folder }) {
         <FolderTitle folder={folder} />
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
-        {plural(allNotes.length, 'note')}
-        {allSubfolders.length > 0 && ` · ${plural(allSubfolders.length, 'folder')}`}
-        {allBoards.length > 0 && ` · ${plural(allBoards.length, 'board')}`}
-        {' · '}
+        {/* The counts are on the section titles below */}
         <span title={formatDateTime(folder.createdAt)}>Created {formatDate(folder.createdAt)}</span>
       </p>
 
@@ -113,7 +112,7 @@ export function FolderView({ folder }: { folder: Folder }) {
       )}
 
       {subfolders.length > 0 && (
-        <CardSection title="Folders">
+        <CardSection title="Folders" sectionKey="folder-folders">
           {subfolders.map((sub) => (
             <FolderCard key={sub.id} folder={sub} view={cardView} {...counts(sub.id)} />
           ))}
@@ -121,7 +120,7 @@ export function FolderView({ folder }: { folder: Folder }) {
       )}
 
       {folderBoards.length > 0 && (
-        <CardSection title="Boards">
+        <CardSection title="Boards" sectionKey="folder-boards">
           {folderBoards.map((board) => (
             <BoardCard key={board.id} board={board} />
           ))}
@@ -129,7 +128,7 @@ export function FolderView({ folder }: { folder: Folder }) {
       )}
 
       {folderNotes.length > 0 && (
-        <CardSection title="Notes" 
+        <CardSection title="Notes" sectionKey="folder-notes"
           action={
             <div className="flex items-center gap-2">
               <CardViewToggle value={cardView} onChange={setCardView} label="Card view" />
@@ -311,15 +310,47 @@ export function CardShell({
   )
 }
 
-export function CardSection({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+/**
+ * A titled group of cards with its count, "Folders (5)"; the title opens and closes it (remembered per `sectionKey`
+ * in this browser). The action (view and sort) shows while it is open.
+ */
+export function CardSection({
+  title,
+  sectionKey,
+  action,
+  children,
+}: {
+  title: string
+  sectionKey: string
+  action?: ReactNode
+  children: ReactNode
+}) {
+  const [open, setOpen] = useSectionOpen(sectionKey)
+  const id = useId()
+  const count = Children.toArray(children).length
   return (
     <section className="mt-8">
-      <div className="mb-3 flex h-9 items-center justify-between">
-        <h2 className="text-xs font-medium text-muted-foreground">{title}</h2>
-        {action}
+      <div className="mb-3 flex h-9 items-center justify-between gap-2">
+        <h2 className="text-base font-semibold">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={id}
+            onClick={() => setOpen(!open)}
+            className="-ml-2 flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-accent pointer-coarse:py-2"
+          >
+            {title} <span className="font-normal text-muted-foreground tabular-nums">({count})</span>
+            <ChevronDown aria-hidden className={cn('size-4 text-muted-foreground transition-transform', open && 'rotate-180')} />
+          </button>
+        </h2>
+        {open && action}
       </div>
       {/* Two columns of smaller cards on phones, so more than one note fits on the screen */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-3 max-sm:grid-cols-2 max-sm:gap-2">{children}</div>
+      {open && (
+        <div id={id} className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-3 max-sm:grid-cols-2 max-sm:gap-2">
+          {children}
+        </div>
+      )}
     </section>
   )
 }

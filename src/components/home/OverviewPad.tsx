@@ -19,7 +19,7 @@ export function OverviewPad() {
   const note = useLiveQuery(() => (id ? db.notes.get(id) : undefined), [id])
   return (
     <section aria-labelledby="overview-pad-label" className="mt-6">
-      <h2 id="overview-pad-label" className="mb-2 text-xs font-medium text-muted-foreground">
+      <h2 id="overview-pad-label" className="mb-2 text-base font-semibold">
         Scratchpad
       </h2>
       <div className="min-h-14 rounded-xl border bg-card px-1 focus-within:border-control-border" data-overview-pad>
