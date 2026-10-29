@@ -311,6 +311,16 @@
   font-family: var(--page-font);
   font-size: var(--page-text-size);
 }
+/* iOS zooms into the page when a field with text under 16px gets focus, and the Small text size is 15px. The editor
+   itself (the focused element) is at least 16px on touch screens; its blocks keep the chosen size, so nothing moves. */
+@media (pointer: coarse) {
+  .bn-root.bn-shadcn .bn-editor {
+    font-size: max(1rem, var(--page-text-size));
+  }
+  .bn-root.bn-shadcn .bn-editor > .bn-block-group {
+    font-size: var(--page-text-size);
+  }
+}
 
 /* The margin beside the text of a note: room for BlockNote's block handles (+ and drag). The title, info
    line, tags and backlinks use it too, so everything lines up. On a phone only the drag handle is shown

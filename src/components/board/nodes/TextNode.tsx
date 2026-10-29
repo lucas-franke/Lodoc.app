@@ -10,9 +10,10 @@ import type { BoardFlowNode } from '../flow'
 
 type TextItem = Extract<BoardNode, { type: 'text' }>
 
-// Relative to the page text size from the Appearance panel (1rem by default: 16 / 24 / 36 px)
+// Relative to the page text size from the Appearance panel (1rem by default: 16 / 24 / 36 px). On touch screens small
+// text is at least 16px, or iOS zooms into the page when its field gets focus.
 const SIZES = [
-  { size: 's', label: 'Small text', glyph: 'S', className: 'text-[length:var(--page-text-size)]' },
+  { size: 's', label: 'Small text', glyph: 'S', className: 'text-[length:var(--page-text-size)] pointer-coarse:text-[length:max(1rem,var(--page-text-size))]' },
   { size: 'm', label: 'Medium text', glyph: 'M', className: 'text-[length:calc(var(--page-text-size)*1.5)] leading-tight font-semibold tracking-tight' },
   { size: 'l', label: 'Large text', glyph: 'L', className: 'text-[length:calc(var(--page-text-size)*2.25)] leading-tight font-bold tracking-tight' },
 ] as const
