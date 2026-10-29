@@ -1,7 +1,7 @@
 import { Dices, FileText, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { Choice, OptionGroup, SectionBlock, SettingsToolbar, StrengthSlider, SwitchRow } from '@/components/settings/controls'
+import { Choice, OptionGroup, SectionBlock, StrengthSlider, SwitchRow } from '@/components/settings/controls'
 import { useRootData } from '@/hooks/useRootData'
 import { Button } from '@/components/ui/button'
 import {
@@ -111,12 +111,6 @@ export function AppearanceSettings() {
 
   return (
     <>
-      <SettingsToolbar>
-        <Button variant="ghost" size="sm" onClick={randomize}>
-          <Dices /> Randomize
-        </Button>
-        {undoFor('Randomized')}
-      </SettingsToolbar>
       <SectionBlock
         icon={Palette}
         title="Theme"
@@ -283,9 +277,13 @@ export function AppearanceSettings() {
         )}
       </SectionBlock>
 
-      {/* At the end: it undoes everything above */}
+      {/* At the end: the two that change everything above, each with its Undo beside it */}
       <div className="mt-8 flex flex-wrap items-center gap-2 border-t pt-5">
-        <Button variant="ghost" size="sm" className="-ml-2.5" onClick={resetAll}>
+        <Button variant="ghost" size="sm" className="-ml-2.5" onClick={randomize}>
+          <Dices /> Randomize
+        </Button>
+        {undoFor('Randomized')}
+        <Button variant="ghost" size="sm" onClick={resetAll}>
           <RotateCcw /> Reset all appearance settings
         </Button>
         {undoFor('Back to defaults')}

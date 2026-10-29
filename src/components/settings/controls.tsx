@@ -14,11 +14,6 @@ import { cn } from '@/lib/utils'
 // (a radio dot, a small icon, the name); on/off settings are a switch beside their label. Every control has an
 // outline of at least 3:1 against the panel (--control-border, WCAG 1.4.11).
 
-/** A tab's own actions (Appearance: Randomize), at its top right */
-export function SettingsToolbar({ children }: { children: ReactNode }) {
-  return <div className="-mt-3 mb-5 flex flex-wrap items-center justify-end gap-2">{children}</div>
-}
-
 export function SectionBlock({
   icon: Icon,
   title,
@@ -72,7 +67,8 @@ export function OptionGroup({ label, hint, children }: { label: string; hint?: R
 
 /**
  * A choice of a few options, all as the same chip: a radio dot (filled on the chosen one, so the choice shows without
- * relying on color), a small icon that previews the option, and its name. The chips wrap on narrow screens. The
+ * relying on color), a small icon that previews the option, and its name. The chosen chip is filled in the text color
+ * (black in light mode, white in dark), its contents in the page color. The chips wrap on narrow screens. The
  * name keeps its weight when chosen, so a chip doesn't change width.
  */
 export function Choice<T extends string>({
@@ -102,19 +98,19 @@ export function Choice<T extends string>({
             key={o.value}
             value={o.value}
             aria-label={o.ariaLabel}
-            className="h-10 shrink-0 gap-2 rounded-lg border border-control-border bg-background px-3 text-sm font-normal hover:bg-accent/60 data-[state=on]:border-foreground data-[state=on]:bg-accent pointer-coarse:h-11"
+            className="h-10 shrink-0 gap-2 rounded-lg border border-control-border bg-background px-3 text-sm font-normal hover:bg-accent/60 data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:hover:bg-foreground data-[state=on]:hover:text-background pointer-coarse:h-11"
           >
             <span
               aria-hidden
               className={cn(
                 'flex size-3.5 shrink-0 items-center justify-center rounded-full border',
-                chosen ? 'border-foreground' : 'border-control-border',
+                chosen ? 'border-background' : 'border-control-border',
               )}
             >
-              {chosen && <span className="size-2 rounded-full bg-foreground" />}
+              {chosen && <span className="size-2 rounded-full bg-background" />}
             </span>
             {o.icon && (
-              <span aria-hidden className="flex h-5 min-w-5 items-center justify-center text-foreground/80 [&_svg]:size-4">
+              <span aria-hidden className="flex h-5 min-w-5 items-center justify-center opacity-85 [&_svg]:size-4">
                 {o.icon}
               </span>
             )}
