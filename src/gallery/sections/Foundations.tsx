@@ -25,7 +25,7 @@ const COLORS = [
 
 export function Foundations() {
   return (
-    <Section id="foundations" title="Foundations" intro="The tokens everything else is built from. They follow the look: try another tint or dark mode under Look.">
+    <Section id="foundations" title="Foundations" intro="The tokens everything else is built from. They follow the appearance: try another tint or dark mode under Appearance.">
       <Example id="colors" title="Colours" source="styles/tokens.css">
         <div className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-4">
           {COLORS.map(([name, use]) => (
@@ -73,7 +73,7 @@ export function Foundations() {
           </div>
           <div>
             <p className="font-page text-4xl font-bold tracking-tight">A note's title</p>
-            <Caption>In the page font, as chosen under Look</Caption>
+            <Caption>In the page font, as chosen under Appearance</Caption>
           </div>
           <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2 font-page">
             {Object.entries(TEXT_SIZES).map(([id, size]) => (

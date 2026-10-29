@@ -27,7 +27,8 @@ const NAV = [
  */
 export function Gallery({ demo }: { demo: Demo }) {
   return (
-    <div className="min-h-dvh bg-background text-foreground" data-texture-surface="">
+    // relative: the page texture (index.css) is a layer that fills its surface
+    <div className="relative min-h-dvh bg-background text-foreground" data-texture-surface="">
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
           <a href="../" className="flex items-center gap-2 font-semibold">
@@ -40,7 +41,7 @@ export function Gallery({ demo }: { demo: Demo }) {
             <Button variant="ghost" size="sm" asChild className="max-sm:hidden">
               <a href="../docs/">Docs</a>
             </Button>
-            <LookSheet />
+            <AppearanceSheet />
           </nav>
         </div>
         {/* On phones, the parts as a row of chips */}
@@ -83,7 +84,7 @@ export function Gallery({ demo }: { demo: Demo }) {
             <p className="mt-3 max-w-prose text-muted-foreground">
               Everything Lodoc is made of, live: the colours and type, the interface, a note with every block, cards and a
               board. Try them: they work on demo notes of their own, so nothing here touches your notes, and a reload starts
-              over. <strong className="font-medium text-foreground">Look</strong> at the top shows them in other themes.
+              over. <strong className="font-medium text-foreground">Appearance</strong> at the top shows them in other themes.
               Links to notes open nothing here.
             </p>
           </div>
@@ -99,7 +100,7 @@ export function Gallery({ demo }: { demo: Demo }) {
 }
 
 /** The look of the page (light or dark, tint, page font…), shown without being kept: the app keeps its own */
-function LookSheet() {
+function AppearanceSheet() {
   const a = useAppearance()
   const { theme, setTheme } = useTheme()
   const choose =
@@ -111,12 +112,12 @@ function LookSheet() {
       <SheetTrigger asChild>
         <Button variant="outline" size="sm">
           <Palette aria-hidden />
-          Look
+          Appearance
         </Button>
       </SheetTrigger>
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Look</SheetTitle>
+          <SheetTitle>Appearance</SheetTitle>
           <SheetDescription>See the components in another theme. Your settings in the app stay as they are.</SheetDescription>
         </SheetHeader>
         <div className="space-y-6 px-4 pb-6">

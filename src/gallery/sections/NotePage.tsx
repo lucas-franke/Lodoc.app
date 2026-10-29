@@ -16,7 +16,7 @@ export function NotePage({ demo }: { demo: Demo }) {
       intro="A real note with every kind of block. Type in it, select text for the toolbar, type / for the block menu, click a callout's icon to switch its tone."
     >
       <Example id="note-editor" title="A note" source="components/editor/NoteEditor.tsx, index.css" plain>
-        <div className="overflow-hidden rounded-xl border bg-background" data-texture-surface="">
+        <div className="relative overflow-hidden rounded-xl border bg-background" data-texture-surface="">
           <Suspense fallback={<div className="h-96" />}>{note && <NoteEditor key={note.id} note={note} />}</Suspense>
         </div>
       </Example>
