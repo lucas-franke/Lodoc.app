@@ -32,9 +32,9 @@ export function ActivityView({ tab }: { tab: ActivityTab }) {
   const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
   useEscapeToLeave('activity')
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 max-sm:pt-6 sm:px-12">
       <BackLink section="activity" />
-      <h1 className="font-page text-4xl font-bold tracking-tight">Activity</h1>
+      <h1 className="font-page text-4xl font-bold tracking-tight max-sm:text-3xl">Activity</h1>
       <nav aria-label="Filter" data-focus-inset className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden">
         {TABS.map(({ tab: t, label }) => (
           <a

@@ -24,9 +24,9 @@ export function SettingsView({ tab }: { tab: SettingsTab }) {
   useEscapeToLeave('settings')
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 sm:px-12">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24 max-sm:pt-6 sm:px-12">
       <BackLink section="settings" />
-      <h1 className="font-page text-4xl font-bold tracking-tight">Settings</h1>
+      <h1 className="font-page text-4xl font-bold tracking-tight max-sm:text-3xl">Settings</h1>
       <nav aria-label="Settings" data-focus-inset className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
         {TABS.map(({ id, title, icon: Icon }) => (
           <a

@@ -26,7 +26,7 @@ export function BackupSettings() {
       <SectionBlock icon={ArchiveRestore} title="Backup file" hint="Notes, boards, images and your look, as one .json file">
         {/* With automatic backup on, its "Last saved" below is the status */}
         {auto.status === 'off' && (
-          <p className={cn('text-sm', urgent && 'text-amber-700 dark:text-amber-400')} data-backup-status>
+          <p className={cn('text-sm', urgent && 'text-(--warning)')} data-backup-status>
             {status}
           </p>
         )}
@@ -76,7 +76,7 @@ export function BackupSettings() {
                 <Fact
                   label="Status"
                   value={
-                    <span className="text-amber-700 dark:text-amber-400" data-auto-backup-status>
+                    <span className="text-(--warning)" data-auto-backup-status>
                       Paused. The browser asks once per visit before writing here.
                     </span>
                   }
@@ -90,7 +90,7 @@ export function BackupSettings() {
                 <Fact
                   label="Last saved"
                   value={
-                    <span className={cn(auto.error && 'text-amber-700 dark:text-amber-400')} data-auto-backup-status>
+                    <span className={cn(auto.error && 'text-(--warning)')} data-auto-backup-status>
                       {auto.error
                         ? `Could not save: ${auto.error}`
                         : auto.lastSaved
@@ -124,7 +124,7 @@ export function BackupSettings() {
           (persisted.value ? (
             // Granted for good (browsers can't hand it back): a status, not a switch that can't be moved
             <div className="flex items-start gap-3" data-persist-status>
-              <ShieldCheck aria-hidden className="mt-0.5 size-(--icon) shrink-0 text-emerald-700 dark:text-emerald-400" />
+              <ShieldCheck aria-hidden className="mt-0.5 size-(--icon) shrink-0 text-(--success)" />
               <div className="space-y-0.5">
                 <p className="text-sm font-medium">Kept safe</p>
                 <p className="text-xs text-muted-foreground">The browser won't clear your notes when space runs low.</p>
@@ -136,7 +136,7 @@ export function BackupSettings() {
                 <p className="text-sm font-medium">Keep data safe</p>
                 <p className="text-xs text-muted-foreground">Asks the browser not to clear your notes when space runs low.</p>
                 {persisted.denied && (
-                  <p className="text-xs text-amber-700 dark:text-amber-400" role="status">
+                  <p className="text-xs text-(--warning)" role="status">
                     The browser didn't allow it yet. It often does once Lodoc is installed or used more.
                   </p>
                 )}

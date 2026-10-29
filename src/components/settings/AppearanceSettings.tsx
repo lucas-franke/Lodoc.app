@@ -1,9 +1,8 @@
 import { Check, Dices, FileText, Monitor, Moon, PanelLeft, Palette, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { Row, SectionBlock, SettingsToolbar, StrengthSlider, SwitchRow, Tiles } from '@/components/settings/controls'
+import { Row, SectionBlock, Segmented, SettingsToolbar, StrengthSlider, SwitchRow, Tiles } from '@/components/settings/controls'
 import { useRootData } from '@/hooks/useRootData'
-import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
@@ -20,6 +19,7 @@ import {
   DEFAULT_APPEARANCE,
   randomAppearance,
   RADIUS_PRESETS,
+  TEXT_SIZES,
   TEXTURES,
   TINTS,
   tintSwatchColor,
@@ -29,17 +29,17 @@ import { showPaperTextureSamples } from '@/lib/paper-texture'
 import { cn } from '@/lib/utils'
 
 const TEXT_SIZE_OPTIONS = [
-  { id: 's', name: 'Small', sample: 14 },
-  { id: 'm', name: 'Default', sample: 18 },
-  { id: 'l', name: 'Large', sample: 22 },
+  { id: 's', name: 'Small' },
+  { id: 'm', name: 'Default' },
+  { id: 'l', name: 'Large' },
 ] as const
 
 /** The look's own sections; contrast and motion have the Accessibility tab */
 type Section = 'theme' | 'pages' | 'interface'
 
 /**
- * The Appearance tab of Settings: a live preview on top (Settings covers the page), then the settings in one
- * column, grouped by where they show up (Theme everywhere, Pages, Interface), so looks can be combined freely.
+ * The Appearance tab of Settings: the settings in one column, grouped by where they show up (Theme everywhere, Pages,
+ * Interface), so looks can be combined freely. Every change shows at once in the app around it.
  */
 export function AppearanceSettings() {
   const a = useAppearance()
@@ -99,24 +99,24 @@ export function AppearanceSettings() {
     if (undo.theme) setTheme(undo.theme)
     setUndo(null)
   }
+  // Undo, beside the action it takes back
+  const undoFor = (status: string) =>
+    undo?.status === status && (
+      <span className="flex items-center gap-1 text-xs text-muted-foreground" role="status">
+        {undo.status}
+        <Button variant="outline" size="xs" onClick={undoReset}>
+          Undo
+        </Button>
+      </span>
+    )
 
   return (
     <>
       <SettingsToolbar>
-        <Button variant="ghost" size="sm" onClick={resetAll}>
-          <RotateCcw /> Reset all
-        </Button>
         <Button variant="ghost" size="sm" onClick={randomize}>
           <Dices /> Randomize
         </Button>
-        {undo && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground" role="status">
-            {undo.status}
-            <Button variant="outline" size="xs" onClick={undoReset}>
-              Undo
-            </Button>
-          </span>
-        )}
+        {undoFor('Randomized')}
       </SettingsToolbar>
       <SectionBlock
         icon={Palette}
@@ -124,7 +124,7 @@ export function AppearanceSettings() {
         onReset={isDefault('theme') ? undefined : () => resetSection('theme')}
       >
         <Row label="Mode">
-          <Tiles
+          <Segmented
             label="Color mode"
             value={(theme ?? 'system') as 'light' | 'dark' | 'system'}
             onChange={(v) => {
@@ -132,9 +132,9 @@ export function AppearanceSettings() {
               setUndo(null)
             }}
             options={[
-              { value: 'light', name: 'Light', ariaLabel: 'Light mode', preview: <Sun className="size-5" /> },
-              { value: 'dark', name: 'Dark', ariaLabel: 'Dark mode', preview: <Moon className="size-5" /> },
-              { value: 'system', name: 'System', ariaLabel: 'Follow system', preview: <Monitor className="size-5" /> },
+              { value: 'light', name: <><Sun /> Light</>, ariaLabel: 'Light mode' },
+              { value: 'dark', name: <><Moon /> Dark</>, ariaLabel: 'Dark mode' },
+              { value: 'system', name: <><Monitor /> System</>, ariaLabel: 'Follow system' },
             ]}
           />
         </Row>
@@ -144,11 +144,12 @@ export function AppearanceSettings() {
             value={a.tint}
             onValueChange={choose('tint')}
             aria-label="Tint"
-            className="flex-wrap gap-2"
+            className="flex-wrap items-start gap-x-2 gap-y-2"
             spacing={2}
           >
+            {/* Each swatch with its name under it, so the names show on touch screens too */}
             {TINTS.map((t) => (
-              <Tip key={t.id} label={t.name}>
+              <span key={t.id} className="flex w-11 flex-col items-center gap-1">
                 <ToggleGroupItem
                   value={t.id}
                   aria-label={t.name}
@@ -158,7 +159,10 @@ export function AppearanceSettings() {
                 >
                   {a.tint === t.id && <Check className="text-foreground" />}
                 </ToggleGroupItem>
-              </Tip>
+                <span aria-hidden className={cn('text-[0.6875rem] text-muted-foreground', a.tint === t.id && 'font-medium text-foreground')}>
+                  {t.name}
+                </span>
+              </span>
             ))}
           </ToggleGroup>
         </Row>
@@ -182,7 +186,7 @@ export function AppearanceSettings() {
         title="Pages"
         onReset={isDefault('pages') ? undefined : () => resetSection('pages')}
       >
-        <Row label="Font">
+        <Row label="Font" stacked>
           <Tiles
             label="Page font"
             value={a.pageFont}
@@ -194,18 +198,15 @@ export function AppearanceSettings() {
           />
         </Row>
         <Row label="Text size">
-          <Tiles
+          {/* The names at the size they stand for, in the page font */}
+          <Segmented
             label="Text size"
             value={a.textSize}
             onChange={choose('textSize')}
             options={TEXT_SIZE_OPTIONS.map((s) => ({
               value: s.id,
-              name: s.name,
-              preview: (
-                <span className="leading-none" data-font-sample={a.pageFont} style={{ fontSize: s.sample }}>
-                  Aa
-                </span>
-              ),
+              name: <span data-font-sample={a.pageFont}>{s.name}</span>,
+              style: { fontSize: TEXT_SIZES[s.id] },
             }))}
           />
         </Row>
@@ -216,7 +217,7 @@ export function AppearanceSettings() {
           checked={a.autoCover}
           onChange={(autoCover) => change({ autoCover })}
         />
-        <Row label="Texture">
+        <Row label="Texture" stacked>
           <Tiles
             label="Page texture"
             value={a.texture}
@@ -224,12 +225,12 @@ export function AppearanceSettings() {
             options={TEXTURES.map((t) => ({
               value: t.id,
               name: t.name,
-              preview: <span data-texture-sample={t.id} className="block size-7 rounded-[4px] border bg-background" />,
+              preview: <span data-texture-sample={t.id} className="block size-5 rounded-[3px] border bg-background" />,
             }))}
           />
         </Row>
         {a.texture !== 'none' && (
-          <Row label="Strength">
+          <Row label="Strength" stacked>
             <StrengthSlider
               label="Page texture strength"
               value={a.textureStrength}
@@ -247,7 +248,7 @@ export function AppearanceSettings() {
       >
         {/* Desktop only: on a phone the sidebar lies over the page, and a floating one would only take room */}
         {wide && (
-          <Row label="Sidebar">
+          <Row label="Sidebar" stacked>
             <Tiles
               label="Sidebar style"
               value={a.sidebar}
@@ -259,7 +260,7 @@ export function AppearanceSettings() {
             />
           </Row>
         )}
-        <Row label="Corners">
+        <Row label="Corners" stacked>
           <Tiles
             label="Corner style"
             value={a.corners}
@@ -275,7 +276,7 @@ export function AppearanceSettings() {
           onChange={(uiGrain) => change({ uiGrain })}
         />
         {a.uiGrain && (
-          <Row label="Intensity">
+          <Row label="Intensity" stacked>
             <StrengthSlider
               label="Interface grain intensity"
               value={a.uiGrainStrength}
@@ -284,13 +285,21 @@ export function AppearanceSettings() {
           </Row>
         )}
       </SectionBlock>
+
+      {/* At the end: it undoes everything above */}
+      <div className="mt-8 flex flex-wrap items-center gap-2 border-t pt-5">
+        <Button variant="ghost" size="sm" className="-ml-2.5" onClick={resetAll}>
+          <RotateCcw /> Reset all appearance settings
+        </Button>
+        {undoFor('Back to defaults')}
+      </div>
     </>
   )
 }
 
 function FontSample({ font }: { font: 'sans' | 'serif' }) {
   return (
-    <span className="text-xl leading-none" data-font-sample={font}>
+    <span className="text-lg leading-none" data-font-sample={font}>
       Ag
     </span>
   )
@@ -299,8 +308,8 @@ function FontSample({ font }: { font: 'sans' | 'serif' }) {
 /** A tiny drawing of the window: sidebar attached to the edge, or floating with a gap. */
 function SidebarPreview({ floating }: { floating: boolean }) {
   return (
-    <span className="flex h-7 w-11 overflow-hidden rounded-[4px] border bg-background">
-      <span className={cn('w-3 bg-muted-foreground/30', floating ? 'm-0.5 rounded-[2px]' : 'border-r')} />
+    <span className="flex h-5 w-8 overflow-hidden rounded-[3px] border bg-background">
+      <span className={cn('w-2 bg-muted-foreground/30', floating ? 'm-0.5 rounded-[2px]' : 'border-r')} />
     </span>
   )
 }
@@ -308,8 +317,8 @@ function SidebarPreview({ floating }: { floating: boolean }) {
 function CornerPreview({ px }: { px: number }) {
   return (
     <span
-      className="block size-7 border-t-2 border-l-2 border-current opacity-70"
-      style={{ borderTopLeftRadius: Math.round(px * 1.4) }}
+      className="block size-5 border-t-2 border-l-2 border-current opacity-70"
+      style={{ borderTopLeftRadius: Math.round(px * 1.1) }}
     />
   )
 }

@@ -4,7 +4,7 @@ description: Light and dark, a colour tint, fonts, textures, the sidebar, high c
 order: 7
 ---
 
-**Settings** at the bottom of the sidebar (or `Ctrl` + `,`) opens the Settings page. Its **Appearance** tab changes how Lodoc looks. Every change shows right away in the app around it, so you can try combinations as you go; what only affects notes, like the font and text size, shows on your notes. **Randomize** picks a look for you, and **Reset all** goes back to the start. **Back to …** above the title (or `Esc`) returns to where you were.
+**Settings** at the bottom of the sidebar (or `Ctrl` + `,`) opens the Settings page. Its **Appearance** tab changes how Lodoc looks. Every change shows right away in the app around it, so you can try combinations as you go; what only affects notes, like the font and text size, shows on your notes. **Randomize** (top right) picks a look for you, and **Reset all appearance settings** (at the end of the tab) goes back to the start. **Back to …** above the title (or `Esc`) returns to where you were.
 
 <figure class="shot">
   <img src="../img/appearance-light.jpg" class="dark:hidden" alt="The Settings page on Appearance, with a sage tint" width="1280" height="800" loading="lazy" />
@@ -38,4 +38,4 @@ The **Accessibility** tab in Settings has these two. Both follow your system at 
 - **Contrast**: high contrast makes text darker (or brighter, in dark mode), lines clearer and focus outlines bolder. Textures get softer and the gradient goes, so nothing competes with the text.
 - **Motion**: reduced motion turns off animations, like boards gliding when you zoom or tidy up, and the small joys. Things simply change at once. *Full* keeps them, even if your system asks for less.
 
-Your look is saved in this browser and included in backups. Randomize leaves text size, contrast and motion as they are, and Reset all leaves contrast and motion. Merging a backup keeps your own look, and only *Replace* takes over the one in the file.
+Your look is saved in this browser and included in backups. Randomize leaves text size, contrast and motion as they are, and resetting all appearance settings leaves contrast and motion. Merging a backup keeps your own look, and only *Replace* takes over the one in the file.

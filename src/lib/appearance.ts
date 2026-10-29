@@ -7,7 +7,8 @@ export * from './appearance-options'
 // Appearance settings: one object, remembered in this browser and applied to <html> as data attributes
 // and CSS variables. index.css turns them into the look (tinted surfaces, gradient, floating sidebar, grain).
 
-const TEXT_SIZES = { s: '0.9375rem', m: '1rem', l: '1.125rem' } as const
+/** The page text size for each choice (Settings shows the names at these sizes) */
+export const TEXT_SIZES = { s: '0.9375rem', m: '1rem', l: '1.125rem' } as const
 /**
  * The desktop layout: wide enough for the sidebar beside the page, and tall enough too unless there is a mouse. Below
  * it (phones, and a phone held sideways) the sidebar lies over the page, so it stays connected there. The same query
