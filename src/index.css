@@ -524,6 +524,12 @@
 .bn-root.bn-shadcn .bn-editor a:not([data-note-link]):hover {
   text-decoration-color: currentColor;
 }
+/* Links to notes keep their own look (NoteLinkChip's classes): shadcn's unlayered rule beat them, so they were
+   browser blue too. revert-layer takes it back to the layered styles, the chip's utilities. */
+.bn-root.bn-shadcn .bn-editor a[data-note-link] {
+  color: revert-layer;
+  text-decoration: revert-layer;
+}
 
 /* List markers (bullets, numbers, the toggle's arrow) in the secondary text color, so the text leads */
 .bn-root .bn-block-content:is([data-content-type='bulletListItem'], [data-content-type='numberedListItem'])::before {
