@@ -28,7 +28,7 @@ export function NoteCardBody({
   if (view === 'title') return null
   const cover = resolveCover(note, autoCover)
   const preview = notePreview(note, 600)
-  const emptyText = <span className="italic">Empty note</span>
+  const emptyText = <span>Empty note</span>
 
   if (view === 'cover') {
     if (cover) {
