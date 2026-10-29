@@ -431,19 +431,27 @@
 .bn-root .bn-suggestion-menu {
   max-width: min(22.75rem, calc(100vw - 2rem));
 }
-/* Touch screens: no keyboard shortcuts to show, and a shorter list that stays clear of the format bar. Checklist
-   boxes are 20px wide instead of 12px, in the same 24px as before (the text doesn't move), so a finger finds them. */
+/* Touch screens: no keyboard shortcuts to show, and a list of at most 20rem (it ends above the format bar:
+   editor/touch-menus.ts). Checklist boxes are 20px wide instead of 12px, in the same 24px as before (the text doesn't
+   move), so a finger finds them. */
 @media (pointer: coarse) {
   .bn-suggestion-menu-item [class*='group/badge'] {
     display: none;
   }
   .bn-root .bn-suggestion-menu {
-    max-height: min(40dvh, 20rem);
+    max-height: 20rem;
   }
   .bn-root .bn-block-content[data-content-type='checkListItem'] > div > input {
     width: 20px;
     margin-left: 0;
     margin-right: 4px;
+  }
+}
+/* On a phone (the narrow layout) the menu rows are 44px instead of 54px: a smaller margin around the icons, and "/"
+   leaves out the line under each name (touch-menus.ts), so more of them fit above the keyboard */
+@media (pointer: coarse) and (max-width: 47.99rem), (pointer: coarse) and (max-height: 31.99rem) {
+  .bn-suggestion-menu [role='option'] > [data-position='left'] {
+    padding: 0.5rem;
   }
 }
 

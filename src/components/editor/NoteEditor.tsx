@@ -11,7 +11,7 @@ import { formatDateTime, formatRelative, plural } from '@/lib/format'
 import { blobToDataUrl, compressImage, NOTE_IMAGE } from '@/lib/image-compress'
 import { useCaptionEditor } from './CaptionEditor'
 import { MobileFormatBar } from './MobileFormatBar'
-import { useCaretNearTop } from './caret-scroll'
+import { useCaretNearTop, useRoomForMenus } from './caret-scroll'
 import { useChecklistJoy } from './checklist-joy'
 import { takeArrived } from '@/lib/collect'
 import { onNoteRestored } from '@/db/versions'
@@ -29,6 +29,8 @@ import { arrowsExtension } from './arrows'
 import { emptyLinesExtension } from './empty-lines'
 import { templateHintsExtension } from './template-hints'
 import { inlineTags, inlineTagsExtension, tagMenuItems, tagMenuShouldOpen } from './inline-tags'
+import { ABOVE_FORMAT_BAR, slashItems } from './touch-menus'
+import { useWideScreen } from '@/hooks/useWideScreen'
 import { NoteTags } from '@/components/note/NoteTags'
 import type { Note, StoredBlock } from '@/db/schema'
 import { cn } from '@/lib/utils'
@@ -207,6 +209,8 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
   // Touch screens (phones and tablets) get a fixed format bar at the bottom instead of the toolbar floating over
   // the selection, which a phone's own selection menu covers and which never offers Undo or a block type
   const formatBar = !compact && isTouchDevice()
+  const wide = useWideScreen()
+  useRoomForMenus(editor, pageRef, formatBar)
 
   return (
     <div
@@ -270,6 +274,8 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
         editor={editor}
         sideMenu={!compact}
         formattingToolbar={!formatBar}
+        // With the format bar, "/" is our own menu below (touch-menus.ts)
+        slashMenu={!formatBar}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
         onChange={() => {
           save({ content: editor.document as unknown as StoredBlock[] })
@@ -279,9 +285,17 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
         // A tag counts once the caret leaves it, so moving away (without typing) also adds it
         onSelectionChange={syncWrittenTags}
       >
+        {formatBar && (
+          <SuggestionMenuController
+            triggerCharacter="/"
+            floatingUIOptions={ABOVE_FORMAT_BAR}
+            getItems={async (query) => slashItems(editor, query, !wide)}
+          />
+        )}
         {/* "@" links to another note (or creates one with the typed name) */}
         <SuggestionMenuController
           triggerCharacter="@"
+          floatingUIOptions={formatBar ? ABOVE_FORMAT_BAR : undefined}
           getItems={(query) =>
             noteLinkItems(query, note.id, (noteId, linkTitle) =>
               editor.insertInlineContent([{ type: 'noteLink', props: { noteId, title: linkTitle } }, ' ']),
@@ -292,6 +306,7 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
         <SuggestionMenuController
           triggerCharacter="#"
           shouldOpen={tagMenuShouldOpen}
+          floatingUIOptions={formatBar ? ABOVE_FORMAT_BAR : undefined}
           getItems={(query) => tagMenuItems(query, (tag) => editor.insertInlineContent(['#' + tag + ' ']))}
         />
         {formatBar && <MobileFormatBar />}
