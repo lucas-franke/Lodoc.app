@@ -1,6 +1,4 @@
-import type { BlockNoteEditor, BlockSchema, InlineContentSchema, StyleSchema } from '@blocknote/core'
-import { filterSuggestionItems } from '@blocknote/core/extensions'
-import { getDefaultReactSlashMenuItems, type FloatingUIOptions } from '@blocknote/react'
+import type { FloatingUIOptions } from '@blocknote/react'
 import { autoPlacement, offset, shift, size } from '@floating-ui/react'
 
 // The "/", "@" and "#" menus while the format bar is shown (touch screens)
@@ -29,14 +27,4 @@ export const ABOVE_FORMAT_BAR: FloatingUIOptions = {
       })),
     ],
   },
-}
-
-/** BlockNote's own "/" items; `brief` (phones) leaves out the line under each name, so more of them fit above the keyboard */
-export function slashItems<B extends BlockSchema, I extends InlineContentSchema, S extends StyleSchema>(
-  editor: BlockNoteEditor<B, I, S>,
-  query: string,
-  brief: boolean,
-) {
-  const items = filterSuggestionItems(getDefaultReactSlashMenuItems(editor), query)
-  return brief ? items.map((item) => ({ ...item, subtext: undefined })) : items
 }

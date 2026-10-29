@@ -631,6 +631,64 @@
   margin-block: 0.875em;
 }
 
+/* Callouts (editor/Callout.tsx): a soft fill and an icon in the tone's color; the text stays the body color. The
+   tones are attributes of their own, so cards (NoteExcerpt) use them too. Tip is the tint's hue (gold without one). */
+[data-callout-tone='neutral'] {
+  --callout-fill: color-mix(in oklch, var(--foreground) 5%, transparent);
+  --callout-ink: var(--muted-foreground);
+}
+[data-callout-tone='tint'] {
+  --callout-fill: color-mix(in oklch, var(--joy) 16%, transparent);
+  --callout-ink: color-mix(in oklch, var(--joy) 65%, var(--foreground));
+}
+[data-callout-tone='green'] {
+  --callout-fill: oklch(0.72 0.11 150 / 0.15);
+  --callout-ink: oklch(0.5 0.11 150);
+}
+[data-callout-tone='warm'] {
+  --callout-fill: oklch(0.72 0.14 40 / 0.15);
+  --callout-ink: oklch(0.55 0.15 38);
+}
+.dark [data-callout-tone='green'] {
+  --callout-fill: oklch(0.72 0.11 150 / 0.14);
+  --callout-ink: oklch(0.8 0.11 150);
+}
+.dark [data-callout-tone='warm'] {
+  --callout-fill: oklch(0.72 0.14 40 / 0.14);
+  --callout-ink: oklch(0.78 0.13 45);
+}
+.bn-root .callout {
+  display: flex;
+  gap: 0.375em;
+  width: 100%;
+  padding: 0.5em 0.875em 0.5em 0.5em;
+  border-radius: var(--radius-md);
+  background-color: var(--callout-fill);
+}
+.bn-root .callout-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 4px;
+  color: var(--callout-ink);
+}
+.bn-root .callout-icon:enabled {
+  cursor: pointer;
+}
+.bn-root .callout-icon:enabled:hover {
+  background-color: color-mix(in oklch, var(--callout-ink) 14%, transparent);
+}
+.bn-root .callout .callout-icon svg {
+  width: 1.05em;
+  height: 1.05em;
+}
+.bn-root .callout-text {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Suggestion menus (/ and @): as wide as the slash menu at most, so long note titles wrap instead of
    stretching the @ menu to the window's edge */
 .bn-root .bn-suggestion-menu {

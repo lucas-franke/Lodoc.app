@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { CALLOUT_TONES, type CalloutTone } from '@/lib/callout'
 import { addImageAsset, pruneAssets } from './assets'
 import { forgetItem, logChange, logMove, logRename } from './activity'
 import { db } from './db'
@@ -296,6 +297,7 @@ export type ExcerptLine =
   | { kind: 'heading' | 'text' | 'bullet' | 'quote' | 'code'; text: string }
   | { kind: 'number'; text: string; n: number }
   | { kind: 'check'; text: string; checked: boolean }
+  | { kind: 'callout'; text: string; tone: CalloutTone }
   | { kind: 'image'; url: string }
 
 type BlockLike = { type?: string; content?: unknown; props?: Record<string, unknown>; children?: unknown[] }
@@ -343,6 +345,8 @@ function excerptLine(block: BlockLike, n: number): ExcerptLine | null {
       return { kind: 'check', text, checked: block.props?.checked === true }
     case 'quote':
       return { kind: 'quote', text }
+    case 'callout':
+      return { kind: 'callout', text, tone: CALLOUT_TONES.find((tone) => tone === block.props?.tone) ?? 'neutral' }
     case 'codeBlock':
       return { kind: 'code', text }
     default:

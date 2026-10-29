@@ -1,7 +1,6 @@
 import {
   BasicTextStyleButton,
   BlockTypeSelect,
-  blockTypeSelectItems,
   ColorStyleButton,
   CreateLinkButton,
   FileCaptionButton,
@@ -28,6 +27,7 @@ import { List, ListChecks, Redo2, Undo2, type LucideIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useBottomUi } from '@/hooks/useBottomUi'
+import { blockTypeItems } from './Callout'
 
 /**
  * Phones: the formatting toolbar as a full-width bar at the bottom of the screen, always there (so a heading
@@ -103,7 +103,7 @@ function HistoryButton({ action }: { action: 'undo' | 'redo' }) {
   )
 }
 
-/** The block types a phone offers: headings 1–3, the lists and quotes (not headings 4–6 or toggle headings) */
+/** The block types a phone offers: headings 1–3, the lists, quotes and callouts (not headings 4–6 or toggle headings) */
 const onPhone = (item: BlockTypeSelectItem) =>
   item.type === 'heading' ? Number(item.props?.level) <= 3 && !item.props?.isToggleable : true
 
@@ -129,7 +129,7 @@ function PhoneBlockTypeSelect() {
   })
   const items = useMemo(() => {
     const block = JSON.parse(current) as { type: string; props: Record<string, unknown> }
-    return blockTypeSelectItems(dictionary).filter((item) => onPhone(item) || isBlockType(item, block))
+    return blockTypeItems(dictionary).filter((item) => onPhone(item) || isBlockType(item, block))
   }, [dictionary, current])
   return <BlockTypeSelect items={items} />
 }

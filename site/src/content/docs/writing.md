@@ -4,7 +4,7 @@ description: Blocks, shortcuts, links between notes, tags, covers and a note's h
 order: 2
 ---
 
-A note is made of blocks: paragraphs, headings, lists, checklists, quotes, code, tables, images and files. Each block can be moved by its handle on the left.
+A note is made of blocks: paragraphs, headings, lists, checklists, quotes, callouts, code, tables, images and files. Each block can be moved by its handle on the left.
 
 <figure class="shot">
   <img src="../img/editor-light.png" class="dark:hidden" alt="A note with headings and a checklist, and the slash menu open" width="1280" height="800" loading="lazy" />
@@ -18,6 +18,12 @@ A note is made of blocks: paragraphs, headings, lists, checklists, quotes, code,
 - Select text to make it bold, italic, a link and more. `Ctrl` + `K` turns selected text into a link.
 - Typed arrows become arrows: `->` →, `<-` ←, `<->` ↔, `=>` ⇒. Press `Backspace` right after to keep what you typed.
 - Paste or drop images straight into a note. They are made smaller as they come in, so notes stay light.
+
+## Callouts
+
+A callout is a soft coloured box for a tip, a warning or something you don't want to miss. Type `/callout` to add one. Click its icon to switch between *Note*, *Tip*, *Success* and *Warning*; Tip takes the colour of your tint.
+
+**Download as .md** writes callouts the way GitHub and Obsidian do (`> [!TIP]`), and importing Markdown turns such boxes back into callouts.
 
 ## Links between notes
 

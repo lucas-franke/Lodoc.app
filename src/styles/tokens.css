@@ -18,6 +18,10 @@
     --color-control-border: var(--control-border);
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    /* Quotes, with either page font */
+    --font-serif: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+    /* Code on cards (index.css has the same stack as --code-font for the editor) */
+    --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
     /* Page content (note titles, the editor, card previews) follows the Appearance panel; see lib/appearance.ts */
     --font-page: var(--page-font);
     --color-sidebar-ring: var(--sidebar-ring);
