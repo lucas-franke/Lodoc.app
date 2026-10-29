@@ -243,7 +243,7 @@
         [data-slot='context-menu-checkbox-item'],
         [data-slot='context-menu-radio-item'],
         [data-slot='context-menu-sub-trigger']
-    )[data-highlighted],
+    )[data-highlighted]:not([data-swatch]),
 [data-slot='command-item'][data-selected='true'] {
     position: relative;
 }
@@ -256,7 +256,7 @@
         [data-slot='context-menu-checkbox-item'],
         [data-slot='context-menu-radio-item'],
         [data-slot='context-menu-sub-trigger']
-    )[data-highlighted]::before,
+    )[data-highlighted]:not([data-swatch])::before,
 [data-slot='command-item'][data-selected='true']::before {
     content: '';
     position: absolute;
@@ -266,6 +266,12 @@
     border-radius: 9999px;
     background: var(--focus);
     pointer-events: none;
+}
+/* A swatch in a menu (the cover gradients) is highlighted with an outline around it: the bar beside a text row would
+   sit oddly on a square of colour */
+[data-swatch][data-highlighted] {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
 }
 
 /* The preview tiles show the texture a few times stronger */

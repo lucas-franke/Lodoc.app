@@ -50,11 +50,14 @@ function CoverMenu({ note, children }: { note: Note; children: ReactNode }) {
                 aria-label={g.name}
                 title={g.name}
                 data-gradient={g.id}
+                // Highlighted with an outline around it rather than the bar of a text row (index.css)
+                data-swatch
                 className="cover-gradient size-10 justify-center rounded-lg p-0 text-white focus:text-white"
                 style={gradientStyle(g)}
                 onSelect={() => void setNoteGradient(note.id, g.id)}
               >
-                {currentGradient === g.id && <Check className="size-4 drop-shadow" />}
+                {/* White also while highlighted: a menu item then darkens everything inside it, the icon's path too */}
+                {currentGradient === g.id && <Check className="size-4 text-white! drop-shadow *:text-white!" />}
               </DropdownMenuItem>
             ))}
           </div>
