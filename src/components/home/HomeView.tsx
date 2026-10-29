@@ -5,7 +5,6 @@ import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folde
 import { CardViewToggle } from '@/components/note/CardViewToggle'
 import { NewMenu } from '@/components/NewMenu'
 import { OverviewPad } from './OverviewPad'
-import { WritingDays } from './WritingDays'
 import { NoteCover } from '@/components/note/NoteCover'
 import { Button } from '@/components/ui/button'
 import { sortBoards } from '@/db/boards'
@@ -55,11 +54,7 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
       <p className="mb-1 text-sm text-muted-foreground" data-greeting>
         {hello}
       </p>
-      {/* The counts are on each section's title; the week's writing days sit beside the page title */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
-        <WritingDays notes={notes} />
-      </div>
+      <h1 className="font-page text-4xl font-bold tracking-tight">Overview</h1>
 
       <OverviewPad />
 

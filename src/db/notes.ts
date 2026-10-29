@@ -3,7 +3,6 @@ import { addImageAsset, pruneAssets } from './assets'
 import { forgetItem, logChange, logMove, logRename } from './activity'
 import { db } from './db'
 import { coverAssetId, type Note } from './schema'
-import { noteWritingDay } from '@/lib/writing-days'
 import { keepVersion, versionDue } from './versions'
 
 /**
@@ -134,7 +133,6 @@ export async function discardLeftoverNotes(openId: string | null) {
  * itself starts right away, so nothing waits on the history when the page is closing.
  */
 export function updateNote(id: string, changes: Partial<Pick<Note, 'title' | 'content'>>) {
-  noteWritingDay()
   const before = versionDue(id) ? db.notes.get(id) : undefined
   const written = db.notes.update(id, { ...changes, updatedAt: Date.now() })
   if (before) void keepVersion(id, { before })
