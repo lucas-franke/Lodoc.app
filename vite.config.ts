@@ -65,9 +65,9 @@ self.addEventListener('fetch', (event) => {
   }
   if (request.method !== 'GET' || new URL(request.url).origin !== location.origin) return
   // Pages: the network first (so a new version shows up), the cached app when offline
-  // The website beside the app (changelog/, docs/, about/ and their files in _astro/): from the network, and a
+  // The website beside the app (changelog/, docs/, about/ and their files in _astro/) and the components page: from the network, and a
   // copy is kept as they are visited, so a page seen once also opens offline
-  const inSite = /^(changelog|docs|about|_astro)(\\/|$)/.test(new URL(request.url).pathname.slice(new URL(self.registration.scope).pathname.length))
+  const inSite = /^(changelog|docs|about|_astro|components)(\\/|$)/.test(new URL(request.url).pathname.slice(new URL(self.registration.scope).pathname.length))
   if (inSite) {
     event.respondWith(
       fetch(request)
