@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronDown, FileText, LayoutTemplate } from 'lucide-react'
+import { ChevronDown, FileText, FolderPlus, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -9,25 +9,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { createBoard } from '@/db/boards'
 import { db } from '@/db/db'
+import { createFolder } from '@/db/folders'
 import { noteTitle, sortNotes } from '@/db/notes'
-import { openNote } from '@/hooks/useRoute'
+import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
 import { createFromNote, createFromTemplate, TEMPLATES } from '@/lib/templates'
 
 /**
- * "From template ▾" next to "New note": a new note with a ready-made structure, in `folderId`. The built-in
- * templates come first, then your own (notes marked "Use as template").
+ * "New… ▾" next to "New note" (overview, folder pages): a folder, a board, or a note with a ready-made structure, all
+ * in `folderId`. The built-in templates come first, then your own (notes marked "Use as template"). One menu instead
+ * of a row of buttons, so the page starts with what's in it.
  */
-export function TemplateMenu({ folderId = null }: { folderId?: string | null }) {
+export function NewMenu({ folderId = null }: { folderId?: string | null }) {
   const own = useLiveQuery(async () => sortNotes(await db.notes.filter((n) => !!n.template).toArray()), [], [])
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline">
-          <LayoutTemplate /> From template <ChevronDown className="text-muted-foreground" />
+          New… <ChevronDown className="text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-60">
+        <DropdownMenuItem onSelect={async () => openFolder(await createFolder('New folder', folderId))}>
+          <FolderPlus /> Folder
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={async () => openBoard(await createBoard(folderId))}>
+          <LayoutDashboard /> Board
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Note from a template</DropdownMenuLabel>
         {TEMPLATES.map((t) => (
           <DropdownMenuItem key={t.id} onSelect={async () => openNote(await createFromTemplate(t.id, folderId))}>
             <t.icon /> {t.name}

@@ -4,7 +4,6 @@ import {
   FileText,
   Folder as FolderIcon,
   FolderOpen,
-  FolderPlus,
   LayoutDashboard,
   MoreHorizontal,
   Pin,
@@ -16,12 +15,12 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { RowContextMenu, RowDropdownMenu, type MenuEntry } from '@/components/ItemMenu'
 import { RenameInput } from '@/components/sidebar/RenameInput'
-import { TemplateMenu } from '@/components/TemplateMenu'
+import { NewMenu } from '@/components/NewMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { boardTitle, createBoard, renameBoard, sortBoards } from '@/db/boards'
+import { boardTitle, renameBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
-import { createFolder, renameFolder } from '@/db/folders'
+import { renameFolder } from '@/db/folders'
 import { createNote, isListed, latestNotesIn, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
 import type { Board, Folder, Note, NoteCardView } from '@/db/schema'
 import { useBoardMenuEntries, useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
@@ -31,7 +30,7 @@ import { NoteCardBody, NoteCardTop } from '@/components/note/NoteCardBody'
 import { CardFooter } from '@/components/note/NoteCardMeta'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
 import { useNoteSort } from '@/hooks/useNoteSort'
-import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
+import { openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
 import { formatDate, formatDateTime, formatRelative, plural } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -84,16 +83,7 @@ export function FolderView({ folder }: { folder: Folder }) {
         <Button onClick={async () => openNote(await createNote(folder.id))}>
           <Plus /> New note
         </Button>
-        <TemplateMenu folderId={folder.id} />
-        <Button
-          variant="outline"
-          onClick={async () => openFolder(await createFolder('New folder', folder.id))}
-        >
-          <FolderPlus /> New folder
-        </Button>
-        <Button variant="outline" onClick={async () => openBoard(await createBoard(folder.id))}>
-          <LayoutDashboard /> New board
-        </Button>
+        <NewMenu folderId={folder.id} />
         {!empty && (
           <div className="relative ml-auto w-full sm:w-56">
             <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-(--icon) -translate-y-1/2 text-muted-foreground" />
@@ -323,7 +313,7 @@ export function CardShell({
 
 export function CardSection({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="mt-10">
+    <section className="mt-8">
       <div className="mb-3 flex h-9 items-center justify-between">
         <h2 className="text-xs font-medium text-muted-foreground">{title}</h2>
         {action}

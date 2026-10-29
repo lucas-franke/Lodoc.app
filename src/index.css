@@ -292,6 +292,11 @@
   * {
     scrollbar-color: color-mix(in oklch, var(--muted-foreground) 40%, transparent) transparent;
     }
+  /* Checkboxes (checklists) in the text color, not the browser's blue, so they follow the theme and the tint */
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--foreground);
+    }
 }
 
 /* BlockNote: match the app's font, colors and type scale (note title stays the largest) */
@@ -320,6 +325,15 @@
 }
 [data-font-sample='serif'] {
   font-family: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+}
+
+/* Titles in Serif (notes, pages, boards): semibold and only slightly tightened, which keeps the serif's counters open;
+   the tight bold suits the sans */
+:root[data-page-font='serif'] .font-page.font-bold {
+  font-weight: 600;
+}
+:root[data-page-font='serif'] .font-page.tracking-tight {
+  letter-spacing: -0.01em;
 }
 
 /* Menus and toolbars of the editor keep the UI font; only the text itself uses the page font */
@@ -666,6 +680,27 @@ html [data-sonner-toaster] [data-sonner-toast] [data-button] {
 }
 html [data-sonner-toaster] [data-sonner-toast] [data-content] + [data-button] {
   margin-left: auto;
+}
+/* The close button inside the top-right corner, where people look for it (sonner hangs it off the top left), with
+   room kept for it beside the text */
+html [data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-close-button] {
+  left: auto;
+  right: 0.5rem;
+  top: 0.5rem;
+  transform: none;
+  border-color: transparent;
+  background: transparent;
+}
+html [data-sonner-toaster] [data-sonner-toast]:has([data-close-button]) [data-content] {
+  padding-inline-end: 1.25rem;
+}
+@media (pointer: coarse) {
+  html [data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-close-button] {
+    width: 2rem;
+    height: 2rem;
+    top: 0.25rem;
+    right: 0.25rem;
+  }
 }
 @media (pointer: coarse) {
   html [data-sonner-toaster] [data-sonner-toast] [data-button] {

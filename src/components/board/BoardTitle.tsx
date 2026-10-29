@@ -36,8 +36,8 @@ export function BoardTitle({ board }: { board: Board }) {
         placeholder="Untitled board"
         aria-label="Board title"
         // As wide as the name (at most what the controls beside it leave), so the canvas around it stays usable.
-        // On a phone, cards often pass under it: a soft backdrop keeps it readable.
-        className="block max-w-[min(36rem,100%)] min-w-24 rounded-md bg-transparent px-1.5 py-0.5 font-page text-2xl leading-tight font-bold tracking-tight text-ellipsis outline-none [field-sizing:content] placeholder:text-muted-foreground hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring/60 max-sm:bg-background/80 max-sm:backdrop-blur-sm sm:text-4xl"
+        // Cards and frames often pass under it: a soft backdrop keeps it readable.
+        className="block max-w-[min(36rem,100%)] min-w-24 rounded-md px-1.5 py-0.5 font-page text-2xl leading-tight font-bold tracking-tight text-ellipsis outline-none [field-sizing:content] placeholder:text-muted-foreground hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring/60 bg-background/80 backdrop-blur-sm sm:text-4xl"
       />
     </h1>
   )

@@ -1,21 +1,20 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { ArrowRight, CalendarDays, FolderPlus, LayoutDashboard, Plus } from 'lucide-react'
+import { ArrowRight, CalendarDays, Plus } from 'lucide-react'
 import { BoardCard, CardSection, FolderCard, NoteCard } from '@/components/folder/FolderView'
 import { CardViewToggle } from '@/components/note/CardViewToggle'
-import { TemplateMenu } from '@/components/TemplateMenu'
+import { NewMenu } from '@/components/NewMenu'
 import { OverviewPad } from './OverviewPad'
 import { WritingDays } from './WritingDays'
 import { NoteCover } from '@/components/note/NoteCover'
 import { Button } from '@/components/ui/button'
-import { createBoard, sortBoards } from '@/db/boards'
+import { sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
-import { createFolder } from '@/db/folders'
 import { createNote, isListed, latestNotesIn, notePreview, noteTitle, sortNotes } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { useAppearance } from '@/hooks/useAppearance'
 import { useNoteCardView } from '@/hooks/useNoteCardView'
-import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
+import { openNote } from '@/hooks/useRoute'
 import { sortFolders } from '@/lib/folder-tree'
 import { resolveCover } from '@/lib/cover'
 import { formatRelative, plural } from '@/lib/format'
@@ -70,20 +69,14 @@ export function HomeView({ empty }: { empty: React.ReactNode }) {
 
       {continueWith && <ContinueCard note={continueWith} />}
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Button onClick={async () => openNote(await createNote())}>
           <Plus /> New note
         </Button>
         <Button variant="outline" onClick={async () => openNote(await openTodaysJournal())}>
           <CalendarDays /> Today's journal
         </Button>
-        <TemplateMenu />
-        <Button variant="outline" onClick={async () => openFolder(await createFolder('New folder'))}>
-          <FolderPlus /> New folder
-        </Button>
-        <Button variant="outline" onClick={async () => openBoard(await createBoard())}>
-          <LayoutDashboard /> New board
-        </Button>
+        <NewMenu />
       </div>
 
       {favorites.length + favoriteBoards.length > 0 && (
@@ -141,16 +134,16 @@ function ContinueCard({ note }: { note: Note }) {
     <a
       href={`#/note/${encodeURIComponent(note.id)}`}
       data-continue
-      className="group mt-6 flex items-center gap-4 rounded-xl border bg-card p-3 pr-4 outline-none transition-colors hover:border-ring/60 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring/60"
+      className="group mt-4 flex items-center gap-3 rounded-xl border bg-card p-2.5 pr-4 shadow-xs outline-none transition-colors hover:border-ring/60 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring/60"
     >
       {cover ? (
-        <NoteCover cover={cover} className="size-16 shrink-0 rounded-lg" />
+        <NoteCover cover={cover} className="size-12 shrink-0 rounded-lg" />
       ) : (
-        <span aria-hidden className="size-16 shrink-0 rounded-lg bg-muted" />
+        <span aria-hidden className="size-12 shrink-0 rounded-lg bg-muted" />
       )}
       <span className="min-w-0 flex-1">
         <span className="block text-xs text-muted-foreground">Continue where you left off</span>
-        <span className="block truncate font-page text-lg font-semibold">{noteTitle(note)}</span>
+        <span className="block truncate font-page text-base leading-snug font-semibold">{noteTitle(note)}</span>
         <span className="block truncate text-xs text-muted-foreground">
           Edited {formatRelative(note.updatedAt)}
           {preview && ` · ${preview}`}

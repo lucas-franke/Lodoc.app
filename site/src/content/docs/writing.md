@@ -35,7 +35,7 @@ Every note gets a colour gradient as its cover. Click the cover to pick another 
 
 ## Templates
 
-**From template** next to *New note* starts a note with a ready-made structure: meeting notes, a daily journal, a project plan or a to-do list. The empty lines say what goes there.
+**New…** next to *New note* (on the overview and a folder's page) starts a note from a template, with a ready-made structure: meeting notes, a daily journal, a project plan or a to-do list. The empty lines say what goes there.
 
 Any note can be a template of its own: choose **Use as template** in its menu (`…`). It appears under *Your templates*, and new notes from it start as a copy.
 

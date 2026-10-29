@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils'
 export const rowClass = (active: boolean, dropInside = false, dragging = false, selected = false) =>
   cn(
     'group/row relative flex h-9 items-center pointer-coarse:h-10 gap-0.5 rounded-md pr-1 text-sm text-sidebar-foreground hover:bg-sidebar-accent',
-    active && 'bg-sidebar-accent font-medium',
+    // row-current: the open page's row, the only one that shows its buttons on touch screens (rowActionsClass)
+    active && 'row-current bg-sidebar-accent font-medium',
     // Drop target for "inside" and the row being dragged (its preview follows the pointer)
     dropInside && 'bg-sidebar-accent ring-2 ring-primary/50',
     dragging && 'opacity-40',
@@ -19,12 +20,15 @@ export const rowClass = (active: boolean, dropInside = false, dragging = false, 
 export const rowLinkClass =
   'flex h-full min-w-0 flex-1 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/60 pointer-coarse:select-none pointer-coarse:[-webkit-touch-callout:none]'
 
-/** Row actions stay reachable: shown on hover, keyboard focus, touch screens, or while their menu is open. */
+/**
+ * Row actions stay reachable: shown on hover, keyboard focus, or while their menu is open. On touch screens only the
+ * open page's row shows them, so the list isn't a column of buttons; holding any row opens its menu (AppDnd).
+ */
 export const rowActionsClass =
-  'hidden shrink-0 items-center group-hover/row:flex group-focus-within/row:flex pointer-coarse:flex has-data-[state=open]:flex'
+  'hidden shrink-0 items-center group-hover/row:flex group-focus-within/row:flex pointer-coarse:group-[.row-current]/row:flex has-data-[state=open]:flex'
 
 /** Row action buttons: 28px, and 40px where they are tapped, so a finger doesn't hit the neighbour */
 export const rowActionButtonClass = 'pointer-coarse:size-10'
 
 /** Status icons (e.g. pin) give way to the actions. */
-export const rowStatusClass = 'group-hover/row:hidden group-focus-within/row:hidden pointer-coarse:hidden'
+export const rowStatusClass = 'group-hover/row:hidden group-focus-within/row:hidden pointer-coarse:group-[.row-current]/row:hidden'
