@@ -118,7 +118,7 @@ export function NoteEditor({ note, embedded = false, pad = false }: { note: Note
     dictionary: pad ? padDictionary : dictionary,
     extensions: [arrowsExtension, emptyLinesExtension, templateHintsExtension, inlineTagsExtension],
     // Accessible name for the editable area (screen readers otherwise announce just "edit text")
-    domAttributes: { editor: { 'aria-label': pad ? 'Pinned on the overview' : 'Note content' } },
+    domAttributes: { editor: { 'aria-label': pad ? 'Scratchpad' : 'Note content' } },
   })
 
   // The headings for the outline, kept in step with the editor (only re-rendered when they change)

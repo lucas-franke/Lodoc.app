@@ -19,17 +19,25 @@ export const isListed = (note: Note) => !note.overview
 
 let overviewNote: Promise<string> | null = null
 
+/** The name of the overview's scratchpad note (as search shows it); it was "Pinned on the overview" before */
+const OVERVIEW_TITLE = 'Scratchpad'
+const OLD_OVERVIEW_TITLE = 'Pinned on the overview'
+
 /**
- * The note pinned on the overview, made the first time it is needed (quietly: it is part of the overview, not
- * something the user created). One at a time, even if asked twice at once.
+ * The note pinned on the overview, its scratchpad, made the first time it is needed (quietly: it is part of the
+ * overview, not something the user created). One at a time, even if asked twice at once.
  */
 export function getOverviewNote(): Promise<string> {
   overviewNote ??= (async () => {
     const existing = await db.notes.filter((n) => !!n.overview).first()
-    if (existing) return existing.id
+    if (existing) {
+      // Its old name follows the box's new one, without counting as an edit
+      if (existing.title === OLD_OVERVIEW_TITLE) await db.notes.update(existing.id, { title: OVERVIEW_TITLE })
+      return existing.id
+    }
     const now = Date.now()
     const id = nanoid()
-    await db.notes.add({ id, title: 'Pinned on the overview', content: [], folderId: null, order: 0, favorite: false, pinned: false, tags: [], overview: true, createdAt: now, updatedAt: now })
+    await db.notes.add({ id, title: OVERVIEW_TITLE, content: [], folderId: null, order: 0, favorite: false, pinned: false, tags: [], overview: true, createdAt: now, updatedAt: now })
     return id
   })().catch((error) => {
     overviewNote = null

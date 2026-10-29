@@ -1,6 +1,6 @@
 ---
 title: Organizing
-description: Folders, favorites, search, today's journal, the note pinned on the overview, the Trash and Activity.
+description: Folders, favorites, search, today's journal, the scratchpad on the overview, the Trash and Activity.
 order: 3
 ---
 
@@ -27,9 +27,9 @@ Folders can hold notes, boards and other folders. Notes outside any folder are l
 
 One note per day: **Today's journal** on the overview, in the command palette, or `Ctrl` + `Alt` + `J`. It's made from the journal template the first time each day, and opens the same note again after that. Journal notes go into a *Journal* folder, or wherever you moved the last one.
 
-## Pinned on the overview
+## The scratchpad
 
-The box at the top of the overview is a note of its own, for what you want to keep in view: a plan for the week, a short list, a reminder. Write right there, with **bold**, lists, checklists and everything `/` offers. It's saved like any note (searchable, with history and in backups), but it isn't listed in the sidebar or folders.
+The **Scratchpad** at the top of the overview is a note of its own, for what you want to keep in view: a plan for the week, a short list, a reminder. Write right there, with **bold**, lists, checklists and everything `/` offers. It's saved like any note (searchable, with history and in backups), but it isn't listed in the sidebar or folders.
 
 ## The Trash and Activity
 
