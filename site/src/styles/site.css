@@ -1,12 +1,15 @@
 /* Only the site's own files are scanned for classes, not the app's */
 @import "tailwindcss" source("../");
 @import "@fontsource-variable/geist";
-/* For the appearance demo (Font: Serif); the browser only loads it when it is shown */
+/* For a Serif look (the appearance demo, and the pages when Serif is chosen in the app), with its own italic; the
+   browser only loads them when they are used */
 @import "@fontsource-variable/source-serif-4";
+@import "@fontsource-variable/source-serif-4/wght-italic.css";
 /* The app's colors, fonts and corners, so the site looks like Lodoc */
 @import "../../../src/styles/tokens.css";
 
 :root {
+  /* The page font as chosen in the app (Base.astro sets data-page-font): titles, and the text of docs and changelog */
   --page-font: 'Geist Variable', sans-serif;
   /* Links: blue and underlined, so they stand out from text by more than colour (WCAG 1.4.1); 4.5:1 or more on
      the page and on cards in both modes */
@@ -20,6 +23,12 @@
 @theme inline {
   --color-link: var(--link);
 }
+:root[data-page-font='serif'] {
+  --page-font: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+}
+
+/* A floating sidebar in the app makes the site's top navigation float (Base.astro), like the app's own variant */
+@custom-variant floating (&:is([data-sidebar='floating'] *));
 
 /* Lines in the theme's border color, like in the app (Tailwind would use the text color) */
 @layer base {
@@ -42,6 +51,23 @@ nav[aria-label='Docs'] ul :focus-visible {
   outline-offset: -2px;
 }
 
+/* A menu's highlighted item (the light/dark menu in the header): a soft fill and a 2px bar in --focus at its left
+   edge, like the app's menus, instead of the outline */
+.site-menu-item:focus {
+  position: relative;
+  outline: none;
+  background-color: var(--accent);
+}
+.site-menu-item:focus::before {
+  content: '';
+  position: absolute;
+  inset-block: 0.5rem;
+  left: 0;
+  width: 2px;
+  border-radius: 9999px;
+  background: var(--focus);
+}
+
 /* Room for the scrollbar on every page, scrolling or not, so the centered layout stays put between pages */
 html {
   scrollbar-gutter: stable;
@@ -54,8 +80,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Text written in Markdown (docs, changelog entries) */
+/* Text written in Markdown (docs, changelog entries): in the page font and text size chosen in the app */
 .prose-lodoc {
+  font-family: var(--page-font);
+  font-size: var(--page-text-size, 1rem);
   line-height: 1.7;
 }
 .prose-lodoc h2 {
@@ -150,24 +178,59 @@ body {
 [data-look].dark {
   --texture-blend: soft-light;
 }
+/* The same textures for the pages (with the look chosen in the app), at the app's tile sizes */
+:root {
+  --texture-blend: multiply;
+}
+:root.dark {
+  --texture-blend: soft-light;
+}
+:root[data-texture='paper'],
 [data-look][data-texture='paper'] {
   --texture: var(--texture-paper-image, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23fff' surfaceScale='1.6'%3E%3CfeDistantLight azimuth='45' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"));
   --texture-size: var(--paper-size, 320px);
   --texture-opacity: 0.18;
 }
-[data-look][data-texture='laid'] {
+[data-look][data-texture='laid'],
+:root[data-texture='laid'] {
   --texture: var(--texture-laid-image, repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.35) 0 1px, transparent 1px 5px));
   --texture-size: var(--paper-size, 100% 5px);
   --texture-opacity: 0.18;
 }
-[data-look].dark:is([data-texture='paper'], [data-texture='laid']) {
+[data-look].dark:is([data-texture='paper'], [data-texture='laid']),
+:root.dark:is([data-texture='paper'], [data-texture='laid']) {
   --texture-opacity: 0.22;
 }
+:root[data-texture='dots'],
 [data-look][data-texture='dots'] {
   --texture: radial-gradient(circle, var(--foreground) 0.9px, transparent 1.4px);
-  --texture-size: 16px 16px;
+  --texture-size: 20px 20px;
   --texture-opacity: 0.14;
   --texture-blend: normal;
+}
+[data-look][data-texture='dots'] {
+  --texture-size: 16px 16px;
+}
+/* The page's texture lies on its background, under everything on it: cards, screenshots and the header keep their
+   fill and stay plain (the app does the same, index.css) */
+body {
+  position: relative;
+  isolation: isolate;
+}
+:root[data-texture]:not([data-texture='none']) body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--texture);
+  background-size: var(--texture-size);
+  opacity: calc(var(--texture-opacity) * var(--texture-strength, 1));
+  mix-blend-mode: var(--texture-blend);
+}
+:root.dark:is([data-texture='paper'], [data-texture='laid']) body::after {
+  filter: invert(1);
+  mix-blend-mode: screen;
 }
 /* The texture lies on the window's background, under its content (like the app); the sidebar stays plain */
 .demo-window {

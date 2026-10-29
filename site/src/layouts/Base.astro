@@ -1,5 +1,8 @@
 ---
 import '../styles/site.css'
+import { RADIUS_PRESETS, TEXTURE_STRENGTH_DEFAULT, TINTS } from '../../../src/lib/appearance-options'
+import { APPEARANCE_KEY, TEXT_SIZES, WIDE_SCREEN } from '../../../src/lib/appearance'
+import ThemeToggle from '../components/ThemeToggle.astro'
 
 interface Props {
   title: string
@@ -43,23 +46,60 @@ const nav = [
     <link rel="alternate" type="application/rss+xml" title="Lodoc: what's new" href={`${base}changelog/rss.xml`} />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)" />
-    <!-- The theme chosen in the app (same site, same storage), or the system's -->
-    <script is:inline>
+    <!-- The theme and look chosen in the app (same site, same storage), before the first paint, so pages don't flash
+         in the plain look. The same attributes and variables as applyAppearance (src/lib/appearance.ts), from the
+         app's own lists; scripts/look.ts runs applyAppearance itself once the page has loaded. -->
+    <script is:inline define:vars={{ key: APPEARANCE_KEY, tints: TINTS, radii: RADIUS_PRESETS, sizes: TEXT_SIZES, wide: WIDE_SCREEN, strength: TEXTURE_STRENGTH_DEFAULT }}>
       try {
+        const root = document.documentElement
+        const media = (query) => matchMedia(query).matches
         const theme = localStorage.getItem('theme') ?? 'system'
-        const dark = theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
-        document.documentElement.classList.toggle('dark', dark)
+        root.classList.toggle('dark', theme === 'dark' || (theme === 'system' && media('(prefers-color-scheme: dark)')))
+        let a = {}
+        try {
+          a = JSON.parse(localStorage.getItem(key) ?? '{}') ?? {}
+        } catch {}
+        const one = (value, options, fallback) => (options.includes(value) ? value : fallback)
+        const contrast = one(a.contrast, ['system', 'more', 'standard'], 'system')
+        const high = contrast === 'system' ? media('(prefers-contrast: more)') : contrast === 'more'
+        root.dataset.contrast = high ? 'high' : 'standard'
+        const tint = tints.find((t) => t.id === a.tint) ?? tints[0]
+        root.dataset.tint = tint.id
+        root.style.setProperty('--tint-h', tint.hue)
+        root.style.setProperty('--tint-c', tint.chroma)
+        root.dataset.textTint = a.tintedText === true ? tint.id : 'neutral'
+        root.style.setProperty('--text-h', tint.hue)
+        root.style.setProperty('--text-c', tint.chroma)
+        root.style.setProperty('--radius', `${(radii.find((r) => r.id === a.corners) ?? radii[1]).px / 16}rem`)
+        root.dataset.pageFont = one(a.pageFont, ['sans', 'serif'], 'sans')
+        root.style.setProperty('--page-text-size', sizes[one(a.textSize, ['s', 'm', 'l'], 'm')])
+        root.dataset.texture = one(a.texture, ['none', 'paper', 'laid', 'dots'], 'none')
+        const amount = typeof a.textureStrength === 'number' ? a.textureStrength : strength
+        root.style.setProperty('--texture-strength', (amount / strength) * (high ? 0.4 : 1))
+        root.dataset.sidebar = a.sidebar === 'floating' && media(wide) ? 'floating' : 'connected'
       } catch {}
+    </script>
+    <script>
+      import '../scripts/look'
     </script>
   </head>
   <body class="min-h-dvh">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2">Skip to content</a>
-    <header class="sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
-      <div class:list={['mx-auto flex h-14 items-center gap-2 px-4 sm:gap-4', frame]}>
-        <!-- The name leads to the page about Lodoc; "Open Lodoc" opens the app -->
-        <a href={about} aria-current={Astro.url.pathname === about ? 'page' : undefined} class="flex items-center gap-2 rounded-md font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60">
+    <!-- Attached to the top, or with a floating sidebar in the app a floating bar, like that sidebar (rounded, a border
+         all round, a little room around it) -->
+    <header class="sticky top-0 z-10 border-b bg-background/85 backdrop-blur floating:border-b-0 floating:bg-transparent floating:px-2 floating:pt-2 floating:backdrop-blur-none">
+      <div
+        class:list={[
+          'mx-auto flex h-14 items-center gap-2 px-4 sm:gap-4',
+          'floating:rounded-xl floating:border floating:bg-background/85 floating:shadow-sm floating:backdrop-blur',
+          frame,
+        ]}
+      >
+        <!-- The name leads to the page about Lodoc; "Open app" opens the app -->
+        <a href={about} aria-current={Astro.url.pathname === about ? 'page' : undefined} class="flex shrink-0 items-center gap-2 rounded-md font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60">
           <img src={`${base}favicon.svg`} alt="" width="22" height="22" />
-          Lodoc
+          <!-- On the narrowest phones just the logo (the name stays for screen readers), so the links and buttons fit -->
+          <span class="max-[25rem]:sr-only">Lodoc</span>
         </a>
         <nav aria-label="Site" class="flex items-center gap-1 text-sm">
           {
@@ -74,12 +114,15 @@ const nav = [
             ))
           }
         </nav>
-        <a
-          href={app}
-          class="ml-auto inline-flex h-9 shrink-0 items-center rounded-lg bg-primary px-3 whitespace-nowrap sm:px-3.5 text-sm font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/60"
-        >
-          Open Lodoc
-        </a>
+        <div class="ml-auto flex shrink-0 items-center gap-1.5">
+          <ThemeToggle />
+          <a
+            href={app}
+            class="inline-flex h-9 shrink-0 items-center rounded-lg bg-primary px-3 whitespace-nowrap sm:px-3.5 text-sm font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/60"
+          >
+            Open app
+          </a>
+        </div>
       </div>
     </header>
     <main id="main" class:list={['mx-auto px-4 pt-12 pb-24', width]}>

@@ -1,0 +1,126 @@
+---
+// Light, dark or the system's, in the header: a small button showing the current choice, with a menu of the three.
+// It is the app's own setting (scripts/theme.ts), so the app follows. The rest of the look is chosen under Custom in
+// "Make it yours" on the About page, or in the app's Settings.
+import Icon from './Icon.astro'
+import { __iconData as check } from 'lucide-react/dist/esm/icons/check.mjs'
+import { __iconData as monitor } from 'lucide-react/dist/esm/icons/monitor.mjs'
+import { __iconData as moon } from 'lucide-react/dist/esm/icons/moon.mjs'
+import { __iconData as sun } from 'lucide-react/dist/esm/icons/sun.mjs'
+
+const options = [
+  { id: 'light', name: 'Light', icon: sun },
+  { id: 'dark', name: 'Dark', icon: moon },
+  { id: 'system', name: 'System', icon: monitor },
+]
+---
+
+<div class="relative" data-theme-toggle>
+  <button
+    type="button"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    aria-controls="theme-menu"
+    aria-label="Light or dark"
+    title="Light or dark"
+    data-theme-button
+    class="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground"
+  >
+    {
+      options.map((o) => (
+        <span data-theme-icon={o.id} hidden={o.id !== 'system'}>
+          <Icon icon={o.icon} class="size-[1.125rem]" />
+        </span>
+      ))
+    }
+  </button>
+  <div
+    id="theme-menu"
+    role="menu"
+    aria-label="Light or dark"
+    hidden
+    data-theme-menu
+    class="absolute top-full right-0 z-20 mt-1.5 w-40 rounded-lg border bg-popover p-1 text-sm text-popover-foreground shadow-md"
+  >
+    {
+      options.map((o) => (
+        <button
+          type="button"
+          role="menuitemradio"
+          aria-checked="false"
+          tabindex="-1"
+          data-theme-option={o.id}
+          class="site-menu-item flex h-9 w-full items-center gap-2 rounded-md px-2 text-left hover:bg-accent"
+        >
+          <Icon icon={o.icon} class="size-4 text-muted-foreground" />
+          {o.name}
+          <span data-theme-check class="ml-auto" hidden>
+            <Icon icon={check} class="size-4" />
+          </span>
+        </button>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  import { getTheme, onThemeChange, setTheme, type Theme } from '../scripts/theme'
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-theme-toggle]')) {
+    const button = root.querySelector<HTMLButtonElement>('[data-theme-button]')!
+    const menu = root.querySelector<HTMLElement>('[data-theme-menu]')!
+    const items = [...menu.querySelectorAll<HTMLButtonElement>('[data-theme-option]')]
+    const names = { light: 'Light', dark: 'Dark', system: 'System' }
+
+    const show = (theme: Theme) => {
+      for (const icon of root.querySelectorAll<HTMLElement>('[data-theme-icon]')) icon.hidden = icon.dataset.themeIcon !== theme
+      for (const item of items) {
+        const chosen = item.dataset.themeOption === theme
+        item.setAttribute('aria-checked', String(chosen))
+        item.querySelector<HTMLElement>('[data-theme-check]')!.hidden = !chosen
+      }
+      button.setAttribute('aria-label', `Light or dark: ${names[theme]}`)
+    }
+    const open = () => {
+      menu.hidden = false
+      button.setAttribute('aria-expanded', 'true')
+      ;(items.find((i) => i.getAttribute('aria-checked') === 'true') ?? items[0]).focus()
+    }
+    const close = (focusButton = true) => {
+      if (menu.hidden) return
+      menu.hidden = true
+      button.setAttribute('aria-expanded', 'false')
+      if (focusButton) button.focus()
+    }
+
+    button.addEventListener('click', () => (menu.hidden ? open() : close()))
+    button.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        open()
+      }
+    })
+    menu.addEventListener('click', (e) => {
+      const item = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-theme-option]')
+      if (!item) return
+      setTheme(item.dataset.themeOption as Theme)
+      close()
+    })
+    // Arrow keys move through the three, like any menu; Escape closes it, and so does Tab or a click elsewhere
+    menu.addEventListener('keydown', (e) => {
+      const at = items.indexOf(document.activeElement as HTMLButtonElement)
+      const to = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[e.key]
+      if (to !== undefined) {
+        e.preventDefault()
+        items[(to + items.length) % items.length].focus()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        close()
+      } else if (e.key === 'Tab') close(false)
+    })
+    document.addEventListener('pointerdown', (e) => !root.contains(e.target as Node) && close(false))
+
+    show(getTheme())
+    onThemeChange(show)
+  }
+</script>
