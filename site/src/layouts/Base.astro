@@ -1,5 +1,6 @@
 ---
 import '../styles/site.css'
+import '../styles/text-size.css'
 import { RADIUS_PRESETS, TEXTURE_STRENGTH_DEFAULT, TINTS } from '../../../src/lib/appearance-options'
 import { APPEARANCE_KEY, TEXT_SIZES } from '../../../src/lib/appearance'
 import SiteMenu from '../components/SiteMenu.astro'
@@ -73,7 +74,10 @@ const nav = [
         root.style.setProperty('--text-c', tint.chroma)
         root.style.setProperty('--radius', `${(radii.find((r) => r.id === a.corners) ?? radii[1]).px / 16}rem`)
         root.dataset.pageFont = one(a.pageFont, ['sans', 'serif'], 'sans')
-        root.style.setProperty('--page-text-size', sizes[one(a.textSize, ['s', 'm', 'l'], 'm')])
+        const size = sizes[one(a.textSize, ['s', 'm', 'l'], 'm')]
+        root.style.setProperty('--page-text-size', size)
+        // The factor the reading text is scaled by (site.css, .page-scaled)
+        root.style.setProperty('--page-scale', parseFloat(size))
         root.dataset.texture = one(a.texture, ['none', 'paper', 'laid', 'dots'], 'none')
         const amount = typeof a.textureStrength === 'number' ? a.textureStrength : strength
         root.style.setProperty('--texture-strength', (amount / strength) * (high ? 0.4 : 1))
@@ -128,7 +132,8 @@ const nav = [
         </div>
       </div>
     </header>
-    <main id="main" class:list={['mx-auto px-4 pt-12 pb-24', width]}>
+    <!-- page-scaled: the reading text follows the Text size chosen in the app (site.css) -->
+    <main id="main" class:list={['page-scaled mx-auto px-4 pt-12 pb-24', width]}>
       <slot />
     </main>
     <footer class="border-t">
