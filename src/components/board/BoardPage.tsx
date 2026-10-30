@@ -20,7 +20,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { nanoid } from 'nanoid'
 import { useTheme } from 'next-themes'
 import { LayoutGrid } from 'lucide-react'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useBottomUi } from '@/hooks/useBottomUi'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -67,6 +67,15 @@ import { TextNode } from './nodes/TextNode'
 
 /** Height of the page header that floats over the canvas (App.tsx, h-12) */
 const HEADER_HEIGHT = 48
+
+// The editor is the heaviest part of the app; it is only loaded once a card is edited (or a note is opened)
+const NoteEditor = lazy(() => import('@/components/editor/NoteEditor').then((m) => ({ default: m.NoteEditor })))
+/** A note card's editor while it is edited */
+const renderEditor = (note: Note) => (
+  <Suspense fallback={null}>
+    <NoteEditor key={note.id} note={note} embedded />
+  </Suspense>
+)
 
 const nodeTypes = { note: NoteNode, text: TextNode, image: ImageNode, frame: FrameNode }
 const edgeTypes = { arrow: ArrowEdge }
@@ -688,6 +697,7 @@ function Canvas({ board }: { board: Board }) {
       editingId,
       setEditingId,
       editNote,
+      renderEditor,
       removeNodes,
       setCardView,
       resizeEnd,

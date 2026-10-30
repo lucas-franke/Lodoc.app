@@ -28,7 +28,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Toggle } from '@/components/ui/toggle'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useConfirm } from '@/hooks/useConfirm'
-import { notify } from '@/lib/notify'
+// sonner's toast directly: the app's notify also logs to Activity, which lives in the database
+import { toast } from 'sonner'
 import { Caption, Example, Section } from '../Example'
 
 const VARIANTS = ['default', 'outline', 'secondary', 'ghost', 'destructive', 'link'] as const
@@ -185,7 +186,7 @@ export function Interface() {
                   title: 'Delete "Trip to Lofoten"?',
                   description: 'It goes to the trash, where you can restore it for 30 days.',
                   action: 'Delete',
-                  onConfirm: () => notify('Deleted (not really: this is the components page)'),
+                  onConfirm: () => toast('Nothing was deleted: this is the components page'),
                 })
               }
             >
@@ -254,16 +255,16 @@ export function Interface() {
 
       <Example id="toasts" title="Messages" source="lib/notify.ts, components/Notifications.tsx">
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" onClick={() => notify('Moved to "Travel"')}>
+          <Button variant="outline" onClick={() => toast('Moved to "Travel"')}>
             Information
           </Button>
-          <Button variant="outline" onClick={() => notify('Backup saved', { level: 'success' })}>
+          <Button variant="outline" onClick={() => toast.success('Backup saved')}>
             Success
           </Button>
-          <Button variant="outline" onClick={() => notify('Could not read that file', { level: 'error' })}>
+          <Button variant="outline" onClick={() => toast.error('Could not read that file')}>
             Error
           </Button>
-          <Button variant="outline" onClick={() => notify('Deleted "Packing list"', { action: { label: 'Undo', onClick: () => notify('Restored') } })}>
+          <Button variant="outline" onClick={() => toast('Deleted "Packing list"', { action: { label: 'Undo', onClick: () => toast('Restored') } })}>
             With a button
           </Button>
         </div>

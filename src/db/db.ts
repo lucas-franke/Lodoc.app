@@ -1,10 +1,10 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { ActivityEntry, Asset, Board, Folder, Note, NoteVersion, TrashEntry, VersionImage } from './schema'
 
-// The database keeps its original name (from before the app was called Lodoc), or existing notes would vanish. The
-// components page (src/gallery) names one of its own, so its live examples never touch anyone's notes.
-const name = (globalThis as { __lodocDatabase?: string }).__lodocDatabase ?? 'localnotes'
-export const db = new Dexie(name) as Dexie & {
+// The database keeps its original name (from before the app was called Lodoc), or existing notes would vanish.
+// Nothing outside the app may open it under another name or decide its name: the components page (src/gallery) has
+// no database at all.
+export const db = new Dexie('localnotes') as Dexie & {
   notes: EntityTable<Note, 'id'>
   folders: EntityTable<Folder, 'id'>
   boards: EntityTable<Board, 'id'>

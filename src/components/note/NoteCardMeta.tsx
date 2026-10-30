@@ -1,7 +1,7 @@
 import { ListChecks } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { Note } from '@/db/schema'
-import { checklistProgress } from '@/db/notes'
+import { checklistProgress } from '@/lib/note-text'
 import { formatDateTime, formatRelative } from '@/lib/format'
 
 /** One quiet line at the bottom of a card, so every card's footer lines up. */

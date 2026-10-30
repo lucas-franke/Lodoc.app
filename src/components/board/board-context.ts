@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 import type { Note, NoteCardView } from '@/db/schema'
 
 export interface Box {
@@ -17,6 +17,8 @@ export interface BoardContextValue {
   setEditingId: (id: string | null) => void
   /** Open the note editor inside a card (zooms in first if the view is too small to type comfortably) */
   editNote: (id: string) => void
+  /** The editor shown in a card while it is edited (BoardPage loads it only then; the card itself never imports it) */
+  renderEditor: (note: Note) => ReactNode
   removeNodes: (ids: string[]) => void
   /** Show one note card in another view */
   setCardView: (id: string, view: NoteCardView) => void

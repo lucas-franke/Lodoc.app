@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react'
 import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
-import type { ExcerptLine } from '@/db/notes'
+import type { ExcerptLine } from '@/lib/note-text'
 import { CALLOUT_ICONS } from '@/lib/callout'
 import { cn } from '@/lib/utils'
 

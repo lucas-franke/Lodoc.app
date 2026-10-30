@@ -1,34 +1,18 @@
 ---
 // "Make it yours", live: a small mock-up of Lodoc that takes the same looks as the app (the app's own tints,
 // textures and corners, src/lib/appearance-options.ts, and its colour rules for [data-look] in tokens.css).
-// Three ready-made looks, picked with their swatches, only change the mock-up. Custom shows your own look (the one
-// saved for the app) and opens its options: those change this whole website and the app (src/lib/appearance.ts).
-import { RADIUS_PRESETS, TEXTURES, TINTS } from '../../../src/lib/appearance-options'
+// Four ready-made looks, picked with their swatches: three light ones and a dark one in high contrast. Only the mock-up changes; the page around it keeps its
+// plain look, and nothing is carried over to the app.
+import { RADIUS_PRESETS, TINTS } from '../../../src/lib/appearance-options'
 import Icon from './Icon.astro'
 import { __iconData as chevron } from 'lucide-react/dist/esm/icons/chevron-down.mjs'
-import { __iconData as monitor } from 'lucide-react/dist/esm/icons/monitor.mjs'
-import { __iconData as moon } from 'lucide-react/dist/esm/icons/moon.mjs'
-import { __iconData as sun } from 'lucide-react/dist/esm/icons/sun.mjs'
 
 const LOOKS = [
   { id: 'clean', name: 'Clean', mode: 'light', tint: 'neutral', texture: 'none', pageFont: 'sans', corners: 'sharp', sidebar: 'connected', contrast: 'standard', swatch: 'oklch(1 0 0)' },
+  { id: 'sage', name: 'Sage', mode: 'light', tint: 'sage', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'floating', contrast: 'standard', swatch: 'oklch(0.86 0.07 150)' },
+  { id: 'rose-paper', name: 'Rose paper', mode: 'light', tint: 'rose', texture: 'laid', pageFont: 'serif', corners: 'round', sidebar: 'floating', contrast: 'standard', swatch: 'oklch(0.87 0.06 10)' },
   // Half black, half white: the usual sign for contrast
   { id: 'high-contrast', name: 'High contrast', mode: 'dark', tint: 'neutral', texture: 'none', pageFont: 'sans', corners: 'rounded', sidebar: 'connected', contrast: 'high', swatch: 'linear-gradient(90deg, oklch(0.145 0 0) 50%, oklch(1 0 0) 50%)' },
-  { id: 'rose', name: 'Rose', mode: 'light', tint: 'rose', texture: 'laid', pageFont: 'serif', corners: 'round', sidebar: 'floating', contrast: 'standard', swatch: 'oklch(0.87 0.06 10)' },
-] as const
-/** Custom's swatch: a wheel of the tints */
-const CUSTOM_SWATCH = `conic-gradient(${[...TINTS.filter((t) => t.chroma), TINTS[1]].map((t) => `oklch(0.82 ${t.chroma * 5} ${t.hue})`).join(', ')})`
-
-/** Custom's options: the app's Appearance settings that show on a page, as rows of chips like the app's Settings */
-const GROUPS = [
-  { key: 'theme', label: 'Mode', options: [{ value: 'light', name: 'Light', icon: sun }, { value: 'dark', name: 'Dark', icon: moon }, { value: 'system', name: 'System', icon: monitor }] },
-  { key: 'tint', label: 'Tint', options: TINTS.map((t) => ({ value: t.id, name: t.name, swatch: t.chroma ? `oklch(0.78 ${t.chroma * 5} ${t.hue})` : 'var(--background)' })) },
-  { key: 'pageFont', label: 'Page font', options: [{ value: 'sans', name: 'Sans', sample: 'sans' }, { value: 'serif', name: 'Serif', sample: 'serif' }] },
-  { key: 'textSize', label: 'Text size', options: [{ value: 's', name: 'Small' }, { value: 'm', name: 'Default' }, { value: 'l', name: 'Large' }] },
-  { key: 'corners', label: 'Corners', options: RADIUS_PRESETS.map((r) => ({ value: r.id, name: r.name })) },
-  { key: 'sidebar', label: 'Sidebar', hint: 'On this website, the bar at the top', options: [{ value: 'connected', name: 'Attached' }, { value: 'floating', name: 'Floating' }] },
-  { key: 'texture', label: 'Page texture', options: TEXTURES.map((t) => ({ value: t.id, name: t.name })) },
-  { key: 'contrast', label: 'Contrast', options: [{ value: 'system', name: 'System' }, { value: 'standard', name: 'Standard' }, { value: 'more', name: 'More' }] },
 ] as const
 type Look = (typeof LOOKS)[number]
 
@@ -85,7 +69,7 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l) }))
     </div>
   </div>
 
-  <!-- The looks and Custom; arrow keys move between them, like any group of radio buttons -->
+  <!-- The four looks; arrow keys move between them, like any group of radio buttons -->
   <div class="mt-4 flex flex-wrap gap-x-4 gap-y-3" role="radiogroup" aria-label="Look" data-demo-looks>
     {
       looks.map((l, i) => (
@@ -108,113 +92,25 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l) }))
         </button>
       ))
     }
-    <button
-      type="button"
-      role="radio"
-      data-look-custom
-      aria-checked="false"
-      tabindex="-1"
-      aria-controls="look-custom-panel"
-      aria-describedby="look-custom"
-      class="group flex min-w-20 flex-col whitespace-nowrap items-center gap-1.5 rounded-lg p-1 text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-checked:font-medium aria-checked:text-foreground"
-    >
-      <span
-        aria-hidden="true"
-        class="size-9 rounded-full border border-control-border group-aria-checked:ring-2 group-aria-checked:ring-foreground group-aria-checked:ring-offset-2 group-aria-checked:ring-offset-background"
-        style={`background: ${CUSTOM_SWATCH}`}
-      />
-      Custom
-      <span id="look-custom" class="sr-only">Your own look, with all its options</span>
-    </button>
   </div>
-
-  <!-- Custom: your own look, as saved for the app. Every change applies to this website and the app at once. -->
-  <section id="look-custom-panel" aria-label="Your look" hidden data-custom-panel class="mt-5 space-y-5 rounded-xl border bg-card p-4 text-card-foreground sm:p-5">
-    <p class="text-sm text-muted-foreground">Your look, for this website and the Lodoc app on this device. Changes show right away.</p>
-    {
-      GROUPS.map((g) => (
-        <div class="space-y-2">
-          <div>
-            <div id={`custom-${g.key}`} class="text-sm font-medium">
-              {g.label}
-            </div>
-            {'hint' in g && <p class="text-xs text-muted-foreground">{g.hint}</p>}
-          </div>
-          <div role="radiogroup" aria-labelledby={`custom-${g.key}`} data-custom-group={g.key} class="flex flex-wrap gap-2">
-            {g.options.map((o) => (
-              <button
-                type="button"
-                role="radio"
-                aria-checked="false"
-                tabindex="-1"
-                data-value={o.value}
-                class="group/chip flex h-9 shrink-0 items-center gap-2 rounded-lg border border-control-border bg-background px-2.5 text-sm outline-none hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring aria-checked:border-foreground aria-checked:bg-foreground aria-checked:text-background aria-checked:hover:bg-foreground"
-              >
-                <span aria-hidden="true" class="flex size-3.5 shrink-0 items-center justify-center rounded-full border border-control-border group-aria-checked/chip:border-background">
-                  <span class="hidden size-2 rounded-full bg-background group-aria-checked/chip:block" />
-                </span>
-                {'icon' in o && <Icon icon={o.icon} class="size-4 opacity-85" />}
-                {'swatch' in o && <span aria-hidden="true" class="size-4 rounded-[4px] border border-control-border" style={`background: ${o.swatch}`} />}
-                {'sample' in o && (
-                  <span aria-hidden="true" class="opacity-85" style={o.sample === 'serif' ? "font-family: 'Source Serif 4 Variable', serif" : "font-family: 'Geist Variable', sans-serif"}>
-                    Ag
-                  </span>
-                )}
-                {o.name}
-              </button>
-            ))}
-          </div>
-          {g.key === 'tint' && (
-            <div data-custom-tinted-text class="flex items-center justify-between gap-4 pt-1 text-sm">
-              <span id="custom-tinted-text">Tinted text</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked="false"
-                aria-labelledby="custom-tinted-text"
-                data-custom-switch
-                class="group/switch relative h-6 w-10 shrink-0 rounded-full border border-control-border bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring aria-checked:border-foreground aria-checked:bg-foreground"
-              >
-                <span class="absolute top-0.5 left-0.5 size-4.5 rounded-full bg-foreground/70 transition-transform group-aria-checked/switch:translate-x-4 group-aria-checked/switch:bg-background" />
-              </button>
-            </div>
-          )}
-        </div>
-      ))
-    }
-    <div class="flex items-center justify-between gap-3 border-t pt-4">
-      <span class="text-xs text-muted-foreground" role="status" data-custom-status />
-      <button type="button" data-custom-reset class="h-8 rounded-lg border border-control-border bg-background px-3 text-sm outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
-        Reset look
-      </button>
-    </div>
-  </section>
 </div>
 
 <script>
-  import { DEFAULT_APPEARANCE, RADIUS_PRESETS, readAppearance, saveAppearance, TINTS, type Appearance } from '../../../src/lib/appearance'
+  import { RADIUS_PRESETS, TINTS } from '../../../src/lib/appearance-options'
   import { showPaperTexture } from '../../../src/lib/paper-texture'
-  import { showLook } from '../scripts/show-look'
-  import { getTheme, onThemeChange, setTheme, type Theme } from '../scripts/theme'
 
-  /** What the mock-up shows: a preset, or your own look */
-  type Look = { mode: 'light' | 'dark'; tint: string; tintedText?: boolean; texture: string; pageFont: string; corners: string; sidebar: string; contrast: string }
+  type Look = { mode: 'light' | 'dark'; tint: string; texture: string; pageFont: string; corners: string; sidebar: string; contrast: string }
   const root = document.querySelector<HTMLElement>('[data-demo]')
   const view = root?.querySelector<HTMLElement>('[data-demo-window]')
-  const custom = root?.querySelector<HTMLButtonElement>('[data-look-custom]')
-  const panel = root?.querySelector<HTMLElement>('[data-custom-panel]')
-  const radios = [...(root?.querySelectorAll<HTMLButtonElement>('[data-look-preset], [data-look-custom]') ?? [])]
-  if (root && view && custom && panel && radios.length) {
-    /** The mock-up in a look, exactly as the app's comes from <html> */
-    const show = (look: Look) => {
+  const radios = [...(root?.querySelectorAll<HTMLButtonElement>('[data-look-preset]') ?? [])]
+  if (root && view && radios.length) {
+    const apply = (button: HTMLButtonElement) => {
+      const look = JSON.parse(button.dataset.lookPreset!) as Look
       view.classList.toggle('dark', look.mode === 'dark')
       const tint = TINTS.find((t) => t.id === look.tint) ?? TINTS[0]
       view.dataset.tint = tint.id
       view.style.setProperty('--tint-h', String(tint.hue))
       view.style.setProperty('--tint-c', String(tint.chroma))
-      view.dataset.textTint = look.tintedText ? tint.id : 'neutral'
-      view.style.setProperty('--text-h', String(tint.hue))
-      view.style.setProperty('--text-c', String(tint.chroma))
       view.dataset.texture = look.texture
       if (look.texture === 'paper' || look.texture === 'laid') showPaperTexture(look.texture)
       view.dataset.pageFont = look.pageFont
@@ -223,102 +119,27 @@ const looks = LOOKS.map((l) => ({ ...l, description: describe(l) }))
       view.style.setProperty('--radius', `${corners.px / 16}rem`)
       view.dataset.sidebar = look.sidebar
       view.dataset.contrast = look.contrast
-    }
-
-    let mine: Appearance = readAppearance()
-    /** Your look in the mock-up's terms: light or dark, and the contrast, as they are right now */
-    const yours = (): Look => {
-      const theme = getTheme()
-      const dark = theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
-      const high = mine.contrast === 'system' ? matchMedia('(prefers-contrast: more)').matches : mine.contrast === 'more'
-      return { ...mine, mode: dark ? 'dark' : 'light', contrast: high ? 'high' : 'standard' }
-    }
-    /** The chips and the switch show your settings */
-    const showSettings = () => {
-      const values: Record<string, unknown> = { ...mine, theme: getTheme() }
-      for (const group of panel.querySelectorAll<HTMLElement>('[data-custom-group]')) {
-        for (const chip of group.querySelectorAll<HTMLButtonElement>('[data-value]')) {
-          const on = chip.dataset.value === values[group.dataset.customGroup!]
-          chip.setAttribute('aria-checked', String(on))
-          chip.tabIndex = on ? 0 : -1
-        }
-      }
-      panel.querySelector('[data-custom-switch]')!.setAttribute('aria-checked', String(mine.tintedText))
-      // Tinted text with a neutral page is simply neutral text, so the switch only shows with a tint
-      panel.querySelector<HTMLElement>('[data-custom-tinted-text]')!.hidden = mine.tint === 'neutral'
-    }
-    const status = panel.querySelector<HTMLElement>('[data-custom-status]')!
-    /** Keeps a changed look for the app, and shows it on the whole page and in the mock-up */
-    const change = (next: Appearance, message = 'Saved') => {
-      mine = next
-      saveAppearance(mine)
-      showLook(mine)
-      showSettings()
-      show(yours())
-      status.textContent = message
-    }
-
-    const select = (button: HTMLButtonElement) => {
       for (const r of radios) {
         r.setAttribute('aria-checked', String(r === button))
         r.tabIndex = r === button ? 0 : -1
       }
-      const isCustom = button === custom
-      panel.hidden = !isCustom
-      if (isCustom) {
-        mine = readAppearance()
-        showSettings()
-        status.textContent = ''
-        show(yours())
-      } else show(JSON.parse(button.dataset.lookPreset!) as Look)
     }
 
     root.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement
-      const look = target.closest<HTMLButtonElement>('[data-look-preset], [data-look-custom]')
-      if (look) return select(look)
-      const chip = target.closest<HTMLButtonElement>('[data-custom-group] [data-value]')
-      if (chip) {
-        const key = chip.closest<HTMLElement>('[data-custom-group]')!.dataset.customGroup!
-        const value = chip.dataset.value!
-        if (key !== 'theme') return change({ ...mine, [key]: value })
-        setTheme(value as Theme)
-        showSettings()
-        show(yours())
-        status.textContent = 'Saved'
-        return
-      }
-      if (target.closest('[data-custom-switch]')) return change({ ...mine, tintedText: !mine.tintedText })
-      if (target.closest('[data-custom-reset]')) {
-        // Like Reset in the app's Settings: contrast and motion stay as they are
-        setTheme('system')
-        change({ ...DEFAULT_APPEARANCE, contrast: mine.contrast, motion: mine.motion }, 'Back to the default look')
-      }
+      const button = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-look-preset]')
+      if (button) apply(button)
     })
-
-    // Arrow keys move within a row of radio buttons (the looks, or one option's chips) and choose, like any radio group
-    root.addEventListener('keydown', (e) => {
-      const key = e.key
+    root.querySelector('[data-demo-looks]')?.addEventListener('keydown', (e) => {
+      const key = (e as KeyboardEvent).key
       const step = key === 'ArrowRight' || key === 'ArrowDown' ? 1 : key === 'ArrowLeft' || key === 'ArrowUp' ? -1 : 0
-      const current = document.activeElement as HTMLButtonElement | null
-      const group = current?.closest<HTMLElement>('[role="radiogroup"]')
-      if (!step || !current || !group) return
-      const items = [...group.querySelectorAll<HTMLButtonElement>(':scope > [role="radio"]')]
-      const at = items.indexOf(current)
-      if (at < 0) return
+      const at = radios.indexOf(document.activeElement as HTMLButtonElement)
+      if (!step || at < 0) return
       e.preventDefault()
-      const next = items[(at + step + items.length) % items.length]
-      next.click()
+      const next = radios[(at + step + radios.length) % radios.length]
+      apply(next)
       next.focus()
     })
 
-    // Light or dark changed in the header (or in the app): Custom follows
-    onThemeChange(() => {
-      if (custom.getAttribute('aria-checked') !== 'true') return
-      showSettings()
-      show(yours())
-    })
-
-    select(radios[0])
+    apply(radios[0])
   }
 </script>

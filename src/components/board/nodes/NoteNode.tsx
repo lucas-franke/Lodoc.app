@@ -1,20 +1,16 @@
 import { NodeResizer, useStore, type NodeProps } from '@xyflow/react'
 import { Check, ExternalLink, MoreHorizontal, Pencil, Spline, X } from 'lucide-react'
-import { lazy, Suspense } from 'react'
 import { RowDropdownMenu, type MenuEntry } from '@/components/ItemMenu'
 import { Button } from '@/components/ui/button'
 import { CARD_VIEW_INFO } from '@/components/note/card-views'
 import { NoteCardBody, NoteCardTop } from '@/components/note/NoteCardBody'
-import { noteTitle } from '@/db/notes'
+import { noteTitle } from '@/lib/note-text'
 import { NOTE_CARD_VIEWS, type BoardNode } from '@/db/schema'
 import { openNote } from '@/hooks/useRoute'
 import { cn } from '@/lib/utils'
 import { useBoard } from '../board-context'
 import { ConnectHandles } from '../ConnectHandles'
 import { cardView, TITLE_HEIGHT, type BoardFlowNode } from '../flow'
-
-// The editor is the heaviest part of the app; it is only loaded once a card is edited (or a note is opened)
-const NoteEditor = lazy(() => import('@/components/editor/NoteEditor').then((m) => ({ default: m.NoteEditor })))
 
 type NoteItem = Extract<BoardNode, { type: 'note' }>
 
@@ -141,9 +137,7 @@ export function NoteNode({ id, data, selected }: NodeProps<BoardFlowNode>) {
               if (e.key === 'Escape' && !document.querySelector('.bn-suggestion-menu')) board.setEditingId(null)
             }}
           >
-            <Suspense fallback={null}>
-              <NoteEditor key={note.id} note={note} embedded />
-            </Suspense>
+            {board.renderEditor(note)}
           </div>
         ) : note ? (
           <NoteCardBody note={note} view={view} fill hideMeta={zoomedOut} className="px-3" />

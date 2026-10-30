@@ -1,4 +1,4 @@
-import { noteExcerpt, notePreview } from '@/db/notes'
+import { noteExcerpt, notePreview } from '@/lib/note-text'
 import type { Note, NoteCardView } from '@/db/schema'
 import { useAppearance } from '@/hooks/useAppearance'
 import { resolveCover } from '@/lib/cover'
