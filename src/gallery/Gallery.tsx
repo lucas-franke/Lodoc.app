@@ -31,7 +31,8 @@ export function Gallery() {
     <div className="relative min-h-dvh bg-background text-foreground" data-texture-surface="">
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <a href="../" className="flex shrink-0 items-center gap-2 font-semibold">
+          {/* The name leads to the page about Lodoc, as on the website; Open app opens the app */}
+          <a href="../about/" className="flex shrink-0 items-center gap-2 font-semibold">
             <img src="../favicon.svg" alt="" className="size-6" />
             Lodoc
           </a>
