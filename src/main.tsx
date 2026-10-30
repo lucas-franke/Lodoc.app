@@ -7,6 +7,8 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import './index.css'
 import App from './App.tsx'
 import { applySavedAppearance } from '@/hooks/useAppearance'
+import { setAssetSource } from '@/hooks/useAssetUrl'
+import { db } from '@/db/db'
 import { purgeOldTrash } from '@/db/trash'
 import { purgeOldActivity } from '@/db/activity'
 import { discardLeftoverNotes } from '@/db/notes'
@@ -18,6 +20,8 @@ import { collectShared, markArrived, takeShared } from '@/lib/collect'
 import { openTodaysJournal, takeJournalFromUrl } from '@/lib/journal'
 import { notify } from '@/lib/notify'
 
+// Images in notes, covers and boards come from the database
+setAssetSource((id) => db.assets.get(id).then((asset) => asset?.blob))
 // Appearance settings (font, corners, …) are applied before the first render, so nothing jumps
 applySavedAppearance()
 // The phone's status bar matches the page background (tint, dark mode)

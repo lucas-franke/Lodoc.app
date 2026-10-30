@@ -1,5 +1,5 @@
 import type { Edge, Node } from '@xyflow/react'
-import { noteTitle } from '@/db/notes'
+import { noteTitle } from '@/lib/note-text'
 import type { BoardEdge, BoardNode, Note, NoteCardView } from '@/db/schema'
 
 /**

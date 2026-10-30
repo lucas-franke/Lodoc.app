@@ -1,15 +1,14 @@
 import { createExtension } from '@blocknote/core'
-import type { DefaultReactSuggestionItem } from '@blocknote/react'
 import type { Node as PMNode } from '@tiptap/pm/model'
 import { Plugin, PluginKey, type EditorState, type Transaction } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
-import { db } from '@/db/db'
-import { normalizeTag, tagCounts } from '@/db/notes'
+import { normalizeTag } from '@/lib/note-text'
 import { openTag } from '@/hooks/useRoute'
 
 // #tags written in the text: "#idea" in a note adds the tag "idea" (and taking it out of the text removes it
 // again; tags added in the tag field are never touched). The tags show as tags in the text, Ctrl/Cmd+click opens
-// one, and typing # after a space offers the tags already in use. Not in code, and a number alone (#1) is no tag.
+// one, and typing # after a space offers the tags already in use (tag-menu.ts). Not in code, and a number alone (#1)
+// is no tag.
 
 /** "#" after the start of the text, a space or an opening bracket, then letters/digits/_-/ with at least one letter */
 const TAG = /(^|[\s([{])#([\p{L}\p{N}_/-]*\p{L}[\p{L}\p{N}_/-]*)/gu
@@ -89,21 +88,4 @@ export function tagMenuShouldOpen(tr: Transaction) {
   if ($from.parent.type.spec.code) return false
   const before = $from.parent.textBetween(Math.max(0, $from.parentOffset - 1), $from.parentOffset)
   return $from.parentOffset > 0 && /[\s([{]/.test(before)
-}
-
-/** The tags already in use that match what was typed after "#", most used first; and a new one if it isn't there */
-export async function tagMenuItems(query: string, insert: (tag: string) => void): Promise<DefaultReactSuggestionItem[]> {
-  if (/\s/.test(query)) return []
-  const typed = normalizeTag(query)
-  const all = tagCounts(await db.notes.toArray()).sort((a, b) => b.count - a.count)
-  const matches = all.filter((t) => t.tag.includes(typed)).sort((a, b) => Number(!b.tag.startsWith(typed)) - Number(!a.tag.startsWith(typed)))
-  const items: DefaultReactSuggestionItem[] = matches.slice(0, 8).map((t) => ({
-    title: `#${t.tag}`,
-    subtext: t.count === 1 ? '1 note' : `${t.count} notes`,
-    onItemClick: () => insert(t.tag),
-  }))
-  if (typed && /\p{L}/u.test(typed) && !all.some((t) => t.tag === typed)) {
-    items.push({ title: `#${typed}`, subtext: 'New tag', onItemClick: () => insert(typed) })
-  }
-  return items
 }

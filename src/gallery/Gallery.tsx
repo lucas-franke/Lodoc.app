@@ -3,9 +3,8 @@ import { useTheme } from 'next-themes'
 import { Choice, OptionGroup } from '@/components/settings/controls'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { previewAppearance, useAppearance } from '@/hooks/useAppearance'
+import { updateAppearance, useAppearance } from '@/hooks/useAppearance'
 import { RADIUS_PRESETS, TEXTURES, TINTS, type Appearance } from '@/lib/appearance'
-import type { Demo } from './seed'
 import { Boards } from './sections/Boards'
 import { Cards } from './sections/Cards'
 import { Foundations } from './sections/Foundations'
@@ -22,26 +21,31 @@ const NAV = [
 ] as const
 
 /**
- * The components page: everything Lodoc is made of, live. Its examples are the app's own components on demo data
- * (seed.ts), so they look and behave exactly as in the app; what is changed here is gone after a reload.
+ * The components page: everything Lodoc is made of. The examples are the app's own parts on sample content in memory
+ * (samples.ts): they open, close and respond like in the app, but nothing is saved. The page has no database at all
+ * (vite.components.config.ts refuses to build it with one), so it can never touch anyone's notes.
  */
-export function Gallery({ demo }: { demo: Demo }) {
+export function Gallery() {
   return (
     // relative: the page texture (index.css) is a layer that fills its surface
     <div className="relative min-h-dvh bg-background text-foreground" data-texture-surface="">
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <a href="../" className="flex items-center gap-2 font-semibold">
+          <a href="../" className="flex shrink-0 items-center gap-2 font-semibold">
             <img src="../favicon.svg" alt="" className="size-6" />
             Lodoc
           </a>
-          <span className="text-muted-foreground">/</span>
-          <span className="font-medium">Components</span>
+          {/* The narrowest phones leave out the crumb (the page's heading says it) */}
+          <span className="text-muted-foreground max-[25rem]:hidden">/</span>
+          <span className="truncate font-medium max-[25rem]:hidden">Components</span>
           <nav aria-label="Website" className="ml-auto flex items-center gap-1">
             <Button variant="ghost" size="sm" asChild className="max-sm:hidden">
               <a href="../docs/">Docs</a>
             </Button>
             <AppearanceSheet />
+            <Button size="sm" asChild>
+              <a href="../">Open app</a>
+            </Button>
           </nav>
         </div>
         {/* On phones, the parts as a row of chips */}
@@ -83,42 +87,43 @@ export function Gallery({ demo }: { demo: Demo }) {
             <h1 className="font-page text-4xl font-bold tracking-tight max-sm:text-3xl">Components</h1>
             <p className="mt-3 max-w-prose text-muted-foreground">
               Everything Lodoc is made of, live: the colours and type, the interface, a note with every block, cards and a
-              board. Try them: they work on demo notes of their own, so nothing here touches your notes, and a reload starts
-              over. <strong className="font-medium text-foreground">Appearance</strong> at the top shows them in other themes.
-              Links to notes open nothing here.
+              board. Try them: menus open, buttons respond, and you can type in the note and move things on the board, but
+              nothing is saved and your notes are never touched. <strong className="font-medium text-foreground">Appearance</strong>{' '}
+              at the top changes the look of Lodoc and its website.
             </p>
           </div>
           <Foundations />
           <Interface />
-          <NotePage demo={demo} />
-          <Cards demo={demo} />
-          <Boards demo={demo} />
+          <NotePage />
+          <Cards />
+          <Boards />
         </main>
       </div>
     </div>
   )
 }
 
-/** The look of the page (light or dark, tint, page font…), shown without being kept: the app keeps its own */
+/** The look (light or dark, tint, page font…), kept like a change in Settings: Lodoc and its website show it too */
 function AppearanceSheet() {
   const a = useAppearance()
   const { theme, setTheme } = useTheme()
   const choose =
     <K extends keyof Appearance>(key: K) =>
     (value: Appearance[K]) =>
-      previewAppearance({ [key]: value } as Partial<Appearance>)
+      updateAppearance({ [key]: value } as Partial<Appearance>)
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="outline" size="sm">
           <Palette aria-hidden />
-          Appearance
+          {/* Phones: the icon alone, so the header fits with Open app */}
+          <span className="max-sm:sr-only">Appearance</span>
         </Button>
       </SheetTrigger>
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Appearance</SheetTitle>
-          <SheetDescription>See the components in another theme. Your settings in the app stay as they are.</SheetDescription>
+          <SheetDescription>Applies to Lodoc and its website on this device.</SheetDescription>
         </SheetHeader>
         <div className="space-y-6 px-4 pb-6">
           <OptionGroup label="Mode">

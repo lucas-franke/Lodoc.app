@@ -66,7 +66,8 @@ export const APPEARANCE_SECTIONS = {
   accessibility: ['contrast', 'motion'],
 } as const satisfies Record<string, readonly (keyof Appearance)[]>
 
-const KEY = 'localnotes:appearance'
+/** Where the settings are kept; the website (site/) reads it too, to show pages in the same look */
+export const APPEARANCE_KEY = 'localnotes:appearance'
 /** The page font used to live in its own key (with a "mono" option that no longer exists) */
 const OLD_FONT_KEY = 'localnotes:pageFont'
 
@@ -77,7 +78,7 @@ export function parseAppearance(saved: Record<string, unknown>): Appearance {
 
 export function readAppearance(): Appearance {
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Record<string, unknown> | null
+    const saved = JSON.parse(localStorage.getItem(APPEARANCE_KEY) ?? 'null') as Record<string, unknown> | null
     if (saved) return parseAppearance(saved)
     const oldFont = localStorage.getItem(OLD_FONT_KEY)
     return { ...DEFAULT_APPEARANCE, pageFont: oldFont === 'serif' ? 'serif' : 'sans' }
@@ -88,7 +89,7 @@ export function readAppearance(): Appearance {
 
 export function saveAppearance(settings: Appearance) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(settings))
+    localStorage.setItem(APPEARANCE_KEY, JSON.stringify(settings))
     localStorage.removeItem(OLD_FONT_KEY)
   } catch {
     // per-browser convenience only
