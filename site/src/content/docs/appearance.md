@@ -35,7 +35,7 @@ order: 7
 
 The docs, What's new and the About page take on your look too: tint, font and text size, corners, texture and contrast, and a floating sidebar makes the bar at the top float. The button next to **Open app** switches between light, dark and your system's setting, the same setting as in the app.
 
-On the About page, **Custom** under *Make it yours* has the options right there. What you choose there shows on the website at once, and Lodoc opens in it too.
+The [components page](../../components/) has the same options under **Appearance**. What you choose there applies to Lodoc and the website too.
 
 ## Accessibility
 
