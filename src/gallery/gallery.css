@@ -4,3 +4,20 @@
 body:not(:has(.bn-editor:focus-within)) .note-format-bar {
   display: none;
 }
+
+/* Text size (Appearance): the page's reading text (the intro, each part's title and introduction) grows and shrinks
+   with it, like on the website (site.css). Tailwind's text-* sizes are variables; Gallery sets --page-scale. The
+   examples keep the sizes they have in the app, where Text size is for notes. */
+.page-scaled {
+  --text-xs: calc(0.75rem * var(--page-scale, 1));
+  --text-sm: calc(0.875rem * var(--page-scale, 1));
+  --text-base: calc(1rem * var(--page-scale, 1));
+  --text-lg: calc(1.125rem * var(--page-scale, 1));
+  --text-xl: calc(1.25rem * var(--page-scale, 1));
+  --text-2xl: calc(1.5rem * var(--page-scale, 1));
+  --text-3xl: calc(1.875rem * var(--page-scale, 1));
+  --text-4xl: calc(2.25rem * var(--page-scale, 1));
+  --text-5xl: calc(3rem * var(--page-scale, 1));
+  --text-6xl: calc(3.75rem * var(--page-scale, 1));
+  font-size: var(--text-base);
+}

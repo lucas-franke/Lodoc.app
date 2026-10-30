@@ -4,7 +4,9 @@ import { Choice, OptionGroup } from '@/components/settings/controls'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { updateAppearance, useAppearance } from '@/hooks/useAppearance'
-import { RADIUS_PRESETS, TEXTURES, TINTS, type Appearance } from '@/lib/appearance'
+import { RADIUS_PRESETS, TEXT_SIZES, TEXTURES, TINTS, type Appearance } from '@/lib/appearance'
+import { cn } from '@/lib/utils'
+import type { CSSProperties } from 'react'
 import { Boards } from './sections/Boards'
 import { Cards } from './sections/Cards'
 import { Foundations } from './sections/Foundations'
@@ -26,40 +28,54 @@ const NAV = [
  * (vite.components.config.ts refuses to build it with one), so it can never touch anyone's notes.
  */
 export function Gallery() {
+  const { sidebar, textSize } = useAppearance()
+  // A floating sidebar makes the top bar float, on every screen, like on the website
+  const floating = sidebar === 'floating'
   return (
-    // relative: the page texture (index.css) is a layer that fills its surface
-    <div className="relative min-h-dvh bg-background text-foreground" data-texture-surface="">
-      <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <a href="../" className="flex shrink-0 items-center gap-2 font-semibold">
-            <img src="../favicon.svg" alt="" className="size-6" />
-            Lodoc
-          </a>
-          {/* The narrowest phones leave out the crumb (the page's heading says it) */}
-          <span className="text-muted-foreground max-[25rem]:hidden">/</span>
-          <span className="truncate font-medium max-[25rem]:hidden">Components</span>
-          <nav aria-label="Website" className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="sm" asChild className="max-sm:hidden">
-              <a href="../docs/">Docs</a>
-            </Button>
-            <AppearanceSheet />
-            <Button size="sm" asChild>
-              <a href="../">Open app</a>
-            </Button>
+    // relative: the page texture (index.css) is a layer that fills its surface. --page-scale: the reading text follows
+    // Text size (gallery.css, .page-scaled), the components keep their size as in the app
+    <div
+      className="relative min-h-dvh bg-background text-foreground"
+      data-texture-surface=""
+      style={{ '--page-scale': parseFloat(TEXT_SIZES[textSize]) } as CSSProperties}
+    >
+      <header className={cn('sticky top-0 z-20', floating ? 'px-2 pt-2' : 'border-b bg-background/90 backdrop-blur')}>
+        <div className={cn(floating && 'mx-auto max-w-7xl rounded-xl border bg-background/85 shadow-sm backdrop-blur')}>
+          <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
+            {/* The name leads to the page about Lodoc, as on the website; Open app opens the app */}
+            <a href="../about/" className="flex shrink-0 items-center gap-2 font-semibold">
+              <img src="../favicon.svg" alt="" className="size-6" />
+              Lodoc
+            </a>
+            {/* The narrowest phones leave out the crumb (the page's heading says it) */}
+            <span className="text-muted-foreground max-[25rem]:hidden">/</span>
+            <span className="truncate font-medium max-[25rem]:hidden">Components</span>
+            <nav aria-label="Website" className="ml-auto flex items-center gap-1">
+              <Button variant="ghost" size="sm" asChild className="max-sm:hidden">
+                <a href="../docs/">Docs</a>
+              </Button>
+              <AppearanceSheet />
+              <Button size="sm" asChild>
+                <a href="../">Open app</a>
+              </Button>
+            </nav>
+          </div>
+          {/* On phones, the parts as a row of chips */}
+          <nav aria-label="Parts of the page" className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 lg:hidden [scrollbar-width:none]">
+            {NAV.map((part) => (
+              <a key={part.id} href={`#${part.id}`} className="shrink-0 rounded-full border px-3 py-1 text-sm hover:bg-accent">
+                {part.title}
+              </a>
+            ))}
           </nav>
         </div>
-        {/* On phones, the parts as a row of chips */}
-        <nav aria-label="Parts of the page" className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 lg:hidden [scrollbar-width:none]">
-          {NAV.map((part) => (
-            <a key={part.id} href={`#${part.id}`} className="shrink-0 rounded-full border px-3 py-1 text-sm hover:bg-accent">
-              {part.title}
-            </a>
-          ))}
-        </nav>
       </header>
 
       <div className="mx-auto flex max-w-7xl gap-10 px-4 sm:px-6">
-        <nav aria-label="On this page" className="sticky top-14 hidden max-h-[calc(100dvh-3.5rem)] w-48 shrink-0 overflow-y-auto py-10 lg:block">
+        <nav
+          aria-label="On this page"
+          className={cn('sticky hidden max-h-[calc(100dvh-3.5rem)] w-48 shrink-0 overflow-y-auto py-10 lg:block', floating ? 'top-16' : 'top-14')}
+        >
           <ul className="space-y-5 text-sm">
             {NAV.map((part) => (
               <li key={part.id}>
@@ -83,7 +99,7 @@ export function Gallery() {
         </nav>
 
         <main className="min-w-0 flex-1 space-y-24 py-10 pb-32">
-          <div>
+          <div className="page-scaled">
             <h1 className="font-page text-4xl font-bold tracking-tight max-sm:text-3xl">Components</h1>
             <p className="mt-3 max-w-prose text-muted-foreground">
               Everything Lodoc is made of, live: the colours and type, the interface, a note with every block, cards and a
@@ -175,6 +191,17 @@ function AppearanceSheet() {
           </OptionGroup>
           <OptionGroup label="Corners">
             <Choice label="Corners" value={a.corners} onChange={choose('corners')} options={RADIUS_PRESETS.map((r) => ({ value: r.id, name: r.name }))} />
+          </OptionGroup>
+          <OptionGroup label="Sidebar" hint="Here and on the website, the bar at the top">
+            <Choice
+              label="Sidebar"
+              value={a.sidebar}
+              onChange={choose('sidebar')}
+              options={[
+                { value: 'connected', name: 'Attached' },
+                { value: 'floating', name: 'Floating' },
+              ]}
+            />
           </OptionGroup>
           <OptionGroup label="Page texture">
             <Choice

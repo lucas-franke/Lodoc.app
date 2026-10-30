@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils'
 export function Section({ id, title, intro, children }: { id: string; title: string; intro?: string; children: ReactNode }) {
   return (
     <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 space-y-8">
-      <div>
+      {/* Reading text: follows Text size (gallery.css); the examples below keep the app's sizes */}
+      <div className="page-scaled">
         <h2 id={`${id}-title`} className="font-page text-3xl font-bold tracking-tight">
           {title}
         </h2>

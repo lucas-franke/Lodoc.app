@@ -1,0 +1,60 @@
+/* Text size (Appearance): the reading text of a page grows and shrinks with it, like the text of a note. Tailwind's
+
+   text-* sizes are variables, so page-scaled multiplies them by --page-scale (Base.astro and scripts/show-look.ts set it
+
+   from the setting), and sets the base size for text without a class. Buttons and navigation inside it keep their size
+
+   with page-unscaled, like the interface in the app. A file of its own: in site.css, Tailwind's processing rejects
+   rules that set its --text-* variables. */
+
+.page-scaled {
+
+  --text-xs: calc(0.75rem * var(--page-scale, 1));
+
+  --text-sm: calc(0.875rem * var(--page-scale, 1));
+
+  --text-base: calc(1rem * var(--page-scale, 1));
+
+  --text-lg: calc(1.125rem * var(--page-scale, 1));
+
+  --text-xl: calc(1.25rem * var(--page-scale, 1));
+
+  --text-2xl: calc(1.5rem * var(--page-scale, 1));
+
+  --text-3xl: calc(1.875rem * var(--page-scale, 1));
+
+  --text-4xl: calc(2.25rem * var(--page-scale, 1));
+
+  --text-5xl: calc(3rem * var(--page-scale, 1));
+
+  --text-6xl: calc(3.75rem * var(--page-scale, 1));
+
+  font-size: var(--text-base);
+
+}
+
+.page-unscaled {
+
+  --text-xs: 0.75rem;
+
+  --text-sm: 0.875rem;
+
+  --text-base: 1rem;
+
+  --text-lg: 1.125rem;
+
+  --text-xl: 1.25rem;
+
+  --text-2xl: 1.5rem;
+
+  --text-3xl: 1.875rem;
+
+  --text-4xl: 2.25rem;
+
+  --text-5xl: 3rem;
+
+  --text-6xl: 3.75rem;
+
+  font-size: 1rem;
+
+}
