@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
-import { ImportDialog } from '@/components/ImportDialog'
+import { ImportDialog, useRunImport } from '@/components/ImportDialog'
 import { notify } from '@/lib/notify'
-import { readProjectFile, type ProjectFile } from '@/lib/project-file'
+import { currentContents, nothingToLose, readProjectFile, type ProjectFile } from '@/lib/project-file'
 
 /**
  * Importing a backup file: `pick()` opens the file chooser (call it from a click), and `element` (render it
@@ -10,10 +10,14 @@ import { readProjectFile, type ProjectFile } from '@/lib/project-file'
 export function useImportFile() {
   const [importing, setImporting] = useState<ProjectFile | null>(null)
   const input = useRef<HTMLInputElement>(null)
+  const runImport = useRunImport()
   const onFile = async (file: File | undefined) => {
     if (!file) return
     try {
-      setImporting(await readProjectFile(file))
+      const project = await readProjectFile(file)
+      // An empty Lodoc (the welcome screen's "Restore a backup") has nothing to merge with or to lose: no question
+      if (nothingToLose(await currentContents())) void runImport(project, 'replace', { fresh: true })
+      else setImporting(project)
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Could not read the file.', { level: 'error' })
     }

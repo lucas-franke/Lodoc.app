@@ -55,10 +55,10 @@ export function BackupMenu({ hasNotes }: { hasNotes: boolean }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-60">
           <DropdownMenuItem onSelect={() => void exportBackup()}>
-            <Download /> Export all notes
+            <Download /> Export backup
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={importFile.pick}>
-            <Upload /> Import from file…
+            <Upload /> Import backup…
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => emitAppEvent('import-markdown-files')}>
             <FileText />

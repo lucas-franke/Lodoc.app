@@ -1,6 +1,6 @@
 # Lodoc
 
-A minimalist, Notion-like note-taking app that runs entirely in the browser. There is no server: notes and boards are stored in the browser's IndexedDB and can be exported/imported as a JSON project file.
+A minimalist, Notion-like note-taking app that runs entirely in the browser. There is no server: notes and boards are stored in the browser's IndexedDB and can be exported/imported as a JSON backup file.
 
 [Try it out on lodoc.app](https://lodoc.app/)
 
@@ -40,7 +40,7 @@ This Project and its content are written by Claude Code.
 - **Templates**: **New…** next to "New note" (overview, folders; it also makes folders and boards) or the command palette: meeting notes, daily journal, project plan, to-do list
 - A new note you never touch (no title, no text, not pinned, favorited or moved) is not kept when you move on to something else
 - Full-text search across titles and note content
-- Backup: export everything (notes, folders, boards and their images, including note covers) as `lodoc-YYYY-MM-DD.json`; import with **Merge** (the more recently edited note or board wins) or **Replace**
+- Backup: **Export backup** saves everything (notes, folders, boards and their images, including note covers) as `lodoc-YYYY-MM-DD.json`. **Import backup…** shows what the file holds next to what Lodoc holds now. **Merge** (the more recently edited note or board wins) is the main button; **Replace all…** asks once more, naming what will be deleted, and its message offers **Undo** until the page is closed. An empty Lodoc imports a backup without asking
 - **Automatic backup** (Chrome, Edge and other Chromium browsers): Backup → **Back up automatically…** and pick a folder on your computer. Whenever something changes, a backup is written there shortly after (`lodoc-auto-YYYY-MM-DD.json`, one per day; the last 7 are kept, other files in the folder are never touched). After restarting the browser it may ask once before writing again: the Backup menu then shows **Resume automatic backup**
 - Light/dark switch at the top right of every page
 - **Appearance** panel (bottom of the sidebar): light or dark mode, a soft color tint (pastel in light mode, tinted darks in dark mode), an optional diagonal gradient, page font (sans serif or serif, bundled, nothing loaded from the internet), text size, a connected or floating sidebar (on wide screens; phones always use the connected one), corner roundness and a paper-like grain; every change shows right away
@@ -75,7 +75,7 @@ Backup files from earlier versions (notes and folders only) still import. Note t
 
 ```
 src/db/          Dexie schema and CRUD for notes, folders, boards and image assets
-src/lib/         project file export/import (format version 3)
+src/lib/         backup file export/import (format version 5)
 src/components/  sidebar, editor, board canvas (board/), drag and drop (dnd/), dialogs; ui/ has the shadcn components
 src/hooks/       hash-based routing (#/note/<id>, #/folder/<id>, #/board/<id>, #/tag/<name>, #/trash)
 ```

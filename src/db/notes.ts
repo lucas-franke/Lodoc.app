@@ -49,6 +49,11 @@ export function getOverviewNote(): Promise<string> {
   return overviewNote
 }
 
+/** After all notes were exchanged (a backup replaced them): the scratchpad is looked up again when next needed */
+export function forgetOverviewNote() {
+  overviewNote = null
+}
+
 export async function createNote(folderId: string | null = null): Promise<string> {
   const now = Date.now()
   const note: Note = {

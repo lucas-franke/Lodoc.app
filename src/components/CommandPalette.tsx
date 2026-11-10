@@ -103,7 +103,7 @@ export function CommandPalette({
     { id: 'backup-settings', label: 'Open Backup settings', icon: ArchiveRestore, keywords: 'automatic folder safe storage', run: () => openSettings('backup') },
     { id: 'contrast', label: highContrast ? 'Turn high contrast off' : 'Turn high contrast on', icon: Contrast, keywords: 'accessibility a11y readable', run: () => updateAppearance({ contrast: highContrast ? 'standard' : 'more' }) },
     { id: 'motion', label: reducedMotion() ? 'Turn reduced motion off' : 'Turn reduced motion on', icon: Waves, keywords: 'accessibility a11y animation', run: () => updateAppearance({ motion: reducedMotion() ? 'full' : 'reduce' }) },
-    { id: 'export', label: 'Export all notes', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
+    { id: 'export', label: 'Export backup', icon: ArchiveRestore, keywords: 'all notes save download file', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
     { id: 'import-markdown', label: 'Import Markdown files…', icon: FileText, keywords: 'obsidian notion md zip migrate move', run: () => emitAppEvent('import-markdown-files') },
     { id: 'overview', label: 'Go to Overview', icon: LayoutGrid, keywords: 'home start', run: () => openNote(null) },
     { id: 'activity', label: 'Open Activity', icon: History, keywords: 'changes log history messages notifications', run: () => openActivity() },

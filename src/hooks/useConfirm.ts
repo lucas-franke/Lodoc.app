@@ -4,6 +4,8 @@ export interface ConfirmOptions {
   title: string
   description: string
   action: string
+  /** The other button's label when "Cancel" would be wrong (a step back into the dialog underneath) */
+  cancel?: string
   onConfirm: () => void
 }
 
