@@ -22,6 +22,15 @@ export function trashedItem(entry: TrashEntry): ActivityItem {
   return { type: 'folder', id: top.id, title: entry.title }
 }
 
+/**
+ * The trash entry that holds this note, folder or board: its own, or the one of a folder it was deleted with.
+ * The newest, should there be several (deleted, restored and deleted again).
+ */
+export async function findInTrash(type: ActivityItem['type'], id: string): Promise<TrashEntry | undefined> {
+  const entries = await db.trash.orderBy('deletedAt').reverse().toArray()
+  return entries.find((e) => (type === 'note' ? e.notes : type === 'folder' ? e.folders : e.boards).some((x) => x.id === id))
+}
+
 const logTrashed = (entry: TrashEntry) =>
   logActivity({ kind: 'deleted', text: 'Moved to Trash', item: trashedItem(entry), trashId: entry.id })
 

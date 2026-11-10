@@ -38,6 +38,8 @@ The **Scratchpad** at the top of the overview is a note of its own, for what you
 
 ## The Trash and Activity
 
-Deleting moves a note, folder or board to the Trash, and the message that follows offers **Undo**. **Activity** (in the sidebar) has the **Trash** as a tab: things wait there for 30 days and can be restored, together with their cards on boards.
+Deleting moves a note, folder or board to the Trash, and the message that follows offers **Undo**. **Activity** (in the sidebar) has the **Trash** as a tab: things wait there for 30 days and can be restored, together with their cards on boards. While the Trash holds something, the sidebar also shows **Trash** with the number of items, right under Activity.
+
+A link to something that is in the Trash, such as a bookmark or a link in another note, says so and offers **Restore** on the spot.
 
 Activity also lists what changed and every message Lodoc showed you, so a message that closed by itself is never lost.
