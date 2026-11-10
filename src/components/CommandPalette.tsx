@@ -104,7 +104,7 @@ export function CommandPalette({
     { id: 'journal', label: "Today's journal", icon: CalendarDays, keywords: 'daily diary today date', shortcut: 'Ctrl Alt J', run: async () => openNote(await openTodaysJournal()) },
     ...TEMPLATES.map((t) => ({ id: 'template-' + t.id, label: 'New ' + t.name.toLowerCase(), icon: t.icon, keywords: 'template ' + t.name, run: async () => openNote(await createFromTemplate(t.id, newNoteFolderId)) })),
     ...(data?.notes ?? []).filter((n) => n.template).map((n) => ({ id: 'own-template-' + n.id, label: `New from "${noteTitle(n)}"`, icon: LayoutTemplate, keywords: 'template', run: async () => openNote(await createFromNote(n.id, newNoteFolderId)) })),
-    { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder')) },
+    { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder', null, true)) },
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
     ...(onBoard ? [{ id: 'tidy-board', label: 'Tidy up this board', icon: LayoutGrid, keywords: 'arrange grid align layout clean order', run: () => emitAppEvent('tidy-board') }] : []),
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },

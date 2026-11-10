@@ -12,6 +12,7 @@ Folders can hold notes, boards and other folders. Notes outside any folder are l
 - Select several items with `Ctrl`-click (or `Shift`-click for a range) and move or delete them together.
 - A folder's page shows its contents as cards. Pick how much each card shows (*Full*, *Cover* or *Title*), sort the notes, or filter them by text. *Full* shows the start of a note as you wrote it (headings, lists, checklists with how many are done), its tags and when it was edited. Folder cards list their newest notes, and board cards show a small map of the board.
 - New notes go into the folder you're in.
+- A new folder opens with its name selected: type the name and press `Enter`. Click the name on a folder's page to change it later.
 
 ## Favorites, pins and recent notes
 

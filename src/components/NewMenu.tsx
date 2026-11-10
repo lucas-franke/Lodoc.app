@@ -14,6 +14,7 @@ import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
 import { noteTitle, sortNotes } from '@/db/notes'
 import { openBoard, openFolder, openNote } from '@/hooks/useRoute'
+import { holdKeyboard } from '@/lib/keyboard'
 import { createFromNote, createFromTemplate, TEMPLATES } from '@/lib/templates'
 
 /**
@@ -31,7 +32,13 @@ export function NewMenu({ folderId = null }: { folderId?: string | null }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-60">
-        <DropdownMenuItem onSelect={async () => openFolder(await createFolder('New folder', folderId))}>
+        <DropdownMenuItem
+          onSelect={async () => {
+            // The folder's page opens with its name selected; on a phone the keyboard has to be asked for now
+            holdKeyboard()
+            openFolder(await createFolder('New folder', folderId, true))
+          }}
+        >
           <FolderPlus /> Folder
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={async () => openBoard(await createBoard(folderId))}>

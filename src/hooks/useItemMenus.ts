@@ -254,9 +254,10 @@ export function useFolderMenuEntries(
       icon: FolderPlus,
       onSelect: async () => {
         // The sidebar names a new subfolder right away (the default just opens it)
-        if (onNewSubfolder !== openFolder) holdKeyboard()
+        // Either way a name field follows (the sidebar's row, or the new folder's page with its name selected)
+        holdKeyboard()
         onBeforeCreate?.()
-        onNewSubfolder(await createFolder('New folder', folder.id))
+        onNewSubfolder(await createFolder('New folder', folder.id, onNewSubfolder === openFolder))
       },
     },
     { type: 'separator' },
