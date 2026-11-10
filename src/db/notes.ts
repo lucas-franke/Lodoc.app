@@ -54,11 +54,12 @@ export function forgetOverviewNote() {
   overviewNote = null
 }
 
-export async function createNote(folderId: string | null = null): Promise<string> {
+/** A new note at the top of `folderId`; with a `title` (the palette's New note “…”) it starts named and is kept */
+export async function createNote(folderId: string | null = null, title = ''): Promise<string> {
   const now = Date.now()
   const note: Note = {
     id: nanoid(),
-    title: '',
+    title,
     content: [],
     folderId,
     // Smaller than every existing order, so new notes appear at the top of their folder
@@ -71,7 +72,7 @@ export async function createNote(folderId: string | null = null): Promise<string
   }
   await db.notes.add(note)
   freshNotes.set(note.id, { folderId, order: note.order })
-  logChange('Created', { type: 'note', id: note.id, title: '' })
+  logChange('Created', { type: 'note', id: note.id, title })
   return note.id
 }
 

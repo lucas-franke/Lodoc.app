@@ -21,7 +21,12 @@ Folders can hold notes, boards and other folders. Notes outside any folder are l
 
 ## Search and commands
 
-`Ctrl` + `K` (or **Search** at the top of the sidebar) opens the command palette. It finds notes by title and text, with the match highlighted, as well as folders, boards and tags. It also runs commands: a new note, folder or board, today's journal, the theme, a backup and more.
+`Ctrl` + `K` (or **Search** at the top of the sidebar) opens the command palette. It finds notes by title and text, as well as folders, boards and tags. It also runs commands: a new note, folder or board, today's journal, the theme, a backup and more.
+
+- Type several words in any order: a note is found when it has all of them, and each one is highlighted. Put a phrase in "quotes" to find exactly that.
+- Notes with your words in the title come first, then the ones edited last.
+- The first 8 notes are listed. **Show all … notes** at the end of them lists the rest.
+- **New note “…”** at the end of the commands makes a note with what you typed as its title.
 
 ## Today's journal
 
