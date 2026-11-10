@@ -4,6 +4,10 @@ export interface ConfirmOptions {
   title: string
   description: string
   action: string
+  /** The other button's label when "Cancel" would be wrong (a step back into the dialog underneath) */
+  cancel?: string
+  /** The action isn't a delete (a merge): the ordinary button instead of the red one */
+  plain?: boolean
   onConfirm: () => void
 }
 

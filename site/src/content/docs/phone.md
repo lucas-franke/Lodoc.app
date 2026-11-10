@@ -28,6 +28,7 @@ To collect somewhere else, choose **Collect here** in any note's menu.
 ## Writing on a phone
 
 - The format bar above the keyboard has undo and redo, the block type, lists, checklists, indenting and text styles. Tablets have it too, at the bottom of the page.
+- The magnifier and the pencil at the top of every page search and start a new note, without opening the sidebar. The star for favorites is in the ⋯ menu.
 - Swipe from the left edge to open the sidebar, and swipe it away or tap outside it to close it. A phone held sideways works the same way.
 - Press and hold a note, folder or board in the sidebar for its menu (the row of the page you are on also shows its ⋯). To move it instead, keep your finger down and drag it where it should go.
 - On a board, tap a card to select it, then drag it to move it or pull a corner to resize it. Swiping anywhere else, also across other cards, moves the board, and two fingers zoom.

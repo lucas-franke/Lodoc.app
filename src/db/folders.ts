@@ -5,7 +5,19 @@ import { deleteBoard } from './boards'
 import { deleteNotes } from './notes'
 import type { Folder } from './schema'
 
-export async function createFolder(name: string, parentId: string | null = null): Promise<string> {
+/** Folders just created whose page is opened next: the name there starts selected, like a new board's */
+const freshFolders = new Set<string>()
+
+/** True once for a folder created with `naming` (the next call returns false) */
+export function takeFreshFolder(id: string) {
+  return freshFolders.delete(id)
+}
+
+/**
+ * `naming`: the caller opens the folder's page right away, where the name should be selected for typing over.
+ * (The sidebar names new folders in the row instead and leaves it off.)
+ */
+export async function createFolder(name: string, parentId: string | null = null, naming = false): Promise<string> {
   const folder: Folder = {
     id: nanoid(),
     name: name.trim() || 'New folder',
@@ -14,6 +26,7 @@ export async function createFolder(name: string, parentId: string | null = null)
     createdAt: Date.now(),
   }
   await db.folders.add(folder)
+  if (naming) freshFolders.add(folder.id)
   logChange('Created', { type: 'folder', id: folder.id, title: folder.name })
   return folder.id
 }

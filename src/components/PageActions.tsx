@@ -20,7 +20,8 @@ export function NotePageActions({ note }: { note: Note }) {
   const entries = useNoteMenuEntries(note, { onRename: () => selectTitle('Note title') })
   return (
     <>
-      <FavoriteButton favorite={note.favorite} onToggle={() => toggleFavorite(note.id)} />
+      {/* Not on phones, where Search and New note need the room: "Add to favorites" is second in the ⋯ menu */}
+      <FavoriteButton favorite={note.favorite} onToggle={() => toggleFavorite(note.id)} className="max-sm:hidden" />
       <MoreMenu label="Note actions" entries={entries} />
     </>
   )
@@ -60,11 +61,11 @@ function MoreMenu({ label, entries }: { label: string; entries: Parameters<typeo
 }
 
 /** The star in the page header (notes and boards) */
-function FavoriteButton({ favorite, onToggle }: { favorite: boolean; onToggle: () => void }) {
+function FavoriteButton({ favorite, onToggle, className }: { favorite: boolean; onToggle: () => void; className?: string }) {
   const label = favorite ? 'Remove from favorites' : 'Add to favorites'
   return (
     <Tip label={label}>
-      <Button variant="ghost" size="icon-sm" aria-label={label} aria-pressed={favorite} onClick={onToggle}>
+      <Button variant="ghost" size="icon-sm" aria-label={label} aria-pressed={favorite} onClick={onToggle} className={className}>
         <Star className={cn(favorite && 'fill-current')} />
       </Button>
     </Tip>

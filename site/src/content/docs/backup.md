@@ -8,10 +8,11 @@ Lodoc stores everything in your browser, on this device. Nothing is sent anywher
 
 ## Export and import
 
-- **Export all notes** saves notes, folders, boards and their images as one file, `lodoc-2026-10-20.json`. The backup reminder in the sidebar shows when you made the last one.
-- **Import from file…** reads such a file and asks how to bring it in:
+- **Export backup** saves notes, folders, boards and their images as one file, `lodoc-2026-10-20.json`. The backup reminder in the sidebar shows when you made the last one.
+- **Import backup…** reads such a file, shows what it holds next to what Lodoc holds now, and asks how to bring it in:
   - **Merge** adds it to what you have. If a note or board is in both, the more recently edited one is kept. What you deleted here since stays deleted, and your look stays as it is.
-  - **Replace** removes everything first and takes the file's notes and look.
+  - **Replace all…** removes everything first, the Trash included, and takes the file's notes and look. It asks once more and names what will be deleted. The message that follows offers **Undo**, which brings everything back as long as you haven't closed or reloaded Lodoc.
+- While Lodoc is still empty, a backup is imported right away, without the question.
 
 ## Automatic backup
 
@@ -21,9 +22,9 @@ In Chrome and Edge on a computer, **Settings → Backup → Choose a folder…**
 
 Each device keeps its own notes. To bring them to another one:
 
-1. On the first device, **Export all notes**.
+1. On the first device, **Export backup**.
 2. Get the file to the other device however suits you: a cable, email to yourself, a cloud drive, a chat with yourself.
-3. There, use **Import from file…** and choose **Merge**.
+3. There, use **Import backup…** and choose **Merge**.
 
 It's a copy, not a sync: after that, each device carries on on its own. A note deleted on the first device stays on the other until you delete it there too.
 

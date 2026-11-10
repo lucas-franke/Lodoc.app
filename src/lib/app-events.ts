@@ -10,6 +10,7 @@ type AppEvent =
   | 'tidy-board'
   | 'import-markdown-files'
   | 'import-markdown-folder'
+  | 'rename-tag'
 
 const target = new EventTarget()
 

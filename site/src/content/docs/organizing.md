@@ -12,6 +12,7 @@ Folders can hold notes, boards and other folders. Notes outside any folder are l
 - Select several items with `Ctrl`-click (or `Shift`-click for a range) and move or delete them together.
 - A folder's page shows its contents as cards. Pick how much each card shows (*Full*, *Cover* or *Title*), sort the notes, or filter them by text. *Full* shows the start of a note as you wrote it (headings, lists, checklists with how many are done), its tags and when it was edited. Folder cards list their newest notes, and board cards show a small map of the board.
 - New notes go into the folder you're in.
+- A new folder opens with its name selected: type the name and press `Enter`. Click the name on a folder's page to change it later.
 
 ## Favorites, pins and recent notes
 
@@ -21,7 +22,12 @@ Folders can hold notes, boards and other folders. Notes outside any folder are l
 
 ## Search and commands
 
-`Ctrl` + `K` (or **Search** at the top of the sidebar) opens the command palette. It finds notes by title and text, with the match highlighted, as well as folders, boards and tags. It also runs commands: a new note, folder or board, today's journal, the theme, a backup and more.
+`Ctrl` + `K` (or **Search** at the top of the sidebar) opens the command palette. It finds notes by title and text, as well as folders, boards and tags. It also runs commands: a new note, folder or board, today's journal, the theme, a backup and more.
+
+- Type several words in any order: a note is found when it has all of them, and each one is highlighted. Put a phrase in "quotes" to find exactly that.
+- Notes with your words in the title come first, then the ones edited last.
+- The first 8 notes are listed. **Show all … notes** at the end of them lists the rest.
+- **New note “…”** at the end of the commands makes a note with what you typed as its title.
 
 ## Today's journal
 
@@ -33,6 +39,8 @@ The **Scratchpad** at the top of the overview is a note of its own, for what you
 
 ## The Trash and Activity
 
-Deleting moves a note, folder or board to the Trash, and the message that follows offers **Undo**. **Activity** (in the sidebar) has the **Trash** as a tab: things wait there for 30 days and can be restored, together with their cards on boards.
+Deleting moves a note, folder or board to the Trash, and the message that follows offers **Undo**. **Activity** (in the sidebar) has the **Trash** as a tab: things wait there for 30 days and can be restored, together with their cards on boards. While the Trash holds something, the sidebar also shows **Trash** with the number of items, right under Activity.
+
+A link to something that is in the Trash, such as a bookmark or a link in another note, says so and offers **Restore** on the spot.
 
 Activity also lists what changed and every message Lodoc showed you, so a message that closed by itself is never lost.

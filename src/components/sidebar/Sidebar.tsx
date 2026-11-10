@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronRight, FolderPlus, Hash, History, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen } from 'lucide-react'
+import { ChevronRight, FolderPlus, Hash, History, LayoutGrid, PanelLeftClose, Plus, Search, SquarePen, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Tip } from '@/components/Tip'
 import { Button } from '@/components/ui/button'
@@ -30,6 +30,8 @@ import { holdKeyboard } from '@/lib/keyboard'
 import { plural } from '@/lib/format'
 import { useActivitySeen } from '@/db/activity'
 import { emitAppEvent } from '@/lib/app-events'
+import { RowContextMenu } from '@/components/ItemMenu'
+import { tagMenuEntries } from '@/components/tags/tag-actions'
 
 const EXPANDED_KEY = 'localnotes:expanded'
 const NOT_LOADED: Folder[] = []
@@ -150,7 +152,11 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
 
   const sidebarWidth = useSidebarWidth()
   const isHome = useIsHome()
-  const onActivity = useActivityTab() !== null
+  // The Trash is a tab of Activity; while it holds something it has a row of its own, so it can be found
+  const activityTab = useActivityTab()
+  const trashCount = useLiveQuery(() => db.trash.count(), [], 0)
+  const onTrash = activityTab === 'trash' && trashCount > 0
+  const onActivity = activityTab !== null && !onTrash
   const activeTag = useTagRoute()
   // Errors since Activity was last opened get a dot (other messages were seen as they appeared)
   const seen = useActivitySeen()
@@ -253,6 +259,17 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
               )}
             </a>
           </div>
+          {trashCount > 0 && (
+            <div className={rowClass(onTrash)} data-trash-row>
+              <a href="#/activity/trash" aria-current={onTrash ? 'page' : undefined} className={rowLinkClass} style={{ paddingLeft: '0.5rem' }}>
+                <Trash2 className="size-(--icon) shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate">Trash</span>
+                <span className="pr-1.5 text-xs text-muted-foreground tabular-nums" aria-label={plural(trashCount, 'item')}>
+                  {trashCount}
+                </span>
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Radix lays the content out as a table that grows with its widest row; make it a plain block so long names are cut off (truncate) and the buttons stay in view */}
@@ -342,18 +359,22 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
               {tags.length > 0 && (
                 <Section title="Tags" collapsible="tags">
                   {tags.map(({ tag, count }) => (
-                    <div key={tag} className={rowClass(activeTag === tag)}>
-                      <a
-                        href={`#/tag/${encodeURIComponent(tag)}`}
-                        aria-current={activeTag === tag ? 'page' : undefined}
-                        className={rowLinkClass}
-                        style={{ paddingLeft: '0.5rem' }}
-                      >
-                        <Hash className="size-(--icon-sm) shrink-0 text-muted-foreground" />
-                        <span className="min-w-0 flex-1 truncate">{tag}</span>
-                        <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
-                      </a>
-                    </div>
+                    // Right-click (or press and hold) for the tag's menu, the one its page has under ⋯
+                    <RowContextMenu key={tag} entries={tagMenuEntries(tag)}>
+                      <div className={rowClass(activeTag === tag)} data-tag-row={tag}>
+                        <a
+                          href={`#/tag/${encodeURIComponent(tag)}`}
+                          aria-current={activeTag === tag ? 'page' : undefined}
+                          className={rowLinkClass}
+                          style={{ paddingLeft: '0.5rem' }}
+                          draggable={false}
+                        >
+                          <Hash className="size-(--icon-sm) shrink-0 text-muted-foreground" />
+                          <span className="min-w-0 flex-1 truncate">{tag}</span>
+                          <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
+                        </a>
+                      </div>
+                    </RowContextMenu>
                   ))}
                 </Section>
               )}

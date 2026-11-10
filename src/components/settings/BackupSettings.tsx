@@ -32,10 +32,10 @@ export function BackupSettings() {
         )}
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" className="border-control-border" onClick={() => void exportBackup()}>
-            <Download /> Export all notes
+            <Download /> Export backup
           </Button>
           <Button variant="outline" size="sm" className="border-control-border" onClick={importFile.pick}>
-            <Upload /> Import from file…
+            <Upload /> Import backup…
           </Button>
         </div>
       </SectionBlock>

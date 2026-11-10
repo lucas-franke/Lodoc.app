@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { FilePlus, PanelLeftOpen } from 'lucide-react'
+import { PanelLeftOpen, Search, SquarePen } from 'lucide-react'
+import { MissingPage } from '@/components/MissingPage'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { BoardBreadcrumb } from '@/components/board/BoardBreadcrumb'
 import { CommandPalette } from '@/components/CommandPalette'
@@ -27,7 +28,7 @@ import { useSidebarSwipe } from '@/hooks/useSidebarSwipe'
 import { useDiscardUntouchedNote } from '@/hooks/useDiscardUntouchedNote'
 import { useMilestones } from '@/hooks/useMilestones'
 import { useMarkdownImport } from '@/hooks/useMarkdownImport'
-import { openNote, openSettings, useActivityTab, useRoute, useSettingsTab, useTagRoute, type RouteType } from '@/hooks/useRoute'
+import { openNote, openSettings, useActivityTab, useRoute, useSettingsTab, useTagRoute } from '@/hooks/useRoute'
 import { useAppEvent } from '@/lib/app-events'
 import { WIDE_SCREEN } from '@/lib/appearance'
 import { cn } from '@/lib/utils'
@@ -135,6 +136,9 @@ export default function App() {
   // New notes go into the folder you're looking at (or the current note's folder)
   const newNoteFolderId =
     current?.type === 'note' ? current.note.folderId : current?.type === 'folder' ? current.folder.id : null
+  // The same words as the sidebar's pencil
+  const newNoteFolder = useLiveQuery(() => (newNoteFolderId ? db.folders.get(newNoteFolderId) : undefined), [newNoteFolderId])
+  const newNoteLabel = newNoteFolder ? `New note in "${newNoteFolder.name}"` : 'New unfiled note'
 
   useEffect(() => {
     const onKeyDown = async (e: KeyboardEvent) => {
@@ -230,6 +234,29 @@ export default function App() {
               )}
               {current?.type === 'board' && <BoardBreadcrumb board={current.board} />}
               <div className="ml-auto flex shrink-0 items-center gap-1">
+                {/* While the sidebar is hidden (on a phone: always), its two top actions are here, with the same
+                    icons. Boards keep their own toolbar, which already fills a phone's header. */}
+                {!sidebarOpen && !onBoard && (
+                  <>
+                    <Tip label="Search" shortcut="Ctrl K">
+                      <Button variant="ghost" size="icon-sm" onClick={() => setPaletteOpen(true)} aria-label="Search and commands" data-header-search>
+                        <Search />
+                      </Button>
+                    </Tip>
+                    <Tip label={newNoteLabel} shortcut="Ctrl Alt N">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={async () => openNote(await createNote(newNoteFolderId))}
+                        aria-label="New note"
+                        aria-description={newNoteLabel}
+                        data-header-new-note
+                      >
+                        <SquarePen />
+                      </Button>
+                    </Tip>
+                  </>
+                )}
                 {current?.type === 'note' && <NotePageActions note={current.note} />}
                 {current?.type === 'folder' && <FolderPageActions folder={current.folder} />}
                 {current?.type === 'board' && <BoardPageActions board={current.board} />}
@@ -259,7 +286,7 @@ export default function App() {
             ) : tagRoute !== null ? (
               <TagView key={tagRoute} tag={tagRoute} />
             ) : route ? (
-              <EmptyState missing={route.type} />
+              <MissingPage key={routeKey} type={route.type} id={route.id} />
             ) : (
               // No page open: an overview once there is content, the welcome before that
               <HomeView empty={<Welcome />} />
@@ -276,18 +303,5 @@ export default function App() {
         </Suspense>
       )}
     </AppDnd>
-  )
-}
-
-/** A link to a page that has been deleted (or never existed) */
-function EmptyState({ missing }: { missing: RouteType }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-      <h1 className="sr-only">Lodoc</h1>
-      <p className="text-sm text-muted-foreground">This {missing} no longer exists.</p>
-      <Button onClick={async () => openNote(await createNote())}>
-        <FilePlus /> New note
-      </Button>
-    </div>
   )
 }

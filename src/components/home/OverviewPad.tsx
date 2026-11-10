@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { db } from '@/db/db'
-import { getOverviewNote } from '@/db/notes'
+import { forgetOverviewNote, getOverviewNote } from '@/db/notes'
 
 const NoteEditor = lazy(() => import('@/components/editor/NoteEditor').then((m) => ({ default: m.NoteEditor })))
 
@@ -12,11 +12,13 @@ const NoteEditor = lazy(() => import('@/components/editor/NoteEditor').then((m) 
  * alone is no label (and is gone once something is written).
  */
 export function OverviewPad() {
-  const [id, setId] = useState<string | null>(null)
+  // Looked up in the notes themselves, so it follows when a backup replaces them (null: there is none right now)
+  const note = useLiveQuery(async () => (await db.notes.filter((n) => !!n.overview).first()) ?? null, [], undefined)
   useEffect(() => {
-    void getOverviewNote().then(setId)
-  }, [])
-  const note = useLiveQuery(() => (id ? db.notes.get(id) : undefined), [id])
+    if (note === null) forgetOverviewNote()
+    // Makes it the first time (and gives an old one its new name)
+    if (!note) void getOverviewNote()
+  }, [note])
   return (
     <section aria-labelledby="overview-pad-label" className="mt-6">
       <h2 id="overview-pad-label" className="mb-2 text-base font-semibold">

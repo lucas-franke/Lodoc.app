@@ -1,6 +1,6 @@
 # Lodoc
 
-A minimalist, Notion-like note-taking app that runs entirely in the browser. There is no server: notes and boards are stored in the browser's IndexedDB and can be exported/imported as a JSON project file.
+A minimalist, Notion-like note-taking app that runs entirely in the browser. There is no server: notes and boards are stored in the browser's IndexedDB and can be exported/imported as a JSON backup file.
 
 [Try it out on lodoc.app](https://lodoc.app/)
 
@@ -16,7 +16,7 @@ This Project and its content are written by Claude Code.
 - Note cards (overview, folders, tags, boards): the cover on top, then the title, then the start of the note in its own shape (headings, lists, checklist items with their ticks) and one line with when it was edited, checklist progress and up to two tags. Folder cards list their newest notes, board cards show a small map of the board. Phones show cards in two columns
 - Card views (**Full** / **Cover** / **Title**): the folder view has one switch for all cards; on a board every card has its own view (card menu) and the **Cards** menu in the top-right corner sets all of them at once (new cards start in that view)
 - Resizable sidebar: drag its right edge (or focus it and use the arrow keys, double-click to reset) to read long titles; the buttons to create things always stay in view
-- Nested folders, favorites, pinned notes (pinned notes stay at the top of their list); notes outside folders are listed under **Unfiled**. The pencil at the top of the sidebar (and `Ctrl+Alt+N`) creates the note in the folder you are in; its tooltip says where
+- Nested folders, favorites, pinned notes (pinned notes stay at the top of their list); notes outside folders are listed under **Unfiled**. The pencil at the top of the sidebar (and `Ctrl+Alt+N`) creates the note in the folder you are in; its tooltip says where. While the sidebar is hidden (on phones: always), **Search** and **New note** sit in the page header instead; on phones the star for favorites is in the ⋯ menu
 - Drag and drop in the sidebar to reorder notes and folders or move them (and boards) into other folders (or use **Move up / down** and **Move to** in the row menu)
 - **Select several items** in the sidebar with `Ctrl`/`⌘`-click (or **Select** in a row menu) and `Shift`-click for a range; a bar at the bottom of the sidebar moves them to a folder or to the Trash (with **Undo**). Dragging one of the selected rows takes all of them along: into a folder, back to the top level, or (their notes) onto the open board. `Escape` clears the selection
 - **Boards**: an infinite canvas per topic (pan and zoom) with note cards, text annotations and images. Images are plain or a **Polaroid** (white frame, slight tilt, a caption that is also the image's description), set in the image toolbar
@@ -29,18 +29,18 @@ This Project and its content are written by Claude Code.
   - On touch screens, tap an item before dragging or resizing it; a swipe that starts on an item that isn't selected pans the board (pinch to zoom)
   - Cards are live views of your notes (renaming or editing a note updates every board); moving, resizing and deleting items is saved automatically; removing a card never deletes the note
   - Double-click a card (or use its pencil button) to edit the note right there, with the full editor and slash commands; one card is edited at a time, `Escape` or the check button finishes
-- **Trash**: deleting a note, folder or board moves it to the Trash (no confirmation; the notification offers **Undo**). The Trash page (sidebar, under Overview) restores items with their cards on boards, or deletes them for good; items older than 30 days are removed automatically. Images stay as long as a trashed item uses them
+- **Trash**: deleting a note, folder or board moves it to the Trash (no confirmation; the notification offers **Undo**). The Trash is a tab of **Activity**; while it holds something, the sidebar shows a **Trash** row with the number of items under Activity. It restores items with their cards on boards, or deletes them for good. A link to something in the Trash says so and offers **Restore** right there; items older than 30 days are removed automatically. Images stay as long as a trashed item uses them
 - Small helpers: an info line under the note title (last edit, word count); **Continue where you left off** on the Overview (the note you had open last); a filter field in folders; sidebar sections can be collapsed, and a **Recent** section lists the last edited notes; with two or more notifications open, one offers **Clear all**; board cards hide their details when zoomed far out
 - Covers can be switched to "only the ones I picked" (Appearance → Pages → Automatic covers)
 - **Outline**: notes with three or more headings show an "On this page" list at the right edge of wide windows; click a heading to jump to it
 - **Getting started guide**: a note that shows the basics by example (welcome screen or command palette)
 - **Install as an app / offline**: Lodoc can be installed from the browser (it has a web app manifest) and keeps working without a connection once it has been opened (a service worker caches the built files; a new version replaces the cache)
-- **Tags**: add tags under a note title ("Add tag", suggestions from tags you already use); each tag has a page with its notes, the sidebar lists them under **Tags**, and the command palette finds them (`#name`)
+- **Tags**: add tags under a note title ("Add tag", suggestions from tags you already use); each tag has a page with its notes, the sidebar lists them under **Tags**, and the command palette finds them (`#name`). A tag's page sorts and filters its notes like a folder, and its ⋯ menu (also a right-click on the tag in the sidebar) has **Rename** (on every note and where it is written as `#tag`; renaming to an existing tag merges the two after a question) and **Remove from all notes** (with **Undo**)
 - **Links between notes**: type `@` in a note to link to another note (or to create one with that name). Links show the current title and open the note; every note lists the notes that link to it under **Linked from**. In Markdown exports a link becomes `[[Title]]`
 - **Templates**: **New…** next to "New note" (overview, folders; it also makes folders and boards) or the command palette: meeting notes, daily journal, project plan, to-do list
 - A new note you never touch (no title, no text, not pinned, favorited or moved) is not kept when you move on to something else
-- Full-text search across titles and note content
-- Backup: export everything (notes, folders, boards and their images, including note covers) as `lodoc-YYYY-MM-DD.json`; import with **Merge** (the more recently edited note or board wins) or **Replace**
+- Full-text search across titles and note content: every word you type has to appear, in any order (a phrase in "quotes" exactly as typed). Notes with the words in their title come first; the first 8 are listed and **Show all … notes** lists the rest. **New note “…”** at the end of the commands makes a note named after what you typed
+- Backup: **Export backup** saves everything (notes, folders, boards and their images, including note covers) as `lodoc-YYYY-MM-DD.json`. **Import backup…** shows what the file holds next to what Lodoc holds now. **Merge** (the more recently edited note or board wins) is the main button; **Replace all…** asks once more, naming what will be deleted, and its message offers **Undo** until the page is closed. An empty Lodoc imports a backup without asking
 - **Automatic backup** (Chrome, Edge and other Chromium browsers): Backup → **Back up automatically…** and pick a folder on your computer. Whenever something changes, a backup is written there shortly after (`lodoc-auto-YYYY-MM-DD.json`, one per day; the last 7 are kept, other files in the folder are never touched). After restarting the browser it may ask once before writing again: the Backup menu then shows **Resume automatic backup**
 - Light/dark switch at the top right of every page
 - **Appearance** panel (bottom of the sidebar): light or dark mode, a soft color tint (pastel in light mode, tinted darks in dark mode), an optional diagonal gradient, page font (sans serif or serif, bundled, nothing loaded from the internet), text size, a connected or floating sidebar (on wide screens; phones always use the connected one), corner roundness and a paper-like grain; every change shows right away
@@ -75,7 +75,7 @@ Backup files from earlier versions (notes and folders only) still import. Note t
 
 ```
 src/db/          Dexie schema and CRUD for notes, folders, boards and image assets
-src/lib/         project file export/import (format version 3)
+src/lib/         backup file export/import (format version 5)
 src/components/  sidebar, editor, board canvas (board/), drag and drop (dnd/), dialogs; ui/ has the shadcn components
 src/hooks/       hash-based routing (#/note/<id>, #/folder/<id>, #/board/<id>, #/tag/<name>, #/trash)
 ```

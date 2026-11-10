@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { boardTitle, renameBoard, sortBoards } from '@/db/boards'
 import { db } from '@/db/db'
-import { renameFolder } from '@/db/folders'
+import { renameFolder, takeFreshFolder } from '@/db/folders'
 import { createNote, isListed, latestNotesIn, noteText, noteTitle, renameNote, sortNotesBy } from '@/db/notes'
 import type { Board, Folder, Note, NoteCardView } from '@/db/schema'
 import { useBoardMenuEntries, useFolderMenuEntries, useNoteMenuEntries } from '@/hooks/useItemMenus'
@@ -56,8 +56,9 @@ export function FolderView({ folder }: { folder: Folder }) {
   return (
     // Wider on large screens, for more columns of cards
     <div className="mx-auto w-full max-w-4xl px-4 pt-10 pb-32 sm:px-12 2xl:max-w-6xl">
-      <div className="flex items-center gap-3">
-        <FolderOpen className="size-8 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+      {/* The icon stays with the first line of a name that wraps */}
+      <div className="flex items-start gap-3">
+        <FolderOpen className="mt-1.5 size-8 shrink-0 text-muted-foreground max-sm:mt-0.5" strokeWidth={1.5} />
         <FolderTitle folder={folder} />
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
@@ -241,10 +242,28 @@ export function CardSection({
   )
 }
 
-/** Editable folder name, styled like a note title. */
+/**
+ * Editable folder name, like a note title: a long name wraps instead of being cut off, and it stays one paragraph.
+ * A folder that was just created for this page starts with its name selected, so typing replaces "New folder".
+ */
 function FolderTitle({ folder }: { folder: Folder }) {
   const [name, setName] = useState(folder.name)
-  const ref = useRef<HTMLInputElement>(null)
+  const ref = useRef<HTMLTextAreaElement>(null)
+
+  // Browsers without `field-sizing: content` (Safari, Firefox) get the height set by hand
+  useEffect(() => {
+    const field = ref.current
+    if (!field || CSS.supports('field-sizing', 'content')) return
+    field.style.height = 'auto'
+    field.style.height = `${field.scrollHeight}px`
+  }, [name])
+
+  useEffect(() => {
+    if (!takeFreshFolder(folder.id)) return
+    // After the menu or palette that made it has closed and handed the focus back
+    const timer = window.setTimeout(() => ref.current?.select(), 60)
+    return () => window.clearTimeout(timer)
+  }, [folder.id])
 
   // Follow renames made elsewhere (e.g. the sidebar) while not editing here
   useEffect(() => {
@@ -257,13 +276,17 @@ function FolderTitle({ folder }: { folder: Folder }) {
   }
 
   return (
-    <input
+    <textarea
       ref={ref}
+      rows={1}
       value={name}
-      onChange={(e) => setName(e.target.value)}
+      onChange={(e) => setName(e.target.value.replace(/\s*\n\s*/g, ' '))}
       onBlur={commit}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur()
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          e.currentTarget.blur()
+        }
         if (e.key === 'Escape') {
           setName(folder.name)
           requestAnimationFrame(() => ref.current?.blur())
@@ -271,7 +294,7 @@ function FolderTitle({ folder }: { folder: Folder }) {
       }}
       placeholder="Untitled folder"
       aria-label="Folder name"
-      className="w-full min-w-0 bg-transparent font-page text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
+      className="block w-full min-w-0 resize-none overflow-hidden bg-transparent font-page text-4xl leading-tight font-bold tracking-tight text-balance outline-none [field-sizing:content] placeholder:text-muted-foreground max-sm:text-3xl"
     />
   )
 }

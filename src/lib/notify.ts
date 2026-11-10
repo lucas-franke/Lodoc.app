@@ -8,6 +8,8 @@ type Options = {
   id?: string | number
   /** Already in Activity as a change (e.g. "Moved to Trash"), so the message isn't logged a second time */
   logged?: boolean
+  /** Stays until it is closed, like an error: for an Undo that mustn't slip away (a replaced backup) */
+  stay?: boolean
 }
 
 /** How long a message with a button (Undo, Open) stays; plain ones use sonner's default (4s) */
@@ -42,12 +44,13 @@ function rememberHint() {
  * but errors closes after a few seconds (paused while hovered or focused), errors stay until closed. The
  * first message that closes by itself explains this and stays a little longer; it is shown once.
  */
-export function notify(text: string, { level = 'info', action, id, logged = false }: Options = {}) {
+export function notify(text: string, { level = 'info', action, id, logged = false, stay = false }: Options = {}) {
   if (!logged) logActivity({ kind: 'message', text, level })
-  const options: ExternalToast = { id, action, duration: level === 'error' ? Infinity : action ? WITH_ACTION : undefined }
+  const stays = stay || level === 'error'
+  const options: ExternalToast = { id, action, duration: stays ? Infinity : action ? WITH_ACTION : undefined }
 
-  // Not on an error: those stay until closed, so "messages like this close by themselves" wouldn't be true
-  if (level !== 'error' && !hintShowing && !hintSeen()) {
+  // Not on a message that stays until closed: "messages like this close by themselves" wouldn't be true
+  if (!stays && !hintShowing && !hintSeen()) {
     hintShowing = true
     Object.assign(options, {
       description: HINT,

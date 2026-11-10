@@ -3,6 +3,7 @@ import {
   ArchiveRestore,
   BookOpen,
   CalendarDays,
+  ChevronDown,
   Contrast,
   FilePlus,
   FileText,
@@ -36,7 +37,7 @@ import {
 import { boardTitle, createBoard } from '@/db/boards'
 import { db } from '@/db/db'
 import { createFolder } from '@/db/folders'
-import { createNote, noteSnippetText, noteText, noteTitle, sortNotes, tagCounts } from '@/db/notes'
+import { createNote, noteSnippetText, noteText, noteTitle, tagCounts } from '@/db/notes'
 import type { Board, Folder, Note } from '@/db/schema'
 import { openBoard, openFolder, openNote, openTag, openActivity, useRoute, openSettings } from '@/hooks/useRoute'
 import { updateAppearance } from '@/hooks/useAppearance'
@@ -47,6 +48,10 @@ import { openGuideNote } from '@/lib/guide'
 import { openTodaysJournal } from '@/lib/journal'
 import { createFromNote, createFromTemplate, TEMPLATES } from '@/lib/templates'
 import { exportProject } from '@/lib/project-file'
+import { excerptAround, hasAllTerms, rankNotes, searchTerms, splitMatches } from '@/lib/search'
+
+/** How many notes a search lists before "Show all" */
+const NOTES_SHOWN = 8
 
 type Action = { id: string; label: string; icon: LucideIcon; keywords?: string; shortcut?: string; run: () => void }
 
@@ -65,6 +70,8 @@ export function CommandPalette({
   newNoteFolderId: string | null
 }) {
   const [query, setQuery] = useState('')
+  // The query whose notes are all listed ("Show all 14 notes"); typing something else goes back to the first few
+  const [allFor, setAllFor] = useState<string | null>(null)
   const data = useLiveQuery(
     async () => (open ? { notes: await db.notes.toArray(), folders: await db.folders.toArray(), boards: await db.boards.toArray() } : null),
     [open],
@@ -79,7 +86,10 @@ export function CommandPalette({
   const visibleHeight = useVisibleHeight(open)
   const close = (o: boolean) => {
     onOpenChange(o)
-    if (!o) setQuery('')
+    if (!o) {
+      setQuery('')
+      setAllFor(null)
+    }
   }
   const run = (fn: () => void) => () => {
     ran.current = true
@@ -94,7 +104,7 @@ export function CommandPalette({
     { id: 'journal', label: "Today's journal", icon: CalendarDays, keywords: 'daily diary today date', shortcut: 'Ctrl Alt J', run: async () => openNote(await openTodaysJournal()) },
     ...TEMPLATES.map((t) => ({ id: 'template-' + t.id, label: 'New ' + t.name.toLowerCase(), icon: t.icon, keywords: 'template ' + t.name, run: async () => openNote(await createFromTemplate(t.id, newNoteFolderId)) })),
     ...(data?.notes ?? []).filter((n) => n.template).map((n) => ({ id: 'own-template-' + n.id, label: `New from "${noteTitle(n)}"`, icon: LayoutTemplate, keywords: 'template', run: async () => openNote(await createFromNote(n.id, newNoteFolderId)) })),
-    { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder')) },
+    { id: 'new-folder', label: 'New folder', icon: FolderPlus, run: async () => openFolder(await createFolder('New folder', null, true)) },
     { id: 'new-board', label: 'New board', icon: LayoutGrid, keywords: 'canvas', run: async () => openBoard(await createBoard()) },
     ...(onBoard ? [{ id: 'tidy-board', label: 'Tidy up this board', icon: LayoutGrid, keywords: 'arrange grid align layout clean order', run: () => emitAppEvent('tidy-board') }] : []),
     { id: 'theme', label: dark ? 'Switch to light mode' : 'Switch to dark mode', icon: dark ? Sun : Moon, keywords: 'theme dark light', run: () => setTheme(dark ? 'light' : 'dark') },
@@ -103,7 +113,7 @@ export function CommandPalette({
     { id: 'backup-settings', label: 'Open Backup settings', icon: ArchiveRestore, keywords: 'automatic folder safe storage', run: () => openSettings('backup') },
     { id: 'contrast', label: highContrast ? 'Turn high contrast off' : 'Turn high contrast on', icon: Contrast, keywords: 'accessibility a11y readable', run: () => updateAppearance({ contrast: highContrast ? 'standard' : 'more' }) },
     { id: 'motion', label: reducedMotion() ? 'Turn reduced motion off' : 'Turn reduced motion on', icon: Waves, keywords: 'accessibility a11y animation', run: () => updateAppearance({ motion: reducedMotion() ? 'full' : 'reduce' }) },
-    { id: 'export', label: 'Export all notes', icon: ArchiveRestore, keywords: 'backup save download', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
+    { id: 'export', label: 'Export backup', icon: ArchiveRestore, keywords: 'all notes save download file', run: async () => { await exportProject(); emitAppEvent('backup-exported') } },
     { id: 'import-markdown', label: 'Import Markdown files…', icon: FileText, keywords: 'obsidian notion md zip migrate move', run: () => emitAppEvent('import-markdown-files') },
     { id: 'overview', label: 'Go to Overview', icon: LayoutGrid, keywords: 'home start', run: () => openNote(null) },
     { id: 'activity', label: 'Open Activity', icon: History, keywords: 'changes log history messages notifications', run: () => openActivity() },
@@ -113,21 +123,37 @@ export function CommandPalette({
     ...(isTouchScreen() ? [] : [{ id: 'shortcuts', label: 'Keyboard shortcuts', icon: Keyboard, keywords: 'help keys', shortcut: '?', run: () => emitAppEvent('open-shortcuts') }]),
   ]
 
+  // Every word has to match, in any order (lib/search.ts); a part in quotes is one phrase
   const q = query.trim().toLowerCase()
-  const shownActions = q ? actions.filter((a) => `${a.label} ${a.keywords ?? ''}`.toLowerCase().includes(q)) : actions
+  const terms = searchTerms(query)
+  // What a new note made from the query would be called: as typed, without the quotes
+  const typedTitle = query.trim().replace(/"/g, '').replace(/\s+/g, ' ')
+  const shownActions: Action[] = terms.length
+    ? [
+        ...actions.filter((a) => hasAllTerms(`${a.label} ${a.keywords ?? ''}`, terms)),
+        // Last, so Enter on a typed command ("dark", "trash") still runs that command; alone when nothing else matches
+        ...(typedTitle
+          ? [{ id: 'new-note-named', label: `New note “${typedTitle}”`, icon: FilePlus, run: async () => openNote(await createNote(newNoteFolderId, typedTitle)) }]
+          : []),
+      ]
+    : actions
   const folderName = (id: string | null) => (id ? data?.folders.find((f) => f.id === id)?.name : undefined)
 
-  let notes: Note[] = []
+  let allNotes: Note[] = []
   let folders: Folder[] = []
   let boards: Board[] = []
   let tags: { tag: string; count: number }[] = []
-  if (data && q) {
-    notes = sortNotes(data.notes.filter((n) => noteText(n).toLowerCase().includes(q))).slice(0, 8)
-    folders = data.folders.filter((f) => f.name.toLowerCase().includes(q)).slice(0, 5)
-    boards = data.boards.filter((b) => boardTitle(b).toLowerCase().includes(q)).slice(0, 5)
-    const tq = q.replace(/^#/, '')
-    tags = tagCounts(data.notes).filter((t) => t.tag.includes(tq)).slice(0, 5)
+  if (data && terms.length) {
+    // Best matches first: the query in the title, then its words in the title, then in the text
+    allNotes = rankNotes(data.notes, noteText, query)
+    folders = data.folders.filter((f) => hasAllTerms(f.name, terms)).slice(0, 5)
+    boards = data.boards.filter((b) => hasAllTerms(boardTitle(b), terms)).slice(0, 5)
+    const tagTerms = terms.map((t) => t.replace(/^#/, '')).filter(Boolean)
+    tags = tagCounts(data.notes).filter((t) => hasAllTerms(t.tag, tagTerms)).slice(0, 5)
   }
+  // The first few notes, and a row that lists the rest (for this query only)
+  const showAll = allFor === q
+  const notes = showAll ? allNotes : allNotes.slice(0, NOTES_SHOWN)
   // Without a query: the most recently edited notes and boards
   const recent = data && !q
     ? [
@@ -181,8 +207,15 @@ export function CommandPalette({
           {notes.length > 0 && (
             <CommandGroup heading="Notes">
               {notes.map((n) => (
-                <NoteItem key={n.id} note={n} folder={folderName(n.folderId)} query={q} onSelect={run(() => openNote(n.overview ? null : n.id))} />
+                <NoteItem key={n.id} note={n} folder={folderName(n.folderId)} terms={terms} onSelect={run(() => openNote(n.overview ? null : n.id))} />
               ))}
+              {allNotes.length > notes.length && (
+                // Stays in the palette: the rest of the notes appear in place
+                <CommandItem value="notes:show-all" onSelect={() => setAllFor(q)} className="text-muted-foreground" data-show-all>
+                  <ChevronDown />
+                  Show all {allNotes.length} notes
+                </CommandItem>
+              )}
             </CommandGroup>
           )}
           {folders.length > 0 && (
@@ -252,21 +285,22 @@ function Item({
 }
 
 /** A note with its folder, and (while searching) the text around the first match */
-function NoteItem({ note, folder, query, onSelect }: { note: Note; folder?: string; query?: string; onSelect: () => void }) {
+function NoteItem({ note, folder, terms, onSelect }: { note: Note; folder?: string; terms?: string[]; onSelect: () => void }) {
   const title = noteTitle(note)
-  const excerpt = query && !title.toLowerCase().includes(query) ? excerptAround(noteSnippetText(note), query) : null
+  // Not when the title alone shows every word
+  const excerpt = terms && !hasAllTerms(title, terms) ? excerptAround(noteSnippetText(note), title, terms) : null
   return (
     <CommandItem value={'note:' + note.id} onSelect={onSelect} className="items-start">
       <FileText className="mt-0.5" />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
-          <span className="truncate">{query ? <Highlight text={title} query={query} /> : title}</span>
+          <span className="truncate">{terms ? <Highlight text={title} terms={terms} /> : title}</span>
           {/* At most 40% of the row, so a long folder name never squeezes out the title */}
           {folder && <span className="max-w-[40%] shrink-0 truncate text-xs text-muted-foreground">{folder}</span>}
         </span>
         {excerpt && (
           <span className="block truncate text-xs text-muted-foreground">
-            <Highlight text={excerpt} query={query!} />
+            <Highlight text={excerpt} terms={terms!} />
           </span>
         )}
       </span>
@@ -274,23 +308,19 @@ function NoteItem({ note, folder, query, onSelect }: { note: Note; folder?: stri
   )
 }
 
-/** About 60 characters around the first match, so the match is visible in one line */
-function excerptAround(text: string, query: string) {
-  const i = text.toLowerCase().indexOf(query)
-  if (i < 0) return null
-  const start = Math.max(0, i - 24)
-  const flat = text.slice(start, i + query.length + 40).replace(/\s+/g, ' ')
-  return (start > 0 ? '…' : '') + flat
-}
-
-function Highlight({ text, query }: { text: string; query: string }) {
-  const i = text.toLowerCase().indexOf(query)
-  if (i < 0) return <>{text}</>
+/** The text with every word of the query marked */
+function Highlight({ text, terms }: { text: string; terms: string[] }) {
   return (
     <>
-      {text.slice(0, i)}
-      <mark className="rounded-sm bg-amber-200/70 px-0.5 text-foreground dark:bg-amber-400/30">{text.slice(i, i + query.length)}</mark>
-      {text.slice(i + query.length)}
+      {splitMatches(text, terms).map((part, i) =>
+        part.match ? (
+          <mark key={i} className="rounded-sm bg-amber-200/70 px-0.5 text-foreground dark:bg-amber-400/30">
+            {part.text}
+          </mark>
+        ) : (
+          part.text
+        ),
+      )}
     </>
   )
 }
