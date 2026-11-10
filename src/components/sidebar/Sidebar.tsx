@@ -30,6 +30,8 @@ import { holdKeyboard } from '@/lib/keyboard'
 import { plural } from '@/lib/format'
 import { useActivitySeen } from '@/db/activity'
 import { emitAppEvent } from '@/lib/app-events'
+import { RowContextMenu } from '@/components/ItemMenu'
+import { tagMenuEntries } from '@/components/tags/tag-actions'
 
 const EXPANDED_KEY = 'localnotes:expanded'
 const NOT_LOADED: Folder[] = []
@@ -357,18 +359,22 @@ export function Sidebar({ onCollapse }: { onCollapse: () => void }) {
               {tags.length > 0 && (
                 <Section title="Tags" collapsible="tags">
                   {tags.map(({ tag, count }) => (
-                    <div key={tag} className={rowClass(activeTag === tag)}>
-                      <a
-                        href={`#/tag/${encodeURIComponent(tag)}`}
-                        aria-current={activeTag === tag ? 'page' : undefined}
-                        className={rowLinkClass}
-                        style={{ paddingLeft: '0.5rem' }}
-                      >
-                        <Hash className="size-(--icon-sm) shrink-0 text-muted-foreground" />
-                        <span className="min-w-0 flex-1 truncate">{tag}</span>
-                        <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
-                      </a>
-                    </div>
+                    // Right-click (or press and hold) for the tag's menu, the one its page has under ⋯
+                    <RowContextMenu key={tag} entries={tagMenuEntries(tag)}>
+                      <div className={rowClass(activeTag === tag)} data-tag-row={tag}>
+                        <a
+                          href={`#/tag/${encodeURIComponent(tag)}`}
+                          aria-current={activeTag === tag ? 'page' : undefined}
+                          className={rowLinkClass}
+                          style={{ paddingLeft: '0.5rem' }}
+                          draggable={false}
+                        >
+                          <Hash className="size-(--icon-sm) shrink-0 text-muted-foreground" />
+                          <span className="min-w-0 flex-1 truncate">{tag}</span>
+                          <span className="pr-1.5 text-xs text-muted-foreground tabular-nums">{count}</span>
+                        </a>
+                      </div>
+                    </RowContextMenu>
                   ))}
                 </Section>
               )}

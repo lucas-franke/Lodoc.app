@@ -26,7 +26,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{options?.cancel ?? 'Cancel'}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => options?.onConfirm()}>
+            <AlertDialogAction variant={options?.plain ? 'default' : 'destructive'} onClick={() => options?.onConfirm()}>
               {options?.action}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -35,6 +35,11 @@ Write a tag anywhere in the text, like `#idea`, and the note gets it. Typing `#`
 
 Taking a tag out of the text removes it again. Tags added with **Add tag** stay until you remove them there. Tags in code and plain numbers like `#1` don't count.
 
+A tag's page sorts and filters its notes like a folder. The ⋯ beside the tag's name (or a right-click on the tag in the sidebar; press and hold on a phone) changes the tag everywhere:
+
+- **Rename** gives every note the new name, also where the tag is written in the text. If the new name is a tag you already use, the two are merged, after a question.
+- **Remove from all notes** takes the tag off every note, and the message offers **Undo**. Where it is written in a note's text it stays as text.
+
 ## Covers
 
 Every note gets a colour gradient as its cover. Click the cover to pick another gradient, upload an image, drop an image file on it, or remove it. **Shuffle** picks another gradient at random. On cards, a gradient the note got by itself is a thin band of colour at the top; one you picked, or an image, is the card's cover. If you'd rather have covers only where you chose one, turn off *Automatic covers* in [Appearance](../appearance/).
